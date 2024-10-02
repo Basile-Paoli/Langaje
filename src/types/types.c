@@ -82,7 +82,7 @@ void display(var* v){
         case(_string):
             printf("%s\n",v->value._string);
             break;
-        case default:
+        default:
             printf("!Unknown type\n");
             break;
     }
