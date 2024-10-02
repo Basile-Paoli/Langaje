@@ -35,6 +35,9 @@ typedef struct var{
     varValue value;
 }var;
 
+int assignString(var* v, char* value);
+int assign(var* v, void* value);
+void display(var* v);
 
 
 #endif //LANGAJE_TYPES_H
