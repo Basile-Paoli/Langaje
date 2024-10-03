@@ -11,5 +11,6 @@
 #include "types.h"
 
 var add(var *, var *);
+float getNumericValue(var*);
 
 #endif //LANGAJE_FUNCTIONS_H
