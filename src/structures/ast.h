@@ -5,6 +5,15 @@
 #ifndef LANGAJE_AST_H
 #define LANGAJE_AST_H
 
+//Placeholder
+typedef int var;
+typedef enum {
+    INT,
+    FLOAT,
+    STRING,
+    BOOL,
+    VOID,
+} varType;
 typedef enum {
     VARIABLE,
     OPERATOR,
@@ -44,5 +53,15 @@ typedef struct astNode {
 void printAstNode(astNode *node);
 
 void printAST(astNode *root, int depth);
+
+char *operatorToString(operator operator);
+
+astNode *newVariableNode(char *variable);
+
+astNode *newOperatorNode(operator operator);
+
+astNode *newInitializationNode(char *name, int typed, varType type);
+
+void freeAstNode(astNode *node);
 
 #endif
