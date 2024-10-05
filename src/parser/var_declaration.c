@@ -3,17 +3,13 @@
 //
 
 #include "var_declaration.h"
+#include "expression.h"
+#include "../ast/node_initializers.h"
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
 
 //To be implemented
-astNode *parseExpression(TokenList *list, int *pInt);
-
-astNode *parseExpression(TokenList *list, int *pInt) {
-    return NULL;
-}
-
 varType typeFromString(const char *string) {
     return FLOAT;
 }
@@ -36,19 +32,14 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList) {
         // Error Handling
     }
 
-    astNode *assignmentNode = newOperatorNode(ASSIGNMENT);
-    assignmentNode->children = malloc(2 * sizeof(astNode *));
-    assignmentNode->children[0] = initNode;
     ++currentToken;
     astNode *expression = parseExpression(tokenList, &currentToken);
-    assignmentNode->children[1] = expression;
-    assignmentNode->childrenCount = 2;
 
     if (tokenList->tokens[currentToken].type != TOKEN_SEMICOLON) {
         // Error Handling
     }
 
-    return assignmentNode;
+    return newBinaryOperatorNode(TOKEN_EQUAL, initNode, expression);
 }
 
 

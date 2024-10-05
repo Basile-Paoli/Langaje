@@ -18,7 +18,7 @@ int main() {
     add_lexer_rule(l, new_lexer_rule(l, "\"[^\"]*\"", TOKEN_STRING));
 
     add_lexer_rule(l, new_lexer_rule(l, "\\+", TOKEN_ADDITION));
-    add_lexer_rule(l, new_lexer_rule(l, "-", TOKEN_SUBSTRACTION));
+    add_lexer_rule(l, new_lexer_rule(l, "-", TOKEN_SUBTRACTION));
     add_lexer_rule(l, new_lexer_rule(l, "\\*", TOKEN_MULTIPLICATION));
     add_lexer_rule(l, new_lexer_rule(l, "/", TOKEN_DIVISION));
 
