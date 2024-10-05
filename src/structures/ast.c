@@ -4,65 +4,38 @@
 // Created by Basile on 02/10/2024.
 //
 
-#include <stdlib.h>
 #include <stdio.h>
 #include "ast.h"
 
 #define PRINT_SPACE 5
 
 
-void printAST(astNode *root, int space) {
-    if (root == NULL) {
-        return;
+void printAstNode(astNode *node) {
+    switch (node->type) {
+        case VARIABLE:
+            printf("Variable: %s\n", node->value.variable);
+            break;
+        case OPERATOR:
+            printf("Operator: %d\n", node->value.operator);
+            break;
+        case VALUE:
+//            printf("Value: %d\n", node->value.value);
+            break;
+        case INITIALIZATION:
+            printf("Initialization: %s\n", node->value.initialization.name);
+            break;
     }
+}
 
-    space += PRINT_SPACE;
-
-    printAST(root->right, space);
-
-    printf("\n");
-    for (int i = PRINT_SPACE; i < space; i++) {
+void printAST(astNode *root, int depth) {
+    for (int i = PRINT_SPACE; i < depth * PRINT_SPACE; i++) {
         printf(" ");
     }
-    printf("%d\n", root->value.token);
-
-    printAST(root->left, space);
-}
-
-void freeAST(astNode *root) {
-    if (root == NULL) {
-        return;
+    printAstNode(root);
+    for (int i = 0; i < root->childrenCount; i++) {
+        printAST(root->children[i], depth + 1);
     }
-
-    freeAST(root->left);
-    freeAST(root->right);
-    free(root);
 }
 
-
-int main(int argc, char *argv[]) {
-    astNode *root = malloc(sizeof(astNode));
-    root->value.token = 1;
-    //Ignore type
-    root->left = malloc(sizeof(astNode));
-    root->right = malloc(sizeof(astNode));
-    root->right->value.token = 3;
-    root->right->left = NULL;
-    root->right->right = NULL;
-    root->left->value.token = 2;
-    root->left->left = NULL;
-    root->left->right = malloc(sizeof(astNode));
-    root->left->right->value.token = 4;
-    root->left->right->left = NULL;
-    root->left->right->right = malloc(sizeof(astNode));
-    root->left->right->right->value.token = 5;
-    root->left->right->right->left = NULL;
-    root->left->right->right->right = NULL;
-
-
-    printAST(root, 0);
-
-    freeAST(root);
-}
 
 #pragma clang diagnostic pop
