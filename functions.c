@@ -8,7 +8,7 @@
  *
  * GET NUMERIC VALUE
  *
- * */
+ */
 float getNumericValue(var* v) {
     switch (v->type) {
         case _int:    return (float)v->value._int;
@@ -16,6 +16,23 @@ float getNumericValue(var* v) {
         case _char:   return (float)v->value._char;
         default:      return 0;
     }
+}
+
+/*
+ *
+ * STRING CONCAT
+ *
+ */
+int concat(var *result, char *var1, char *var2, char** resultValue){
+    result->type = _string;
+    result->value._string = NULL;
+
+    *resultValue = malloc(strlen(var1) + strlen(var2) + 1);
+
+    strcpy(*resultValue, var1);
+    strcat(*resultValue, var2);
+
+    return 0;
 }
 
 /*
@@ -39,16 +56,11 @@ var add(var *var1, var *var2){
                 assign(&result, &resultValue);
             }
             else if(var2->type == _string) {
-                result.type = _string;
                 sprintf(buffer, "%d", var1->value._int);
+                char *resultValue;
 
-                char *resultValue = malloc(strlen(buffer) + strlen(var2->value._string) + 1);
-                strcpy(resultValue, buffer);
-                strcat(resultValue, var2->value._string);
-
-                // POUR L'INSTANT JE MET DES PRINTF LE TEMPS DE FIX LE ASSIGN
-                printf("%s\n", resultValue);
-                //assign(&result, &resultValue);
+                concat(&result, buffer, var2->value._string, &resultValue);
+                assign(&result, resultValue);
                 free(resultValue);
             }
             else {
@@ -60,16 +72,11 @@ var add(var *var1, var *var2){
 
         case _float:
             if(var2->type == _string) {
-                result.type = _string;
                 sprintf(buffer, "%f", var1->value._float);
+                char *resultValue;
 
-                char *resultValue = malloc(strlen(buffer) + strlen(var2->value._string) + 1);
-                strcpy(resultValue, buffer);
-                strcat(resultValue, var2->value._string);
-
-                // POUR L'INSTANT JE MET DES PRINTF LE TEMPS DE FIX LE ASSIGN
-                printf("%s\n", resultValue);
-                //assign(&result, &resultValue);
+                concat(&result, buffer, var2->value._string, &resultValue);
+                assign(&result, resultValue);
                 free(resultValue);
             }
             else{
@@ -81,26 +88,20 @@ var add(var *var1, var *var2){
 
         case _char:
             if(var2->type == _string) {
-                result.type = _string;
                 sprintf(buffer, "%c", var1->value._char);
+                char *resultValue;
 
-                char *resultValue = malloc(strlen(buffer) + strlen(var2->value._string) + 1);
-                strcpy(resultValue, buffer);
-                strcat(resultValue, var2->value._string);
-
-                // POUR L'INSTANT JE MET DES PRINTF LE TEMPS DE FIX LE ASSIGN
-                printf("%s\n", resultValue);
-                //assign(&result, &resultValue);
+                concat(&result, buffer, var2->value._string, &resultValue);
+                assign(&result, resultValue);
                 free(resultValue);
             }
             else if(var2->type == _char) {
                 result.type = _string;
+                result.value._string = NULL;
                 char *resultValue = malloc(3 * sizeof(char));
                 sprintf(resultValue, "%c%c", var1->value._char, var2->value._char);
 
-                // POUR L'INSTANT JE MET DES PRINTF LE TEMPS DE FIX LE ASSIGN
-                printf("%s\n", resultValue);
-                //assign(&result, &resultValue);
+                assign(&result, resultValue);
                 free(resultValue);
             }
             else if(var2->type == _float) {
@@ -118,50 +119,34 @@ var add(var *var1, var *var2){
         case _string:
             result.type = _string;
             if(var2->type == _int){
-                result.type = _string;
                 sprintf(buffer, "%d", var2->value._int);
+                char *resultValue;
 
-                char *resultValue = malloc(strlen(buffer) + strlen(var1->value._string) + 1);
-                strcpy(resultValue, var1->value._string);
-                strcat(resultValue, buffer);
-
-                // POUR L'INSTANT JE MET DES PRINTF LE TEMPS DE FIX LE ASSIGN
-                printf("%s\n", resultValue);
-                //assign(&result, &resultValue);
+                concat(&result, var1->value._string, buffer, &resultValue);
+                assign(&result, resultValue);
                 free(resultValue);
             }
             else if(var2->type == _float){
-                result.type = _string;
                 sprintf(buffer, "%f", var2->value._float);
+                char *resultValue;
 
-                char *resultValue = malloc(strlen(buffer) + strlen(var1->value._string) + 1);
-                strcpy(resultValue, var1->value._string);
-                strcat(resultValue, buffer);
-
-                // POUR L'INSTANT JE MET DES PRINTF LE TEMPS DE FIX LE ASSIGN
-                printf("%s\n", resultValue);
-                //assign(&result, &resultValue);
+                concat(&result, var1->value._string, buffer, &resultValue);
+                assign(&result, resultValue);
                 free(resultValue);
             }
             else if(var2->type == _char){
                 sprintf(buffer, "%c", var2->value._char);
+                char *resultValue;
 
-                char *resultValue = malloc(strlen(var1->value._string) + strlen(buffer) + 1);
-
-                strcpy(resultValue, var1->value._string);
-                strcat(resultValue, buffer);
-
-                // POUR L'INSTANT JE MET DES PRINTF LE TEMPS DE FIX LE ASSIGN
-                printf("%s\n", resultValue);
-                //assign(&result, &resultValue);
+                concat(&result, var1->value._string, buffer, &resultValue);
+                assign(&result, resultValue);
                 free(resultValue);
             }
             else {
-                char *resultValue = malloc(strlen(var1->value._string) + strlen(var2->value._string) + 1);
-                strcpy(resultValue, var1->value._string);
-                strcat(resultValue, var2->value._string);
+                char *resultValue;
 
-                printf("%s\n", resultValue);
+                concat(&result, var1->value._string, var2->value._string, &resultValue);
+                assign(&result, resultValue);
                 free(resultValue);
             }
             break;
@@ -181,10 +166,26 @@ int main() {
     var b;
     var c;
 
+    /*
+
+    a.type = _float;
+    a.value._float= 1.0;
+
+    a.type = _int;
+    a.value._int= 1;
 
     a.type = _char;
-    a.value._char = 'A';
+    a.value._char= 'A';
 
+    a.type = _string;
+    a.value._string = malloc(strlen("test") + 1);
+    strcpy(a.value._string, "test");
+
+     */
+
+    a.type = _string;
+    a.value._string = malloc(strlen("test") + 1);
+    strcpy(a.value._string, "test");
 
     b.type = _string;
     b.value._string = malloc(strlen("test") + 1);
@@ -192,13 +193,11 @@ int main() {
 
     /*
 
-
     b.type = _float;
     b.value._float= 1.0;
 
     b.type = _int;
     b.value._int= 1;
-
 
     b.type = _char;
     b.value._char= 'A';
@@ -206,7 +205,8 @@ int main() {
     b.type = _string;
     b.value._string = malloc(strlen("test") + 1);
     b.value._string = "test";
-     */
+
+    */
 
     c = add(&a, &b);
 
