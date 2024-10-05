@@ -4,8 +4,22 @@
 
 #ifndef LANGAJE_HASHTABLES_H
 #define LANGAJE_HASHTABLES_H
+#define BASE_CAPACITY 32 //Base capacity for our hashmaps MUST BE POWER OF TWO !!
+#define FNV_OFFSET 14695981039346656037UL // For hashing 
+#define FNV_PRIME 1099511628211UL // For hashing
 
-typedef struct hm hm;
+typedef struct{
+    const char* key;
+    void* value;
+}hm_entry;
+
+typedef struct{
+    hm_entry* entries;
+    int capacity;
+    int length;
+}hm;
+
+
 
 hm* hm_create();
 
@@ -29,5 +43,9 @@ typedef struct{
 hmi hm_iterator(hm* hashtable);
 
 int hm_next(hmi* iterator);
+
+static const char* hm_set_entry(hm_entry* entries, int capacity, const char* key, void* value, int* plength);
+
+static int hm_expand(hm* hashtable);
 
 #endif //LANGAJE_HASHTABLES_H
