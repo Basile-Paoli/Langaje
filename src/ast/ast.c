@@ -120,10 +120,4 @@ void testPrintAst() {
     freeAstNode(root);
 }
 
-int main() {
-    testPrintAst();
-
-    return 0;
-}
-
 #pragma clang diagnostic pop
