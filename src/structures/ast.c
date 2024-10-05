@@ -76,7 +76,7 @@ void printAstNode(astNode *node) {
     }
 }
 
-char *operatorToString(operator operator) {
+const char *operatorToString(operator operator) {
     switch (operator) {
         case ADDITION:
             return "ADDITION";
@@ -105,19 +105,24 @@ void printAST(astNode *root, int depth) {
     }
 }
 
-int main() {
-    // a + b * c
+void testPrintAst() {
     astNode *root = newOperatorNode(ADDITION);
     root->children = malloc(sizeof(astNode *) * 2);
     root->children[0] = newVariableNode("a");
-    root->children[1] = newOperatorNode(MULTIPLICATION);
+    astNode *mul = newOperatorNode(MULTIPLICATION);
+    mul->children = malloc(sizeof(astNode *) * 2);
+    mul->children[0] = newVariableNode("b");
+    mul->children[1] = newVariableNode("c");
+    mul->childrenCount = 2;
+    root->children[1] = mul;
     root->childrenCount = 2;
-    root->children[1]->children = malloc(sizeof(astNode *) * 2);
-    root->children[1]->children[0] = newVariableNode("b");
-    root->children[1]->children[1] = newVariableNode("c");
-    root->children[1]->childrenCount = 2;
     printAST(root, 0);
     freeAstNode(root);
+}
+
+int main() {
+    testPrintAst();
+
     return 0;
 }
 
