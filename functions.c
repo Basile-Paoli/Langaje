@@ -103,54 +103,40 @@ var add(var *var1, var *var2){
 
                 assign(&result, resultValue);
                 free(resultValue);
-            }
-            else if(var2->type == _float) {
-                result.type = _float;
-                float resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
-            }
-            else {
-                result.type = _char;
-                int resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+            }else {
+                if (var2->type == _float) {
+                    result.type = _float;
+                    float resultValue = getNumericValue(var1) + getNumericValue(var2);
+                    assign(&result, &resultValue);
+                } else {
+                    result.type = _char;
+                    int resultValue = getNumericValue(var1) + getNumericValue(var2);
+                    assign(&result, &resultValue);
+                }
             }
             break;
 
         case _string:
-            result.type = _string;
-            if(var2->type == _int){
-                sprintf(buffer, "%d", var2->value._int);
-                char *resultValue;
-
-                concat(&result, var1->value._string, buffer, &resultValue);
-                assign(&result, resultValue);
-                free(resultValue);
-            }
-            else if(var2->type == _float){
-                sprintf(buffer, "%f", var2->value._float);
-                char *resultValue;
-
-                concat(&result, var1->value._string, buffer, &resultValue);
-                assign(&result, resultValue);
-                free(resultValue);
-            }
-            else if(var2->type == _char){
-                sprintf(buffer, "%c", var2->value._char);
-                char *resultValue;
-
-                concat(&result, var1->value._string, buffer, &resultValue);
-                assign(&result, resultValue);
-                free(resultValue);
-            }
-            else {
+            if(var2->type == _string) {
                 char *resultValue;
 
                 concat(&result, var1->value._string, var2->value._string, &resultValue);
                 assign(&result, resultValue);
                 free(resultValue);
+            } else {
+                if (var2->type == _int)
+                    sprintf(buffer, "%d", var2->value._int);
+                else if (var2->type == _float)
+                    sprintf(buffer, "%f", var2->value._float);
+                else if (var2->type == _char)
+                    sprintf(buffer, "%c", var2->value._char);
+
+                char *resultValue;
+                concat(&result, var1->value._string, buffer, &resultValue);
+                assign(&result, resultValue);
+                free(resultValue);
             }
             break;
-
         default:
             result.type = _int;
             int resultValue = 0;
@@ -160,6 +146,8 @@ var add(var *var1, var *var2){
 
     return result;
 }
+
+
 
 int main() {
     var a;
