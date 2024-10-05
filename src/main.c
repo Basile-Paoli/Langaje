@@ -1,7 +1,7 @@
 #include <stdlib.h>
 
-#include "lexer.h"
-#include "token.h"
+#include "lexer/lexer.h"
+#include "lexer/token.h"
 
 int main() {
     
