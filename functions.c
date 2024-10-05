@@ -38,15 +38,17 @@ int concat(var *result, char *var1, char *var2, char** resultValue){
 /*
  *
  * ADD FUNCTION
- * int + int = _int
- * int + float = _float
- * int + str = _str
+ * int + int = int / int + float = float / int + char = char / int + str = str
+ * float = int = float / float + float = float / float + char = float / float + str = str
+ * char + char = str / char + int = char / char + float = float / char + str = str
+ * str + int/char/float = str
  *
  */
 var add(var *var1, var *var2){
     var result;
     char buffer[20];
 
+    // NOTE : gestion d'erreur pour les tableaux
     // Define the type of var to return
     switch (var1->type) {
         case _int:
@@ -87,6 +89,7 @@ var add(var *var1, var *var2){
             break;
 
         case _char:
+            // Faire verification que tjrs dans le tableau ascii
             if(var2->type == _string) {
                 sprintf(buffer, "%c", var1->value._char);
                 char *resultValue;
@@ -138,6 +141,7 @@ var add(var *var1, var *var2){
             }
             break;
         default:
+            // Modifier ce cas quand on aura la gestion d'erreur
             result.type = _int;
             int resultValue = 0;
             assign(&result, &resultValue);
@@ -147,6 +151,64 @@ var add(var *var1, var *var2){
     return result;
 }
 
+/*
+ *
+ * SUBSTRACT FUNCTION
+ *
+ *
+ */
+var subtract(var *var1, var *var2){
+    var result;
+
+    switch(var1->type){
+        case _int:
+            if(var2->type == _int){
+                result.type = _int;
+                int resultValue = getNumericValue(var1) - getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            else if(var2->type == _float){
+                result.type = _float;
+                float resultValue = getNumericValue(var1) - getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            else if(var2->type == _char){
+                result.type = _int;
+                int resultValue = getNumericValue(var1) - getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            break;
+
+        case _float:
+            if(var2->type == _float || var2->type == _int || var2->type == _char) {
+                result.type = _float;
+                float resultValue = getNumericValue(var1) - getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            break;
+
+        case _char:
+            if(var2->type == _float){
+                result.type = _float;
+                float resultValue = getNumericValue(var1) - getNumericValue(var2);
+                assign(&result, &resultValue);
+            } else {
+                result.type = _int;
+                int resultValue = getNumericValue(var1) - getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            break;
+
+
+        default:
+            result.type = _int;
+            int resultValue = 0;
+            assign(&result, &resultValue);
+            break;
+    }
+
+    return result;
+}
 
 
 int main() {
@@ -171,13 +233,12 @@ int main() {
 
      */
 
-    a.type = _string;
-    a.value._string = malloc(strlen("test") + 1);
-    strcpy(a.value._string, "test");
+    a.type = _char;
+    a.value._char= 'A';
 
-    b.type = _string;
-    b.value._string = malloc(strlen("test") + 1);
-    b.value._string = "test";
+    b.type = _char;
+    b.value._char= 'A';
+
 
     /*
 
@@ -196,7 +257,7 @@ int main() {
 
     */
 
-    c = add(&a, &b);
+    c = subtract(&a, &b);
 
     display(&c);
     return 0;
