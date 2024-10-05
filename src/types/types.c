@@ -18,7 +18,7 @@ int assignString(var* v, char* value){
     if(len < 0){
         return 1;
     }
-    if(len != strlen(v->value._string)){
+    if(v->value._string == NULL || len != strlen(v->value._string)){
         v->value._string = (char*) realloc(v->value._string,sizeof(char) * (len + 1));
     }
     if(v->value._string == NULL){
