@@ -249,7 +249,7 @@ var substract(var *var1, var *var2, error *err){
  * float * float = float / float * int = float
  *
  */
-var multipy(var *var1, var *var2, error *err){
+var multiply(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
     err->value = ERR_SUCCESS;
