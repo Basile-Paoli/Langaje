@@ -3,8 +3,34 @@
 //
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "expression.h"
 #include "../ast/node_initializers.h"
+
+
+astNode *parseExpressionInstruction(TokenList *tokenList, error *err) {
+    int currentToken = 0;
+    astNode *node = parseExpression(tokenList, &currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    if (currentToken >= tokenList->nb_tokens) {
+        freeAstNode(node);
+        return endOfInstructionError(err);
+    }
+
+    if (tokenList->tokens[currentToken].type != TOKEN_SEMICOLON) {
+        err->value = ERR_SYNTAX;
+        err->message = malloc(
+                strlen("Expected semicolon, found ") + strlen(tokenList->tokens[currentToken].value) + 1);
+        sprintf(err->message, "Expected semicolon, found %s", tokenList->tokens[currentToken].value);
+        freeAstNode(node);
+        return NULL;
+    }
+    return node;
+}
 
 astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
     astNode *node = parseTerm(tokenList, currentToken, err);
@@ -89,6 +115,9 @@ astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err) {
 
             if (tokenList->tokens[*currentToken].type != TOKEN_RPAREN) {
                 err->value = ERR_SYNTAX;
+                err->message = malloc(
+                        strlen("Expected closing parenthesis, found ") +
+                        strlen(tokenList->tokens[*currentToken].value) + 1);
                 sprintf(err->message, "Expected closing parenthesis, found %s",
                         tokenList->tokens[*currentToken].value);
                 freeAstNode(node);
@@ -101,6 +130,7 @@ astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err) {
         }
         default: {
             err->value = ERR_SYNTAX;
+            err->message = malloc(strlen("Unexpected token ") + strlen(tokenList->tokens[*currentToken].value) + 1);
             sprintf(err->message, "Unexpected token %s", tokenList->tokens[*currentToken].value);
             return NULL;
         }

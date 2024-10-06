@@ -8,6 +8,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 //To be implemented
 varType typeFromString(const char *string) {
@@ -16,7 +17,6 @@ varType typeFromString(const char *string) {
 
 
 astNode *parseVarDeclarationInstruction(TokenList *tokenList, error *err) {
-    // Assert first token is def
     assert(strcmp(tokenList->tokens[0].value, "def") == 0);
 
 
@@ -34,7 +34,7 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, error *err) {
     if (tokenList->tokens[currentToken].type == TOKEN_SEMICOLON) {
         if (initNode->value.initialization.typed == 0) {
             err->value = ERR_SYNTAX;
-            sprintf(err->message, "Cannot declare a variable without a type or an initialization");
+            err->message = strdup("Cannot declare a variable without a type or an initialization");
             freeAstNode(initNode);
             return NULL;
         }
@@ -43,6 +43,8 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, error *err) {
 
     if (tokenList->tokens[currentToken].type != TOKEN_EQUAL) {
         err->value = ERR_SYNTAX;
+        err->message = malloc(
+                strlen("Expected '=' or ';' , got ") + strlen(tokenList->tokens[currentToken].value) + 1);
         sprintf(err->message, "Expected '=' or ';' , got %s",
                 tokenList->tokens[currentToken].value);
         freeAstNode(initNode);
@@ -64,6 +66,8 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, error *err) {
 
     if (tokenList->tokens[currentToken].type != TOKEN_SEMICOLON) {
         err->value = ERR_SYNTAX;
+        err->message = malloc(
+                strlen("Expected ';' , got ") + strlen(tokenList->tokens[currentToken].value) + 1);
         sprintf(err->message, "Expected ';' , got %s",
                 tokenList->tokens[currentToken].value);
 
@@ -98,6 +102,8 @@ astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err
 
     if (tokenList->tokens[*currentToken].type != TOKEN_IDENTIFIER) {
         err->value = ERR_SYNTAX;
+        err->message = malloc(
+                strlen("Expected an identifier, got ") + strlen(tokenList->tokens[*currentToken].value) + 1);
         sprintf(err->message, "Expected an identifier, got %s",
                 tokenList->tokens[*currentToken].value);
         return NULL;

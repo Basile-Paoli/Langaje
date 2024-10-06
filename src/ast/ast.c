@@ -15,8 +15,7 @@
 astNode *newVariableNode(char *variable) {
     astNode *node = malloc(sizeof(astNode));
     node->type = VARIABLE;
-    node->value.variable = malloc(sizeof(char) * strlen(variable));
-    strcpy(node->value.variable, variable);
+    node->value.variable = strdup(variable);
     node->children = NULL;
     node->childrenCount = 0;
     return node;
