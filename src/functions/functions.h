@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "types.h"
+#include "../types/types.h"
 
 var add(var *, var *);
 var substract(var *, var *);
