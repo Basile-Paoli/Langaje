@@ -16,6 +16,7 @@ var substract(var *, var *, error *);
 var multiply(var *, var *, error *);
 var divide(var *, var *, error *);
 var modulo(var *, var *, error *);
+var power(var *, var *, error *);
 int concat(var *, char *, char *, char**);
 float getNumericValue(var*);
 
