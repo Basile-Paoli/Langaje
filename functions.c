@@ -154,7 +154,9 @@ var add(var *var1, var *var2){
 /*
  *
  * SUBSTRACT FUNCTION
- *
+ * int - int = int / int - float = float / int - char = int
+ * float - int = float / float - char = float / float - float = float
+ * char - int = int / char - float = float / char - char = int
  *
  */
 var subtract(var *var1, var *var2){
@@ -198,7 +200,46 @@ var subtract(var *var1, var *var2){
                 assign(&result, &resultValue);
             }
             break;
+        default:
+            result.type = _int;
+            int resultValue = 0;
+            assign(&result, &resultValue);
+            break;
+    }
 
+    return result;
+}
+
+/*
+ *
+ * MULTIPLY FUNCTION
+ * int * int = int / int * float = float
+ * float * float = float / float * int = float
+ *
+ */
+var multipy(var *var1, var *var2){
+    var result;
+
+    switch(var1->type){
+        case _int:
+            if(var2->type == _float){
+                result.type = _float;
+                float resultValue = getNumericValue(var1) * getNumericValue(var2);
+                assign(&result, &resultValue);
+            } else {
+                result.type = _int;
+                int resultValue = getNumericValue(var1) * getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            break;
+
+        case _float:
+            if(var2->type == _float || var2->type == _int){
+                result.type = _float;
+                float resultValue = getNumericValue(var1) * getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            break;
 
         default:
             result.type = _int;
@@ -209,6 +250,35 @@ var subtract(var *var1, var *var2){
 
     return result;
 }
+
+/*
+ *
+ * DIVIDE FUNCTION
+ * float
+ *
+ */
+var divide(var *var1, var *var2){
+    var result;
+
+    switch(var1->type) {
+        case _int: case _float:
+            if(getNumericValue(var2) > 0) {
+                result.type = _float;
+                float resultValue = getNumericValue(var1) / getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            break;
+
+        default:
+            result.type = _int;
+            int resultValue = 0;
+            assign(&result, &resultValue);
+            break;
+    }
+
+    return result;
+}
+
 
 
 int main() {
@@ -233,11 +303,11 @@ int main() {
 
      */
 
-    a.type = _char;
-    a.value._char= 'A';
 
-    b.type = _char;
-    b.value._char= 'A';
+    a.type = _float;
+    a.value._float= 5.0;
+    b.type = _int;
+    b.value._int= 4;
 
 
     /*
@@ -257,7 +327,7 @@ int main() {
 
     */
 
-    c = subtract(&a, &b);
+    c = divide(&a, &b);
 
     display(&c);
     return 0;
