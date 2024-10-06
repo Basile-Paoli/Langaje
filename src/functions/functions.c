@@ -323,3 +323,35 @@ var divide(var *var1, var *var2, error *err){
 
     return result;
 }
+
+/*
+ *
+ * MODULO
+ *
+ */
+var modulo(var *var1, var *var2, error *err){
+    var result;
+    result.type = _int;
+    err->value = ERR_SUCCESS;
+
+    switch(var1->type){
+        case _int:
+            if(getNumericValue(var2) == 0){
+                assignErrorMessage(err,"Divider cannot be equal to 0");
+            }
+            else if(var2->type == _int) {
+                result.type = _int;
+                int resultValue = var1->value._int % var2->value._int;
+                assign(&result, &resultValue);
+            }
+            else {
+                assignErrorMessage(err, "Parameters must be integers");
+            }
+            break;
+        default:
+            assignErrorMessage(err, "Parameters must be integers");
+            break;
+    }
+
+    return result;
+}
