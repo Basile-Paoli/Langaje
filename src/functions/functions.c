@@ -37,6 +37,19 @@ int concat(var *result, char *var1, char *var2, char** resultValue){
 
 /*
  *
+ * ASSIGN MESSAGE TO ERROR
+ *
+ * */
+int assignErrorMessage(error *err, char *msg){
+    err->value = ERR_SYNTAX;
+    err->message = malloc(strlen(msg) + 1);
+    strcpy(err->message, msg);
+
+    return 0;
+}
+
+/*
+ *
  * ADD FUNCTION
  * int + int = int / int + float = float / int + char = char / int + str = str
  * float = int = float / float + float = float / float + char = float / float + str = str
@@ -44,11 +57,12 @@ int concat(var *result, char *var1, char *var2, char** resultValue){
  * str + int/char/float = str
  *
  */
-var add(var *var1, var *var2){
+var add(var *var1, var *var2, error *err){
     var result;
+    result.type = _int;
+    err->value = ERR_SUCCESS;
     char buffer[20];
 
-    // NOTE : gestion d'erreur pour les tableaux
     // Define the type of var to return
     switch (var1->type) {
         case _int:
@@ -65,10 +79,13 @@ var add(var *var1, var *var2){
                 assign(&result, resultValue);
                 free(resultValue);
             }
-            else {
+            else if(var2->type == _char || var2->type == _int){
                 result.type = var2->type == _char ? _char : _int;
                 int resultValue = getNumericValue(var1) + getNumericValue(var2);
                 assign(&result, &resultValue);
+            }
+            else {
+                assignErrorMessage(err, "Please specify a valid type (int, float, string, char)");
             }
             break;
 
@@ -81,10 +98,13 @@ var add(var *var1, var *var2){
                 assign(&result, resultValue);
                 free(resultValue);
             }
-            else{
+            else if(var2->type == _float || var2->type == _int || var2->type == _char){
                 result.type = _float ;
                 float resultValue = getNumericValue(var1) + getNumericValue(var2);
                 assign(&result, &resultValue);
+            }
+            else {
+                assignErrorMessage(err, "Please specify a valid type (int, float, string, char)");
             }
             break;
 
@@ -106,16 +126,18 @@ var add(var *var1, var *var2){
 
                 assign(&result, resultValue);
                 free(resultValue);
-            }else {
-                if (var2->type == _float) {
-                    result.type = _float;
-                    float resultValue = getNumericValue(var1) + getNumericValue(var2);
-                    assign(&result, &resultValue);
-                } else {
-                    result.type = _char;
-                    int resultValue = getNumericValue(var1) + getNumericValue(var2);
-                    assign(&result, &resultValue);
-                }
+            }else if (var2->type == _float) {
+                result.type = _float;
+                float resultValue = getNumericValue(var1) + getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            else if(var2->type == _int){
+                result.type = _char;
+                int resultValue = getNumericValue(var1) + getNumericValue(var2);
+                assign(&result, &resultValue);
+            }
+            else {
+                assignErrorMessage(err, "Please specify a valid type (int, float, string, char)");
             }
             break;
 
@@ -133,7 +155,10 @@ var add(var *var1, var *var2){
                     sprintf(buffer, "%f", var2->value._float);
                 else if (var2->type == _char)
                     sprintf(buffer, "%c", var2->value._char);
-
+                else {
+                    assignErrorMessage(err, "Please specify a valid type (int, float, string, char)");
+                    break;
+                }
                 char *resultValue;
                 concat(&result, var1->value._string, buffer, &resultValue);
                 assign(&result, resultValue);
@@ -141,10 +166,7 @@ var add(var *var1, var *var2){
             }
             break;
         default:
-            // Modifier ce cas quand on aura la gestion d'erreur
-            result.type = _int;
-            int resultValue = 0;
-            assign(&result, &resultValue);
+            assignErrorMessage(err, "Please specify a valid type (int, float, char, string)");
             break;
     }
 
@@ -159,8 +181,10 @@ var add(var *var1, var *var2){
  * char - int = int / char - float = float / char - char = int
  *
  */
-var subtract(var *var1, var *var2){
+var substract(var *var1, var *var2, error *err){
     var result;
+    result.type = _int;
+    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int:
@@ -179,6 +203,9 @@ var subtract(var *var1, var *var2){
                 int resultValue = getNumericValue(var1) - getNumericValue(var2);
                 assign(&result, &resultValue);
             }
+            else {
+                assignErrorMessage(err, "Please specify a valid type (int, float, char)");
+            }
             break;
 
         case _float:
@@ -187,6 +214,9 @@ var subtract(var *var1, var *var2){
                 float resultValue = getNumericValue(var1) - getNumericValue(var2);
                 assign(&result, &resultValue);
             }
+            else {
+                assignErrorMessage(err, "Please specify a valid type (int, float, char)");
+            }
             break;
 
         case _char:
@@ -194,16 +224,18 @@ var subtract(var *var1, var *var2){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) - getNumericValue(var2);
                 assign(&result, &resultValue);
-            } else {
+            }
+            else if(var2->type == _int || var2->type == _char){
                 result.type = _int;
                 int resultValue = getNumericValue(var1) - getNumericValue(var2);
                 assign(&result, &resultValue);
             }
+            else {
+                assignErrorMessage(err, "Please specify a valid type (int, float, char)");
+            }
             break;
         default:
-            result.type = _int;
-            int resultValue = 0;
-            assign(&result, &resultValue);
+            assignErrorMessage(err, "Please specify a valid type (int, float, char)");
             break;
     }
 
@@ -217,8 +249,10 @@ var subtract(var *var1, var *var2){
  * float * float = float / float * int = float
  *
  */
-var multipy(var *var1, var *var2){
+var multipy(var *var1, var *var2, error *err){
     var result;
+    result.type = _int;
+    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int:
@@ -226,10 +260,14 @@ var multipy(var *var1, var *var2){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) * getNumericValue(var2);
                 assign(&result, &resultValue);
-            } else {
+            }
+            else if(var2->type == _int) {
                 result.type = _int;
                 int resultValue = getNumericValue(var1) * getNumericValue(var2);
                 assign(&result, &resultValue);
+            }
+            else {
+                assignErrorMessage(err, "Please specify a valid type (float or int)");
             }
             break;
 
@@ -239,12 +277,13 @@ var multipy(var *var1, var *var2){
                 float resultValue = getNumericValue(var1) * getNumericValue(var2);
                 assign(&result, &resultValue);
             }
+            else {
+                assignErrorMessage(err, "Please specify a valid type (float or int)");
+            }
             break;
 
         default:
-            result.type = _int;
-            int resultValue = 0;
-            assign(&result, &resultValue);
+            assignErrorMessage(err, "Please specify a valid type (float or int)");
             break;
     }
 
@@ -257,22 +296,28 @@ var multipy(var *var1, var *var2){
  * float
  *
  */
-var divide(var *var1, var *var2){
+var divide(var *var1, var *var2, error *err){
     var result;
+    result.type = _int;
+    err->value = ERR_SUCCESS;
 
     switch(var1->type) {
         case _int: case _float:
-            if(getNumericValue(var2) > 0) {
+            if(getNumericValue(var2) == 0){
+                assignErrorMessage(err,"Divider cannot be equal to 0");
+            }
+            else if(var2->type == _int || var2->type == _float) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) / getNumericValue(var2);
                 assign(&result, &resultValue);
             }
+            else {
+                assignErrorMessage(err, "Please specify a valid type (float or int)");
+            }
             break;
 
         default:
-            result.type = _int;
-            int resultValue = 0;
-            assign(&result, &resultValue);
+            assignErrorMessage(err, "Please specify a valid type (float or int)");
             break;
     }
 
