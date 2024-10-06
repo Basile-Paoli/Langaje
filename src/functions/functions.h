@@ -9,11 +9,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../types/types.h"
+#include "../errors/errors.h"
 
-var add(var *, var *);
-var substract(var *, var *);
-var multipy(var *, var *);
-var divide(var *, var *);
+var add(var *, var *, error *);
+var substract(var *, var *, error *);
+var multipy(var *, var *, error *);
+var divide(var *, var *, error *);
 int concat(var *, char *, char *, char**);
 float getNumericValue(var*);
 
