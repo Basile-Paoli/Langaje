@@ -7,7 +7,8 @@
 
 #include "../ast/ast.h"
 #include "../lexer/token.h"
+#include "../errors/errors.h"
 
-astNode *parse(TokenList *tokenList);
+astNode *parse(TokenList *tokenList, error *err);
 
 #endif //LANGAJE_PARSER_H

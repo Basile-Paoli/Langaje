@@ -8,9 +8,10 @@
 
 #include "../ast/ast.h"
 #include "../lexer/token.h"
+#include "../errors/errors.h"
 
-astNode *parseVarDeclarationInstruction(TokenList *tokenList);
+astNode *parseVarDeclarationInstruction(TokenList *tokenList, error *err);
 
-astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken);
+astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err);
 
 #endif //LANGAJE_VAR_DECLARATION_H

@@ -47,6 +47,8 @@ astNode *newInitializationNode(char *name, int typed, varType type) {
 
 
 void freeAstNode(astNode *node) {
+    if (node == NULL) return;
+
     if (node->type == VARIABLE) {
         free(node->value.variable);
     } else if (node->type == INITIALIZATION) {

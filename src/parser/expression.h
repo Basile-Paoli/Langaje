@@ -7,13 +7,15 @@
 
 #include "../ast/ast.h"
 #include "../lexer/token.h"
+#include "../errors/errors.h"
 
-astNode *parseExpression(TokenList *tokenList, int *currentToken);
 
-astNode *parseTerm(TokenList *tokenList, int *currentToken);
+astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err);
 
-astNode *parseFactor(TokenList *tokenList, int *currentToken);
+astNode *parseTerm(TokenList *tokenList, int *currentToken, error *err);
 
-astNode *parseExponent(TokenList *tokenList, int *currentToken);
+astNode *parseFactor(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err);
 
 #endif //LANGAJE_EXPRESSION_H
