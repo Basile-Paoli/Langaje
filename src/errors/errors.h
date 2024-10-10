@@ -1,4 +1,3 @@
-
 //
 // Created by user on 10/6/24.
 //
@@ -9,6 +8,7 @@
 typedef enum {
     ERR_SUCCESS,
     ERR_SYNTAX,
+    ERR_END_OF_INPUT,
 } errorValue;
 
 typedef struct {
@@ -16,5 +16,6 @@ typedef struct {
     char *message;
 } error;
 
+void *endOfInputError(error *err);
 
 #endif //LANGAJE_ERRORS_H

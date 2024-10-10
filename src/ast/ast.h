@@ -5,15 +5,8 @@
 #ifndef LANGAJE_AST_H
 #define LANGAJE_AST_H
 
-//Placeholder
-typedef int var;
-typedef enum {
-    INT,
-    FLOAT,
-    STRING,
-    BOOL,
-    VOID,
-} varType;
+#include "../types/types.h"
+
 typedef enum {
     VARIABLE,
     OPERATOR,
@@ -61,6 +54,8 @@ astNode *newVariableNode(char *variable);
 astNode *newOperatorNode(operator operator);
 
 astNode *newInitializationNode(char *name, int typed, varType type);
+
+astNode *newValueNode(var value);
 
 void freeAstNode(astNode *node);
 

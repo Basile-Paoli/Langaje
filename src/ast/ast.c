@@ -15,8 +15,7 @@
 astNode *newVariableNode(char *variable) {
     astNode *node = malloc(sizeof(astNode));
     node->type = VARIABLE;
-    node->value.variable = malloc(sizeof(char) * strlen(variable));
-    strcpy(node->value.variable, variable);
+    node->value.variable = strdup(variable);
     node->children = NULL;
     node->childrenCount = 0;
     return node;
@@ -46,7 +45,19 @@ astNode *newInitializationNode(char *name, int typed, varType type) {
 }
 
 
+astNode *newValueNode(var value) {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = VALUE;
+    node->value.value = value;
+    node->children = NULL;
+    node->childrenCount = 0;
+    return node;
+}
+
+
 void freeAstNode(astNode *node) {
+    if (node == NULL) return;
+
     if (node->type == VARIABLE) {
         free(node->value.variable);
     } else if (node->type == INITIALIZATION) {
@@ -59,6 +70,38 @@ void freeAstNode(astNode *node) {
     free(node);
 }
 
+void printValue(var value) {
+    switch (value.type) {
+        case _int:
+            printf("%d", value.value._int);
+            break;
+
+        case _float:
+            printf("%f", value.value._float);
+            break;
+
+        case _char:
+            printf("%c", value.value._char);
+            break;
+
+        case _string:
+            printf("%s", value.value._string);
+            break;
+        case _array:
+            printf("[");
+            for (int i = 0; i < value.value._array->length; i++) {
+                printValue(value.value._array->values[i]);
+                if (i < value.value._array->length - 1) {
+                    printf(", ");
+                }
+            }
+            printf("]");
+            break;
+
+    }
+    printf("\n");
+}
+
 void printAstNode(astNode *node) {
     switch (node->type) {
         case VARIABLE:
@@ -68,7 +111,7 @@ void printAstNode(astNode *node) {
             printf("Operator: %s\n", operatorToString(node->value.operator));
             break;
         case VALUE:
-//            printf("Value: %d\n", node->value.value);
+            printValue(node->value.value);
             break;
         case INITIALIZATION:
             printf("Initialization: %s\n", node->value.initialization.name);
@@ -94,6 +137,7 @@ const char *operatorToString(operator operator) {
             return "ASSIGNMENT";
     }
 }
+
 
 void printAST(astNode *root, int depth) {
     for (int i = 0; i < depth * PRINT_SPACE; i++) {
