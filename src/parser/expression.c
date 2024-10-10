@@ -9,26 +9,26 @@
 #include "../ast/node_initializers.h"
 
 
-astNode *parseExpressionInstruction(TokenList *tokenList, error *err) {
-    int currentToken = 0;
-    astNode *node = parseExpression(tokenList, &currentToken, err);
+astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, error *err) {
+    astNode *node = parseExpression(tokenList, currentToken, err);
     if (err->value != ERR_SUCCESS) {
         return NULL;
     }
 
-    if (currentToken >= tokenList->nb_tokens) {
+    if (*currentToken >= tokenList->nb_tokens) {
         freeAstNode(node);
-        return endOfInstructionError(err);
+        return endOfInputError(err);
     }
 
-    if (tokenList->tokens[currentToken].type != TOKEN_SEMICOLON) {
+    if (tokenList->tokens[*currentToken].type != TOKEN_SEMICOLON) {
         err->value = ERR_SYNTAX;
         err->message = malloc(
-                strlen("Expected semicolon, found ") + strlen(tokenList->tokens[currentToken].value) + 1);
-        sprintf(err->message, "Expected semicolon, found %s", tokenList->tokens[currentToken].value);
+                strlen("Expected semicolon, found ") + strlen(tokenList->tokens[*currentToken].value) + 1);
+        sprintf(err->message, "Expected semicolon, found %s", tokenList->tokens[*currentToken].value);
         freeAstNode(node);
         return NULL;
     }
+    ++*currentToken;
     return node;
 }
 
@@ -94,11 +94,11 @@ astNode *parseFactor(TokenList *tokenList, int *currentToken, error *err) {
 
 astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err) {
     if (*currentToken >= tokenList->nb_tokens) {
-        return endOfInstructionError(err);
+        return endOfInputError(err);
     }
     switch (tokenList->tokens[*currentToken].type) {
         case TOKEN_NUMBER: {
-            return numberTokenToNode(tokenList->tokens[(*currentToken)++]);
+            return intTokenToNode(tokenList->tokens[(*currentToken)++]);
         }
         case TOKEN_IDENTIFIER: {
             return identifierTokenToNode(tokenList->tokens[(*currentToken)++]);

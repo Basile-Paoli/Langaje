@@ -3,6 +3,7 @@
 //
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "node_initializers.h"
 
 operator tokenToOperator(TokenType type) {
@@ -29,17 +30,21 @@ astNode *newBinaryOperatorNode(TokenType token, astNode *left, astNode *right) {
     node->children = malloc(2 * sizeof(astNode *));
     node->children[0] = left;
     node->children[1] = right;
+    node->childrenCount = 2;
     return node;
 }
 
-astNode *numberTokenToNode(Token token) {
-    return NULL;
+astNode *intTokenToNode(Token token) {
+    var value = {.value._int = atoi(token.value), .type = _int};
+    return newValueNode(value);
 }
 
 astNode *identifierTokenToNode(Token token) {
-    return NULL;
+    return newVariableNode(token.value);
 }
 
 astNode *stringTokenToNode(Token token) {
-    return NULL;
+    //Remove the quotes
+    token.value[strlen(token.value) - 1] = '\0';
+    return newValueNode((var) {.value._string = token.value + 1, .type = _string});
 }

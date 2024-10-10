@@ -9,6 +9,6 @@
 #include "../lexer/token.h"
 #include "../errors/errors.h"
 
-astNode *parseAssignmentInstruction(TokenList *tokenList, error *err);
+astNode *parseAssignmentInstruction(TokenList *tokenList, int *currentToken, error *err);
 
 #endif //LANGAJE_ASSIGNMENT_H

@@ -5,8 +5,8 @@
 #include <string.h>
 #include "errors.h"
 
-void *endOfInstructionError(error *err) {
+void *endOfInputError(error *err) {
     err->value = ERR_SYNTAX;
-    err->message = strdup("End of instruction expected");
+    err->message = strdup("Unexpected end of input");
     return NULL;
 }

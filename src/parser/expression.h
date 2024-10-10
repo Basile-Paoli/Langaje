@@ -18,6 +18,6 @@ astNode *parseFactor(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err);
 
-astNode *parseExpressionInstruction(TokenList *tokenList, error *err);
+astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, error *err);
 
 #endif //LANGAJE_EXPRESSION_H
