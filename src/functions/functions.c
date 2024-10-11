@@ -368,15 +368,16 @@ var power(var *var1, var *var2, error *err){
     err->value = ERR_SUCCESS;
 
     switch (var1->type){
-        case _int:
-            if(var2->type == _int){
-               result.type = _int;
-               int resultValue = getNumericValue(var1);
-
-               for(int i = 1; i < getNumericValue(var2); i++)
-                   resultValue *= getNumericValue(var1);
-
-                assign(&result, &resultValue);
+        case _int: case _float:
+            if(var2->type == _int || var2->type == _float){
+               result.type = (var2->type == _float || var1->type == _float) ? _float : _int;
+               if(var2->type == _float || var1->type == _float) {
+                   float resultValue = pow(getNumericValue(var1), getNumericValue(var2));
+                   assign(&result, &resultValue);
+               } else {
+                   int resultValue = pow(getNumericValue(var1), getNumericValue(var2));
+                   assign(&result, &resultValue);
+               }
             }
             else {
                 assignErrorMessage(err, "Please specify a valid type (float or int)");
