@@ -361,7 +361,6 @@ var modulo(var *var1, var *var2, error *err){
  * POWER FUNCTION
  *
  */
-// PRENDRE LE CAS DES FLOATS
 var power(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
@@ -386,6 +385,66 @@ var power(var *var1, var *var2, error *err){
         default:
             assignErrorMessage(err, "Please specify a valid type (float or int)");
             break;
+    }
+
+    return result;
+}
+
+/*
+ *
+ * AND FUNCTION
+ *
+ */
+var logicalAnd(var *var1, var *var2, error *err){
+    var result;
+    result.type = _int;
+    err->value = ERR_SUCCESS;
+
+    if(var1->type == _int && var2->type == _int){
+        int resultValue = var1->value._int & var2->value._int;
+        assign(&result, &resultValue);
+    } else {
+        assignErrorMessage(err, "Invalid type: Both variables must be of type int.");
+    }
+
+    return result;
+}
+
+/*
+ *
+ * OR FUNCTION
+ *
+ */
+var logicalOr(var *var1, var *var2, error *err){
+    var result;
+    result.type = _int;
+    err->value = ERR_SUCCESS;
+
+    if(var1->type == _int && var2->type == _int){
+        int resultValue = var1->value._int | var2->value._int;
+        assign(&result, &resultValue);
+    } else {
+        assignErrorMessage(err, "Invalid type: Both variables must be of type int.");
+    }
+
+    return result;
+}
+
+/*
+ *
+ * SQRT FUNCTION
+ *
+ */
+var squareroot(var *var1, error *err){
+    var result;
+    result.type = _float;
+    err->value = ERR_SUCCESS;
+
+    if(var1->type == _int || var1->type == _float){
+        float resultValue = sqrtf(getNumericValue(var1));
+        assign(&result, &resultValue);
+    } else {
+        assignErrorMessage(err, "Please specify a valid type (float or int)");
     }
 
     return result;
