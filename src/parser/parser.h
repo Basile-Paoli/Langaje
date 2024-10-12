@@ -12,6 +12,7 @@
 typedef struct {
     astNode **instructions;
     int instructionsCount;
+    int capacity;
 } ParseResult;
 
 ParseResult *parse(TokenList *tokenList, error *err);

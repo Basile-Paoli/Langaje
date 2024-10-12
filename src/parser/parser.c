@@ -3,7 +3,6 @@
 //
 
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include "parser.h"
@@ -24,17 +23,23 @@ int isAssignment(TokenList *tokenList, error *err) {
     }
 }
 
+ParseResult *newParseResult(int capacity) {
+    assert(capacity > 0);
+    ParseResult *parseResult = malloc(sizeof(ParseResult));
+    parseResult->instructions = malloc(sizeof(astNode *) * capacity);
+    parseResult->instructionsCount = 0;
+    parseResult->capacity = capacity;
+    return parseResult;
+}
+
 ParseResult *appendInstruction(ParseResult *parseResult, astNode *instruction) {
-    if (parseResult->instructions == NULL) {
-        parseResult->instructions = malloc(sizeof(astNode *));
-        parseResult->instructions[0] = instruction;
-        parseResult->instructionsCount = 1;
-    } else {
-        parseResult->instructions = realloc(parseResult->instructions,
-                                            sizeof(astNode *) * (parseResult->instructionsCount + 1));
-        parseResult->instructions[parseResult->instructionsCount] = instruction;
-        parseResult->instructionsCount++;
+    assert(parseResult != NULL);
+    if (parseResult->instructionsCount == parseResult->capacity) {
+        parseResult->capacity *= 2;
+        parseResult->instructions = realloc(parseResult->instructions, sizeof(astNode *) * parseResult->capacity);
     }
+    parseResult->instructions[parseResult->instructionsCount] = instruction;
+    parseResult->instructionsCount++;
     return parseResult;
 }
 
@@ -48,9 +53,7 @@ void freeParseResult(ParseResult *parseResult) {
 
 
 ParseResult *parse(TokenList *tokenList, error *err) {
-    ParseResult *parseResult = malloc(sizeof(ParseResult));
-    parseResult->instructions = NULL;
-    parseResult->instructionsCount = 0;
+    ParseResult *parseResult = newParseResult(10);
     int currentToken = 0;
     while (currentToken < tokenList->nb_tokens) {
         astNode *instruction = parseInstruction(tokenList, &currentToken, err);
