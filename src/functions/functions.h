@@ -18,6 +18,9 @@ var multiply(var *, var *, error *);
 var divide(var *, var *, error *);
 var modulo(var *, var *, error *);
 var power(var *, var *, error *);
+var logicalAnd(var *, var*, error *);
+var logicalOr(var *, var *, error *);
+var squareroot(var *, error *);
 int concat(var *, char *, char *, char**);
 float getNumericValue(var*);
 
