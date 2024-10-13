@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "expression.h"
 #include "../ast/node_initializers.h"
 
@@ -92,6 +93,7 @@ astNode *parseFactor(TokenList *tokenList, int *currentToken, error *err) {
     return node;
 }
 
+
 astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err) {
     if (*currentToken >= tokenList->nb_tokens) {
         return endOfInputError(err);
@@ -107,26 +109,7 @@ astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err) {
             return stringTokenToNode(tokenList->tokens[(*currentToken)++]);
         }
         case TOKEN_LPAREN: {
-            ++*currentToken;
-            astNode *node = parseExpression(tokenList, currentToken, err);
-            if (err->value != ERR_SUCCESS) {
-                return NULL;
-            }
-
-            if (tokenList->tokens[*currentToken].type != TOKEN_RPAREN) {
-                err->value = ERR_SYNTAX;
-                err->message = malloc(
-                        strlen("Expected closing parenthesis, found ") +
-                        strlen(tokenList->tokens[*currentToken].value) + 1);
-                sprintf(err->message, "Expected closing parenthesis, found %s",
-                        tokenList->tokens[*currentToken].value);
-                freeAstNode(node);
-                return NULL;
-            }
-
-            ++*currentToken;
-
-            return node;
+            return parseParenthesisExpression(tokenList, currentToken, err);
         }
         default: {
             err->value = ERR_SYNTAX;
@@ -135,4 +118,32 @@ astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err) {
             return NULL;
         }
     }
+}
+
+astNode *parseParenthesisExpression(TokenList *tokenList, int *currentToken, error *err) {
+    assert(tokenList->tokens[*currentToken].type == TOKEN_LPAREN);
+    ++*currentToken;
+    astNode *node = parseExpression(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    if (*currentToken >= tokenList->nb_tokens) {
+        return endOfInputError(err);
+    }
+
+    if (tokenList->tokens[*currentToken].type != TOKEN_RPAREN) {
+        err->value = ERR_SYNTAX;
+        err->message = malloc(
+                strlen("Expected closing parenthesis, found ") +
+                strlen(tokenList->tokens[*currentToken].value) + 1);
+        sprintf(err->message, "Expected closing parenthesis, found %s",
+                tokenList->tokens[*currentToken].value);
+        freeAstNode(node);
+        return NULL;
+    }
+
+    ++*currentToken;
+
+    return node;
 }

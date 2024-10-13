@@ -20,4 +20,6 @@ astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, error *err);
 
+astNode *parseParenthesisExpression(TokenList *tokenList, int *currentToken, error *err);
+
 #endif //LANGAJE_EXPRESSION_H

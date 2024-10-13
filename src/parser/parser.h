@@ -9,12 +9,12 @@
 #include "../lexer/token.h"
 #include "../errors/errors.h"
 
-typedef struct {
-    astNode **instructions;
-    int instructionsCount;
-} ParseResult;
 
-ParseResult *parse(TokenList *tokenList, error *err);
+InstructionBlock *parse(TokenList *tokenList, error *err);
+
+InstructionBlock *parseInstructions(TokenList *tokenList, int *currentToken, error *err);
+
+InstructionBlock *parseInstructionBlockWithBraces(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err);
 
