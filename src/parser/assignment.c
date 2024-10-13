@@ -15,7 +15,7 @@ astNode *parseAssignmentInstruction(TokenList *tokenList, int *currentToken, err
     assert(tokenList->tokens[*currentToken].type == TOKEN_IDENTIFIER);
     assert(tokenList->tokens[*currentToken + 1].type == TOKEN_EQUAL);
 
-    astNode *variable = newVariableNode(tokenList->tokens[0].value);
+    astNode *variable = newVariableNode(tokenList->tokens[*currentToken].value);
     *currentToken += 2;
 
 

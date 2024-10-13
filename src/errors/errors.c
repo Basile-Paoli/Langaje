@@ -6,7 +6,7 @@
 #include "errors.h"
 
 void *endOfInputError(error *err) {
-    err->value = ERR_SYNTAX;
+    err->value = ERR_END_OF_INPUT;
     err->message = strdup("Unexpected end of input");
     return NULL;
 }

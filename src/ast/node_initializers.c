@@ -44,7 +44,10 @@ astNode *identifierTokenToNode(Token token) {
 }
 
 astNode *stringTokenToNode(Token token) {
-    //Remove the quotes
+    // Remove the quotes
     token.value[strlen(token.value) - 1] = '\0';
-    return newValueNode((var) {.value._string = token.value + 1, .type = _string});
+    return newValueNode((var) {
+            .value._string = strndup(token.value + 1, strlen(token.value) - 2),
+            .type = _string
+    });
 }

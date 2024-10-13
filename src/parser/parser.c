@@ -9,13 +9,15 @@
 #include "var_declaration.h"
 #include "expression.h"
 #include "assignment.h"
+#include "condition.h"
 
-int isAssignment(TokenList *tokenList, error *err) {
-    if (tokenList->nb_tokens < 3) {
+
+int isAssignment(TokenList *tokenList, int *currentToken, error *err) {
+    if (*currentToken + 1 >= tokenList->nb_tokens) {
         return 0;
     }
-    Token first = tokenList->tokens[0];
-    Token second = tokenList->tokens[1];
+    Token first = tokenList->tokens[*currentToken];
+    Token second = tokenList->tokens[*currentToken + 1];
     if (first.type == TOKEN_IDENTIFIER && second.type == TOKEN_EQUAL) {
         return 1;
     } else {
@@ -23,47 +25,55 @@ int isAssignment(TokenList *tokenList, error *err) {
     }
 }
 
-ParseResult *newParseResult(int capacity) {
-    assert(capacity > 0);
-    ParseResult *parseResult = malloc(sizeof(ParseResult));
-    parseResult->instructions = malloc(sizeof(astNode *) * capacity);
-    parseResult->instructionsCount = 0;
-    parseResult->capacity = capacity;
-    return parseResult;
-}
 
-ParseResult *appendInstruction(ParseResult *parseResult, astNode *instruction) {
-    assert(parseResult != NULL);
-    if (parseResult->instructionsCount == parseResult->capacity) {
-        parseResult->capacity *= 2;
-        parseResult->instructions = realloc(parseResult->instructions, sizeof(astNode *) * parseResult->capacity);
-    }
-    parseResult->instructions[parseResult->instructionsCount] = instruction;
-    parseResult->instructionsCount++;
-    return parseResult;
-}
-
-void freeParseResult(ParseResult *parseResult) {
-    for (int i = 0; i < parseResult->instructionsCount; i++) {
-        freeAstNode(parseResult->instructions[i]);
-    }
-    free(parseResult->instructions);
-    free(parseResult);
-}
-
-
-ParseResult *parse(TokenList *tokenList, error *err) {
-    ParseResult *parseResult = newParseResult(10);
+InstructionBlock *parse(TokenList *tokenList, error *err) {
     int currentToken = 0;
-    while (currentToken < tokenList->nb_tokens) {
-        astNode *instruction = parseInstruction(tokenList, &currentToken, err);
-        if (instruction == NULL) {
-            freeParseResult(parseResult);
+    return parseInstructions(tokenList, &currentToken, err);
+}
+
+InstructionBlock *parseInstructions(TokenList *tokenList, int *currentToken, error *err) {
+    InstructionBlock *block = newInstructionBlock(10);
+    while (*currentToken < tokenList->nb_tokens) {
+        astNode *instruction = parseInstruction(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeInstructionBlock(block);
             return NULL;
         }
-        parseResult = appendInstruction(parseResult, instruction);
+        block = appendInstruction(block, instruction);
     }
-    return parseResult;
+    return block;
+}
+
+InstructionBlock *parseInstructionBlockWithBraces(TokenList *tokenList, int *currentToken, error *err) {
+    assert(tokenList->tokens[*currentToken].type == TOKEN_LBRACE);
+    (*currentToken)++;
+
+    InstructionBlock *block = newInstructionBlock(10);
+    while (*currentToken < tokenList->nb_tokens && tokenList->tokens[*currentToken].type != TOKEN_RBRACE) {
+        astNode *instruction = parseInstruction(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeInstructionBlock(block);
+            return NULL;
+        }
+        block = appendInstruction(block, instruction);
+    }
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    if (*currentToken >= tokenList->nb_tokens) {
+        freeInstructionBlock(block);
+        return endOfInputError(err);
+    }
+    if (tokenList->tokens[*currentToken].type != TOKEN_RBRACE) {
+        err->value = ERR_SYNTAX;
+        err->message = strdup("Expected '}'");
+        freeInstructionBlock(block);
+        return NULL;
+    }
+    (*currentToken)++;
+
+    return block;
 }
 
 astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
@@ -71,10 +81,14 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
     assert(*currentToken < tokenList->nb_tokens);
 
     Token first = tokenList->tokens[*currentToken];
+
     if (first.type == TOKEN_KEYWORD && strcmp(first.value, "def") == 0) {
         return parseVarDeclarationInstruction(tokenList, currentToken, err);
     }
-    if (isAssignment(tokenList, err)) {
+    if (first.type == TOKEN_KEYWORD && strcmp(first.value, "if") == 0) {
+        return parseIfInstruction(tokenList, currentToken, err);
+    }
+    if (isAssignment(tokenList, currentToken, err)) {
         return parseAssignmentInstruction(tokenList, currentToken, err);
     }
     return parseExpressionInstruction(tokenList, currentToken, err);

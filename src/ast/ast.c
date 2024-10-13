@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "ast.h"
 
 #define PRINT_SPACE 5
@@ -55,6 +56,28 @@ astNode *newValueNode(var value) {
 }
 
 
+astNode *newInstructionBlockNode(InstructionBlock *block) {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = BLOCK;
+    node->value.block = block;
+    node->children = NULL;
+    node->childrenCount = 0;
+    return node;
+}
+
+
+astNode *newConditionNode(astNode *condition, astNode *ifBlock, astNode *elseBlock) {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = CONDITION;
+    node->children = malloc(sizeof(astNode *) * 3);
+    node->children[0] = condition;
+    node->children[1] = ifBlock;
+    node->children[2] = elseBlock;
+    node->childrenCount = 3;
+    return node;
+}
+
+
 void freeAstNode(astNode *node) {
     if (node == NULL) return;
 
@@ -62,6 +85,14 @@ void freeAstNode(astNode *node) {
         free(node->value.variable);
     } else if (node->type == INITIALIZATION) {
         free(node->value.initialization.name);
+    } else if (node->type == VALUE && node->value.value.type == _string) {
+        free(node->value.value.value._string);
+    } else if (node->type == BLOCK) {
+        freeInstructionBlock(node->value.block);
+    } else if (node->type == CONDITION) {
+        freeAstNode(node->children[0]);
+        freeAstNode(node->children[1]);
+        freeAstNode(node->children[2]);
     }
     for (int i = 0; i < node->childrenCount; i++) {
         freeAstNode(node->children[i]);
@@ -102,7 +133,10 @@ void printValue(var value) {
     printf("\n");
 }
 
-void printAstNode(astNode *node) {
+void printAstNode(astNode *node, int depth) {
+    for (int i = 0; i < depth * PRINT_SPACE; i++) {
+        printf(" ");
+    }
     switch (node->type) {
         case VARIABLE:
             printf("Variable: %s\n", node->value.variable);
@@ -116,6 +150,20 @@ void printAstNode(astNode *node) {
         case INITIALIZATION:
             printf("Initialization: %s\n", node->value.initialization.name);
             break;
+        case BLOCK:
+            printf("Block\n");
+            printInstructionBlock(node->value.block, depth + 1);
+            break;
+        case CONDITION:
+            printf("Condition\n");
+            break;
+    }
+}
+
+
+void printInstructionBlock(InstructionBlock *block, int depth) {
+    for (int i = 0; i < block->instructionsCount; i++) {
+        printAST(block->instructions[i], depth);
     }
 }
 
@@ -140,10 +188,7 @@ const char *operatorToString(operator operator) {
 
 
 void printAST(astNode *root, int depth) {
-    for (int i = 0; i < depth * PRINT_SPACE; i++) {
-        printf(" ");
-    }
-    printAstNode(root);
+    printAstNode(root, depth);
     for (int i = 0; i < root->childrenCount; i++) {
         printAST(root->children[i], depth + 1);
     }
@@ -162,6 +207,35 @@ void testPrintAst() {
     root->childrenCount = 2;
     printAST(root, 0);
     freeAstNode(root);
+}
+
+InstructionBlock *newInstructionBlock(int capacity) {
+    assert(capacity > 0);
+    InstructionBlock *parseResult = malloc(sizeof(InstructionBlock));
+    parseResult->instructions = malloc(sizeof(astNode *) * capacity);
+    parseResult->instructionsCount = 0;
+    parseResult->capacity = capacity;
+    return parseResult;
+}
+
+InstructionBlock *appendInstruction(InstructionBlock *parseResult, astNode *instruction) {
+    assert(parseResult != NULL);
+    if (parseResult->instructionsCount == parseResult->capacity) {
+        parseResult->capacity *= 2;
+        parseResult->instructions = realloc(parseResult->instructions,
+                                            sizeof(astNode *) * parseResult->capacity);
+    }
+    parseResult->instructions[parseResult->instructionsCount] = instruction;
+    parseResult->instructionsCount++;
+    return parseResult;
+}
+
+void freeInstructionBlock(InstructionBlock *parseResult) {
+    for (int i = 0; i < parseResult->instructionsCount; i++) {
+        freeAstNode(parseResult->instructions[i]);
+    }
+    free(parseResult->instructions);
+    free(parseResult);
 }
 
 #pragma clang diagnostic pop

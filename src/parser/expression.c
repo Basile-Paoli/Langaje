@@ -93,29 +93,6 @@ astNode *parseFactor(TokenList *tokenList, int *currentToken, error *err) {
     return node;
 }
 
-astNode *parseParenthesisExpression(TokenList *tokenList, int *currentToken, error *err) {
-    assert(tokenList->tokens[*currentToken].type == TOKEN_LPAREN);
-    ++*currentToken;
-    astNode *node = parseExpression(tokenList, currentToken, err);
-    if (err->value != ERR_SUCCESS) {
-        return NULL;
-    }
-
-    if (tokenList->tokens[*currentToken].type != TOKEN_RPAREN) {
-        err->value = ERR_SYNTAX;
-        err->message = malloc(
-                strlen("Expected closing parenthesis, found ") +
-                strlen(tokenList->tokens[*currentToken].value) + 1);
-        sprintf(err->message, "Expected closing parenthesis, found %s",
-                tokenList->tokens[*currentToken].value);
-        freeAstNode(node);
-        return NULL;
-    }
-
-    ++*currentToken;
-
-    return node;
-}
 
 astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err) {
     if (*currentToken >= tokenList->nb_tokens) {
@@ -141,4 +118,32 @@ astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err) {
             return NULL;
         }
     }
+}
+
+astNode *parseParenthesisExpression(TokenList *tokenList, int *currentToken, error *err) {
+    assert(tokenList->tokens[*currentToken].type == TOKEN_LPAREN);
+    ++*currentToken;
+    astNode *node = parseExpression(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    if (*currentToken >= tokenList->nb_tokens) {
+        return endOfInputError(err);
+    }
+
+    if (tokenList->tokens[*currentToken].type != TOKEN_RPAREN) {
+        err->value = ERR_SYNTAX;
+        err->message = malloc(
+                strlen("Expected closing parenthesis, found ") +
+                strlen(tokenList->tokens[*currentToken].value) + 1);
+        sprintf(err->message, "Expected closing parenthesis, found %s",
+                tokenList->tokens[*currentToken].value);
+        freeAstNode(node);
+        return NULL;
+    }
+
+    ++*currentToken;
+
+    return node;
 }
