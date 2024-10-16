@@ -188,6 +188,7 @@ const char *operatorToString(operator operator) {
 
 
 void printAST(astNode *root, int depth) {
+    if (root == NULL) return;
     printAstNode(root, depth);
     for (int i = 0; i < root->childrenCount; i++) {
         printAST(root->children[i], depth + 1);
