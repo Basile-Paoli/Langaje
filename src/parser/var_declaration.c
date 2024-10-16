@@ -49,6 +49,7 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
             freeAstNode(initNode);
             return NULL;
         }
+        ++*currentToken;
         return initNode;
     }
 
