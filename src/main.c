@@ -4,6 +4,7 @@
 #include "lexer/lexer.h"
 #include "lexer/token.h"
 #include "parser/parser.h"
+#include "functions/functions.h"
 
 int main() {
 
@@ -58,6 +59,67 @@ int main() {
     free_tokenList(tl);
     free_lexer(l);
     free(input);
+
+     */
+
+    var a;
+    var b;
+    var c;
+    error err;
+
+    /*
+
+    a.type = _float;
+    a.value._float= 6.0;
+
+    a.type = _int;
+    a.value._int= 3;
+
+    a.type = _char;
+    a.value._char= 'A';
+
+    a.type = _string;
+    a.value._string = malloc(strlen("test") + 1);
+    strcpy(a.value._string, "test");
+
+    a.type = _array;
+    a.value._array = malloc(sizeof(int ));
+
+
+     */
+
+    a.type = _float;
+    a.value._float= 3.5;
+
+    b.type = _int;
+    b.value._int= 2;
+
+    /*
+
+    b.type = _float;
+    b.value._float= 3.0;
+
+    b.type = _int;
+    b.value._int= 6;
+
+    b.type = _char;
+    b.value._char= 'A';
+
+    b.type = _string;
+    b.value._string = malloc(strlen("test") + 1);
+    b.value._string = "test";
+
+    b.type = _array;
+    b.value._array = malloc(sizeof(int ));
+
+    */
+
+    c = power(&a, &b, &err);
+
+    if(err.value != ERR_SUCCESS)
+        printf("%s", err.message);
+    else
+        display(&c);
 
     return 0;
 }
