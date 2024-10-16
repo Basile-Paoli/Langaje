@@ -201,6 +201,10 @@ const char *operatorToString(operator operator) {
             return "OR";
         case NOT:
             return "NOT";
+        case UNARY_MINUS:
+            return "UNARY_MINUS";
+        case UNARY_PLUS:
+            return "UNARY_PLUS";
     }
 }
 
