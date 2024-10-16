@@ -72,6 +72,26 @@ char *token_type_to_str(TokenType type) {
         case TOKEN_STRING:
             return "STRING";
 
+        case TOKEN_EQUAL_EQUAL:
+            return "EQUAL_EQUAL";
+        case TOKEN_NOT_EQUAL:
+            return "NOT_EQUAL";
+        case TOKEN_GREATER:
+            return "GREATER";
+        case TOKEN_GREATER_EQUAL:
+            return "GREATER_EQUAL";
+        case TOKEN_LESS:
+            return "LESS";
+        case TOKEN_LESS_EQUAL:
+            return "LESS_EQUAL";
+
+        case TOKEN_AND:
+            return "AND";
+        case TOKEN_OR:
+            return "OR";
+        case TOKEN_NOT:
+            return "NOT";
+
         case TOKEN_EQUAL:
             return "EQUAL";
 

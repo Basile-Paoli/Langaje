@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 #include "node_initializers.h"
 
 operator tokenToOperator(TokenType type) {
@@ -18,7 +19,26 @@ operator tokenToOperator(TokenType type) {
             return DIVISION;
         case TOKEN_EQUAL:
             return ASSIGNMENT;
+        case TOKEN_EQUAL_EQUAL:
+            return EQUAL;
+        case TOKEN_NOT_EQUAL:
+            return NOT_EQUAL;
+        case TOKEN_GREATER:
+            return GREATER;
+        case TOKEN_LESS:
+            return LESS;
+        case TOKEN_GREATER_EQUAL:
+            return GREATER_EQUAL;
+        case TOKEN_LESS_EQUAL:
+            return LESS_EQUAL;
+        case TOKEN_AND:
+            return AND;
+        case TOKEN_OR:
+            return OR;
+        case TOKEN_NOT:
+            return NOT;
         default:
+            printf("Unknown token type: %d\n", type);
             assert(0);
     }
 }

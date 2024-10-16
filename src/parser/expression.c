@@ -34,14 +34,110 @@ astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, err
 }
 
 astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
+    astNode *node = parseLogicalOr(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    while (*currentToken < tokenList->nb_tokens &&
+           tokenList->tokens[*currentToken].type == TOKEN_OR) {
+
+        Token operator = tokenList->tokens[*currentToken];
+        ++*currentToken;
+        astNode *right = parseLogicalOr(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeAstNode(node);
+            return NULL;
+        }
+
+        node = newBinaryOperatorNode(operator.type, node, right);
+    }
+
+    return node;
+}
+
+astNode *parseLogicalOr(TokenList *tokenList, int *currentToken, error *err) {
+    astNode *node = parseLogicalAnd(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    while (*currentToken < tokenList->nb_tokens &&
+           tokenList->tokens[*currentToken].type == TOKEN_AND) {
+
+        Token operator = tokenList->tokens[*currentToken];
+        ++*currentToken;
+        astNode *right = parseTerm(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeAstNode(node);
+            return NULL;
+        }
+
+        node = newBinaryOperatorNode(operator.type, node, right);
+    }
+
+    return node;
+}
+
+astNode *parseLogicalAnd(TokenList *tokenList, int *currentToken, error *err) {
+    astNode *node = parseEquality(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    while (*currentToken < tokenList->nb_tokens &&
+           (tokenList->tokens[*currentToken].type == TOKEN_EQUAL_EQUAL)
+           || tokenList->tokens[*currentToken].type == TOKEN_NOT_EQUAL) {
+
+        Token operator = tokenList->tokens[*currentToken];
+        ++*currentToken;
+        astNode *right = parseTerm(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeAstNode(node);
+            return NULL;
+        }
+
+        node = newBinaryOperatorNode(operator.type, node, right);
+    }
+
+    return node;
+}
+
+astNode *parseEquality(TokenList *tokenList, int *currentToken, error *err) {
+    astNode *node = parseComparison(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    while (*currentToken < tokenList->nb_tokens &&
+           (tokenList->tokens[*currentToken].type == TOKEN_GREATER
+            || tokenList->tokens[*currentToken].type == TOKEN_GREATER_EQUAL
+            || tokenList->tokens[*currentToken].type == TOKEN_LESS
+            || tokenList->tokens[*currentToken].type == TOKEN_LESS_EQUAL)) {
+
+        Token operator = tokenList->tokens[*currentToken];
+        ++*currentToken;
+        astNode *right = parseTerm(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeAstNode(node);
+            return NULL;
+        }
+
+        node = newBinaryOperatorNode(operator.type, node, right);
+    }
+
+    return node;
+}
+
+astNode *parseComparison(TokenList *tokenList, int *currentToken, error *err) {
     astNode *node = parseTerm(tokenList, currentToken, err);
     if (err->value != ERR_SUCCESS) {
         return NULL;
     }
 
     while (*currentToken < tokenList->nb_tokens &&
-           (tokenList->tokens[*currentToken].type == TOKEN_ADDITION ||
-            tokenList->tokens[*currentToken].type == TOKEN_SUBTRACTION)) {
+           (tokenList->tokens[*currentToken].type == TOKEN_ADDITION
+            || tokenList->tokens[*currentToken].type == TOKEN_SUBTRACTION)) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;

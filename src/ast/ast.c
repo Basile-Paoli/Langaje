@@ -183,6 +183,24 @@ const char *operatorToString(operator operator) {
             return "EXPONENTIATION";
         case ASSIGNMENT:
             return "ASSIGNMENT";
+        case EQUAL:
+            return "EQUAL";
+        case NOT_EQUAL:
+            return "NOT_EQUAL";
+        case GREATER:
+            return "GREATER";
+        case GREATER_EQUAL:
+            return "GREATER_EQUAL";
+        case LESS:
+            return "LESS";
+        case LESS_EQUAL:
+            return "LESS_EQUAL";
+        case AND:
+            return "AND";
+        case OR:
+            return "OR";
+        case NOT:
+            return "NOT";
     }
 }
 
