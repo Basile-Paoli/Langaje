@@ -51,6 +51,10 @@ astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
+        if (*currentToken >= tokenList->nb_tokens) {
+            return endOfInputError(err);
+        }
+
         astNode *right = parseLogicalAnd(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
@@ -74,7 +78,11 @@ astNode *parseLogicalAnd(TokenList *tokenList, int *currentToken, error *err) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
-        astNode *right = parseMultiplication(tokenList, currentToken, err);
+        if (*currentToken >= tokenList->nb_tokens) {
+            return endOfInputError(err);
+        }
+
+        astNode *right = parseEquality(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
             return NULL;
@@ -98,6 +106,10 @@ astNode *parseEquality(TokenList *tokenList, int *currentToken, error *err) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
+        if (*currentToken >= tokenList->nb_tokens) {
+            return endOfInputError(err);
+        }
+
         astNode *right = parseMultiplication(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
@@ -124,6 +136,10 @@ astNode *parseComparison(TokenList *tokenList, int *currentToken, error *err) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
+        if (*currentToken >= tokenList->nb_tokens) {
+            return endOfInputError(err);
+        }
+
         astNode *right = parseMultiplication(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
@@ -148,6 +164,10 @@ astNode *parseAddition(TokenList *tokenList, int *currentToken, error *err) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
+        if (*currentToken >= tokenList->nb_tokens) {
+            return endOfInputError(err);
+        }
+
         astNode *right = parseMultiplication(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
@@ -173,6 +193,9 @@ astNode *parseMultiplication(TokenList *tokenList, int *currentToken, error *err
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
+        if (*currentToken >= tokenList->nb_tokens) {
+            return endOfInputError(err);
+        }
 
         astNode *right = parseUnaryOperators(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
