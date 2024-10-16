@@ -1,5 +1,16 @@
-=======
 # Langaje
+
+## How to run
+- Ensure you have [CMake](https://cmake.org) installed
+- Create a build directory and navigate into it
+```
+mkdir build
+cd build
+```
+- Run CMake to generate build files `cmake ..`
+- Compile with the generated makefile `make`
+- Add any input file necessary to the build folder as well (ex: test.txt)
+- Profit `./langaje`
 
 [Doc Mathis & Maël](https://docs.google.com/document/d/1VsdduxMZETadTSWqghP0HkSKkw1Cz9yDXKlgbukrKjc/edit#heading=h.nz9gn4fvt66n)
 
