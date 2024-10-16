@@ -77,7 +77,7 @@ char *token_type_to_str(TokenType type) {
 
         case TOKEN_ADDITION:
             return "ADDITION";
-        case TOKEN_SUBSTRACTION:
+        case TOKEN_SUBTRACTION:
             return "SUBSTRACTION";
         case TOKEN_MULTIPLICATION:
             return "MULTIPLICATION";
