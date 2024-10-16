@@ -33,6 +33,8 @@ typedef enum operator {
     AND,
     OR,
     NOT,
+    UNARY_MINUS,
+    UNARY_PLUS,
 } operator;
 
 typedef struct initializationNode {

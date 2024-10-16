@@ -10,6 +10,8 @@
 
 astNode *newBinaryOperatorNode(TokenType token, astNode *left, astNode *right);
 
+astNode *newUnaryOperatorNode(TokenType token, astNode *child);
+
 astNode *intTokenToNode(Token token);
 
 astNode *stringTokenToNode(Token token);

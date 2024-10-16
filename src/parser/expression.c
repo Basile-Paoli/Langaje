@@ -33,8 +33,15 @@ astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, err
     return node;
 }
 
+/**
+ * Parses an expression
+ * Starts with the lowest precedence operator (logical or)
+ * Each following function parses a different operator with higher precedence
+ * See grammar in README.md for more details
+ */
+
 astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
-    astNode *node = parseLogicalOr(tokenList, currentToken, err);
+    astNode *node = parseLogicalAnd(tokenList, currentToken, err);
     if (err->value != ERR_SUCCESS) {
         return NULL;
     }
@@ -44,30 +51,7 @@ astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
-        astNode *right = parseLogicalOr(tokenList, currentToken, err);
-        if (err->value != ERR_SUCCESS) {
-            freeAstNode(node);
-            return NULL;
-        }
-
-        node = newBinaryOperatorNode(operator.type, node, right);
-    }
-
-    return node;
-}
-
-astNode *parseLogicalOr(TokenList *tokenList, int *currentToken, error *err) {
-    astNode *node = parseLogicalAnd(tokenList, currentToken, err);
-    if (err->value != ERR_SUCCESS) {
-        return NULL;
-    }
-
-    while (*currentToken < tokenList->nb_tokens &&
-           tokenList->tokens[*currentToken].type == TOKEN_AND) {
-
-        Token operator = tokenList->tokens[*currentToken];
-        ++*currentToken;
-        astNode *right = parseTerm(tokenList, currentToken, err);
+        astNode *right = parseLogicalAnd(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
             return NULL;
@@ -86,12 +70,11 @@ astNode *parseLogicalAnd(TokenList *tokenList, int *currentToken, error *err) {
     }
 
     while (*currentToken < tokenList->nb_tokens &&
-           (tokenList->tokens[*currentToken].type == TOKEN_EQUAL_EQUAL)
-           || tokenList->tokens[*currentToken].type == TOKEN_NOT_EQUAL) {
+           tokenList->tokens[*currentToken].type == TOKEN_AND) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
-        astNode *right = parseTerm(tokenList, currentToken, err);
+        astNode *right = parseMultiplication(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
             return NULL;
@@ -110,14 +93,12 @@ astNode *parseEquality(TokenList *tokenList, int *currentToken, error *err) {
     }
 
     while (*currentToken < tokenList->nb_tokens &&
-           (tokenList->tokens[*currentToken].type == TOKEN_GREATER
-            || tokenList->tokens[*currentToken].type == TOKEN_GREATER_EQUAL
-            || tokenList->tokens[*currentToken].type == TOKEN_LESS
-            || tokenList->tokens[*currentToken].type == TOKEN_LESS_EQUAL)) {
+           (tokenList->tokens[*currentToken].type == TOKEN_EQUAL_EQUAL)
+           || tokenList->tokens[*currentToken].type == TOKEN_NOT_EQUAL) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
-        astNode *right = parseTerm(tokenList, currentToken, err);
+        astNode *right = parseMultiplication(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
             return NULL;
@@ -130,7 +111,33 @@ astNode *parseEquality(TokenList *tokenList, int *currentToken, error *err) {
 }
 
 astNode *parseComparison(TokenList *tokenList, int *currentToken, error *err) {
-    astNode *node = parseTerm(tokenList, currentToken, err);
+    astNode *node = parseAddition(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    while (*currentToken < tokenList->nb_tokens &&
+           (tokenList->tokens[*currentToken].type == TOKEN_GREATER
+            || tokenList->tokens[*currentToken].type == TOKEN_GREATER_EQUAL
+            || tokenList->tokens[*currentToken].type == TOKEN_LESS
+            || tokenList->tokens[*currentToken].type == TOKEN_LESS_EQUAL)) {
+
+        Token operator = tokenList->tokens[*currentToken];
+        ++*currentToken;
+        astNode *right = parseMultiplication(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeAstNode(node);
+            return NULL;
+        }
+
+        node = newBinaryOperatorNode(operator.type, node, right);
+    }
+
+    return node;
+}
+
+astNode *parseAddition(TokenList *tokenList, int *currentToken, error *err) {
+    astNode *node = parseMultiplication(tokenList, currentToken, err);
     if (err->value != ERR_SUCCESS) {
         return NULL;
     }
@@ -141,7 +148,7 @@ astNode *parseComparison(TokenList *tokenList, int *currentToken, error *err) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
-        astNode *right = parseTerm(tokenList, currentToken, err);
+        astNode *right = parseMultiplication(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
             return NULL;
@@ -154,8 +161,8 @@ astNode *parseComparison(TokenList *tokenList, int *currentToken, error *err) {
 }
 
 
-astNode *parseTerm(TokenList *tokenList, int *currentToken, error *err) {
-    astNode *node = parseFactor(tokenList, currentToken, err);
+astNode *parseMultiplication(TokenList *tokenList, int *currentToken, error *err) {
+    astNode *node = parseUnaryOperators(tokenList, currentToken, err);
     if (err->value != ERR_SUCCESS) {
         return NULL;
     }
@@ -167,7 +174,7 @@ astNode *parseTerm(TokenList *tokenList, int *currentToken, error *err) {
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
 
-        astNode *right = parseFactor(tokenList, currentToken, err);
+        astNode *right = parseUnaryOperators(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeAstNode(node);
             return NULL;
@@ -180,17 +187,38 @@ astNode *parseTerm(TokenList *tokenList, int *currentToken, error *err) {
 }
 
 
-astNode *parseFactor(TokenList *tokenList, int *currentToken, error *err) {
-    astNode *node = parseExponent(tokenList, currentToken, err);
+astNode *parseUnaryOperators(TokenList *tokenList, int *currentToken, error *err) {
+
+    if (tokenList->tokens[*currentToken].type == TOKEN_SUBTRACTION ||
+        tokenList->tokens[*currentToken].type == TOKEN_NOT) {
+        Token operator = tokenList->tokens[*currentToken];
+        ++*currentToken;
+        if (*currentToken >= tokenList->nb_tokens) {
+            return endOfInputError(err);
+        }
+        astNode *right = parseUnaryOperators(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            return NULL;
+        }
+        return newUnaryOperatorNode(operator.type, right);
+    }
+
+    astNode *node = parsePrimary(tokenList, currentToken, err);
     if (err->value != ERR_SUCCESS) {
         return NULL;
     }
-    // Nothing to do while exponentiation is not implemented
+
     return node;
 }
 
 
-astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err) {
+/**
+ * Parses a primary expression
+ * A primary expression can be any hardcoded value(int, float, bool, string, array etc)
+   an identifier (variable, function call) or an expression in parenthesis
+ * See grammar in README.md for more details
+ */
+astNode *parsePrimary(TokenList *tokenList, int *currentToken, error *err) {
     if (*currentToken >= tokenList->nb_tokens) {
         return endOfInputError(err);
     }
