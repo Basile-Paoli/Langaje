@@ -63,16 +63,16 @@ void var2var(var* v, var* v2){
 
     switch(v2->type){
         case(_int):
-            assign(v,v2->value._int);
+            assign(v,&v2->value._int);
             break;
         case(_float):
-            assign(v,v2->value._float);
+            assign(v,&v2->value._float);
             break;
         case(_char):
-            assign(v,v2->value._char);
+            assign(v,&v2->value._char);
             break;
         case(_string):
-            assign(v,v2->value._string);
+            assign(v,&v2->value._string);
             break;
         default:
             break;
