@@ -361,6 +361,7 @@ var modulo(var *var1, var *var2, error *err){
  * POWER FUNCTION
  *
  */
+
 var power(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
@@ -430,11 +431,13 @@ var logicalOr(var *var1, var *var2, error *err){
     return result;
 }
 
+
 /*
  *
  * SQRT FUNCTION
  *
  */
+
 var squareroot(var *var1, error *err){
     var result;
     result.type = _float;
