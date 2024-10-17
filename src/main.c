@@ -16,6 +16,17 @@ int main() {
     add_lexer_rule(l, new_lexer_rule(l, "if", TOKEN_KEYWORD));
     add_lexer_rule(l, new_lexer_rule(l, "[a-zA-Z_][a-zA-Z0-9_]{0,}", TOKEN_IDENTIFIER));
 
+    add_lexer_rule(l, new_lexer_rule(l, "==", TOKEN_EQUAL_EQUAL));
+    add_lexer_rule(l, new_lexer_rule(l, "!=", TOKEN_NOT_EQUAL));
+    add_lexer_rule(l, new_lexer_rule(l, "<=", TOKEN_LESS_EQUAL));
+    add_lexer_rule(l, new_lexer_rule(l, ">=", TOKEN_GREATER_EQUAL));
+    add_lexer_rule(l, new_lexer_rule(l, "<", TOKEN_LESS));
+    add_lexer_rule(l, new_lexer_rule(l, ">", TOKEN_GREATER));
+
+    add_lexer_rule(l, new_lexer_rule(l, "&&", TOKEN_AND));
+    add_lexer_rule(l, new_lexer_rule(l, "\\|\\|", TOKEN_OR));
+    add_lexer_rule(l, new_lexer_rule(l, "!", TOKEN_NOT));
+
     add_lexer_rule(l, new_lexer_rule(l, "=", TOKEN_EQUAL));
 
     add_lexer_rule(l, new_lexer_rule(l, "[0-9]+", TOKEN_NUMBER));
@@ -60,12 +71,10 @@ int main() {
     free_lexer(l);
     free(input);
 
-     */
 
     var a;
     var b;
     var c;
-    error err;
 
     /*
 
@@ -89,10 +98,10 @@ int main() {
      */
 
     a.type = _float;
-    a.value._float= 3.5;
+    a.value._float = 3.5;
 
     b.type = _int;
-    b.value._int= 2;
+    b.value._int = 2;
 
     /*
 
@@ -116,7 +125,7 @@ int main() {
 
     c = power(&a, &b, &err);
 
-    if(err.value != ERR_SUCCESS)
+    if (err.value != ERR_SUCCESS)
         printf("%s", err.message);
     else
         display(&c);

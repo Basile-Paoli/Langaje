@@ -12,11 +12,20 @@
 
 astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err);
 
-astNode *parseTerm(TokenList *tokenList, int *currentToken, error *err);
 
-astNode *parseFactor(TokenList *tokenList, int *currentToken, error *err);
+astNode *parseLogicalAnd(TokenList *tokenList, int *currentToken, error *err);
 
-astNode *parseExponent(TokenList *tokenList, int *currentToken, error *err);
+astNode *parseEquality(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parseComparison(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parseAddition(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parseMultiplication(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parseUnaryOperators(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parsePrimary(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, error *err);
 

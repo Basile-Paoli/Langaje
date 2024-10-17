@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 #include "node_initializers.h"
 
-operator tokenToOperator(TokenType type) {
+operator tokenToBinaryOperator(TokenType type) {
     switch (type) {
         case TOKEN_ADDITION:
             return ADDITION;
@@ -18,19 +19,60 @@ operator tokenToOperator(TokenType type) {
             return DIVISION;
         case TOKEN_EQUAL:
             return ASSIGNMENT;
+        case TOKEN_EQUAL_EQUAL:
+            return EQUAL;
+        case TOKEN_NOT_EQUAL:
+            return NOT_EQUAL;
+        case TOKEN_GREATER:
+            return GREATER;
+        case TOKEN_LESS:
+            return LESS;
+        case TOKEN_GREATER_EQUAL:
+            return GREATER_EQUAL;
+        case TOKEN_LESS_EQUAL:
+            return LESS_EQUAL;
+        case TOKEN_AND:
+            return AND;
+        case TOKEN_OR:
+            return OR;
         default:
+            printf("Unknown token type: %d\n", type);
+            assert(0);
+    }
+}
+
+operator tokenToUnaryOperator(TokenType type) {
+    switch (type) {
+        case TOKEN_NOT:
+            return NOT;
+        case TOKEN_SUBTRACTION:
+            return UNARY_MINUS;
+        case TOKEN_ADDITION:
+            return UNARY_PLUS;
+        default:
+            printf("Unknown token type: %d\n", type);
             assert(0);
     }
 }
 
 
 astNode *newBinaryOperatorNode(TokenType token, astNode *left, astNode *right) {
-    astNode *node = newOperatorNode(tokenToOperator(token));
+    astNode *node = newOperatorNode(tokenToBinaryOperator(token));
     node->type = OPERATOR;
     node->children = malloc(2 * sizeof(astNode *));
     node->children[0] = left;
     node->children[1] = right;
     node->childrenCount = 2;
+    return node;
+}
+
+
+astNode *newUnaryOperatorNode(TokenType token, astNode *child) {
+    astNode *node = newOperatorNode(tokenToUnaryOperator(token));
+    node->type = OPERATOR;
+    node->children = malloc(sizeof(astNode *));
+    node->children[0] = child;
+    node->childrenCount = 1;
     return node;
 }
 

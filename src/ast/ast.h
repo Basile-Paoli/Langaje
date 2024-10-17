@@ -24,6 +24,17 @@ typedef enum operator {
     MODULUS,
     EXPONENTIATION,
     ASSIGNMENT,
+    EQUAL,
+    NOT_EQUAL,
+    GREATER,
+    GREATER_EQUAL,
+    LESS,
+    LESS_EQUAL,
+    AND,
+    OR,
+    NOT,
+    UNARY_MINUS,
+    UNARY_PLUS,
 } operator;
 
 typedef struct initializationNode {

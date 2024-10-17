@@ -24,6 +24,10 @@ astNode *parseIfInstruction(TokenList *tokenList, int *currentToken, error *err)
     if (err->value != ERR_SUCCESS) {
         return NULL;
     }
+    if (*currentToken >= tokenList->nb_tokens) {
+        return endOfInputError(err);
+    }
+
     astNode *thenNode;
 
     if (tokenList->tokens[*currentToken].type != TOKEN_LBRACE) {

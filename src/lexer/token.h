@@ -4,9 +4,20 @@
 typedef enum {
     TOKEN_KEYWORD,
     TOKEN_IDENTIFIER,
-    
+
     TOKEN_NUMBER,
     TOKEN_STRING,
+
+    TOKEN_EQUAL_EQUAL,
+    TOKEN_NOT_EQUAL,
+    TOKEN_GREATER,
+    TOKEN_GREATER_EQUAL,
+    TOKEN_LESS,
+    TOKEN_LESS_EQUAL,
+
+    TOKEN_AND,
+    TOKEN_OR,
+    TOKEN_NOT,
 
     TOKEN_EQUAL,
 
@@ -41,12 +52,17 @@ typedef struct {
 
 
 Token *new_Token(TokenType type, char *value);
+
 void print_token(Token *t);
+
 void free_token(Token *t);
 
 TokenList *new_TokenList();
+
 void print_tokenList(TokenList *tl);
+
 void free_tokenList(TokenList *tl);
+
 void add_Token(TokenList *tl, Token *t);
 
 char *token_type_to_str(TokenType type);
