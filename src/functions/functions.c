@@ -459,7 +459,6 @@ var squareroot(var *var1, error *err){
 *
 */
 var isEqual(var* v, var* v2,int reversed, error* err){
-    printf("tset1\n");
     var result;
     result.type = _int;
     switch(v->type){

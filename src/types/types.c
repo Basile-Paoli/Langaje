@@ -146,7 +146,7 @@ void var2var(var* v, var* v2){
  */
 void display(var* v){
     if(v == NULL){
-        printf("Null variable error");
+        printf("Null variable error\n");
         return;
     }
     switch (v->type) {

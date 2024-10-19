@@ -74,6 +74,7 @@ int main() {
 
     run(pr,stack);
 
+    hmStackDestroy(stack);
     free_tokenList(tl);
     free_lexer(l);
     free(input);
