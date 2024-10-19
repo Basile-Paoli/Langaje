@@ -145,6 +145,10 @@ void var2var(var* v, var* v2){
  * @param v Pointer to a `var` structure.
  */
 void display(var* v){
+    if(v == NULL){
+        printf("Null variable error");
+        return;
+    }
     switch (v->type) {
         case(_int):
             printf("%d\n",v->value._int);

@@ -33,6 +33,7 @@ hm* hm_create(){
 
 void hm_free(hm* hashtable){
     for(int i = 0; i < hashtable->capacity; i++){
+        free((void*)hashtable->entries[i].value);
         free((void*)hashtable->entries[i].key);
     }
 
@@ -190,4 +191,69 @@ int hm_next(hmi* it) {
         }
     }
     return 0;
+}
+
+hmStack* hmStackCreate(int baseSize){
+    hmStack* hmS = malloc(sizeof(hmStack*) * 1);
+    if(hmS == NULL)return NULL;
+    hmS->stack = malloc(sizeof(hm*) * baseSize);
+    if(hmS->stack == NULL)return NULL;
+    hmS->capacity = baseSize;
+    hmS->length = 0;
+    return hmS;
+}
+
+int hmStackPush(hmStack* stack, hm* map){
+    if(stack->length >= stack->capacity / 2){
+        if(hmStackExpand(stack) == 0){
+            return 0;
+        }
+    }
+    stack->stack[stack->length] = map;
+    stack->length++;
+    return 1;
+}
+
+int hmStackPop(hmStack* stack){
+    hm_free(stack->stack[stack->length-1]);
+    stack->length--;
+    return 1;
+}
+
+int hmStackExpand(hmStack* stack){
+    
+    hm** tmpStack = hmStackCreate(stack->capacity * 2);
+    if(tmpStack == NULL)return NULL;
+
+    for(int i = 0; i < stack->capacity; i++){
+        tmpStack[i] = stack->stack[i];
+    }
+    stack->capacity *= 2;
+    stack->stack = tmpStack;
+    printf("expanding");
+    return 1;
+}
+
+int hmStackDestroy(hmStack* stack){
+    for(int i = 0; i < stack->length; i++){
+        hm_free(stack->stack[i]);
+    }
+    free(stack);
+    return 1;
+}
+
+int getStackLength(hmStack* stack){
+    return stack->length;
+}
+
+
+//Return the index of the hashmap that contains the key 
+//-1 if none 
+int isInStack(hmStack* stack, char* key){
+    for(int i = stack->length - 1; i >= 0; i--){
+        if((struct var*)hm_get(stack->stack[i],key) != NULL){
+            return i;
+        }
+    }
+    return -1;
 }
