@@ -9,9 +9,9 @@
 #include "../lexer/token.h"
 #include "../errors/errors.h"
 
-
 astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err);
 
+astNode *parseLogicalOr(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parseLogicalAnd(TokenList *tokenList, int *currentToken, error *err);
 
@@ -30,5 +30,9 @@ astNode *parsePrimary(TokenList *tokenList, int *currentToken, error *err);
 astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parseParenthesisExpression(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parseBracketExpression(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parseIdentifier(TokenList *tokenList, int *currentToken, error *err);
 
 #endif //LANGAJE_EXPRESSION_H

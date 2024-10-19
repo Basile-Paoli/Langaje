@@ -14,4 +14,5 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentTokrn,
 
 astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err);
 
+
 #endif //LANGAJE_VAR_DECLARATION_H
