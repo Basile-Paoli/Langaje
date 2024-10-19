@@ -7,6 +7,6 @@
 #include "../functions/functions.h"
 #include <stdlib.h>
 
-int run(InstructionBlock* program);
+int run(InstructionBlock* program, hmStack* stack);
 
 #endif

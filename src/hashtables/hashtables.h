@@ -60,7 +60,8 @@ int hmStackPush(hmStack* stack, hm* map);
 int hmStackPop(hmStack* stack);
 int hmStackExpand(hmStack* stack);
 int hmStackDestroy(hmStack* stack);
-int isInStack(hmStack* stack, char* key);
+int isInStackUpwards(hmStack* stack, char* key);
+int isInStackDownwards(hmStack* stack, char* key);
 
 
 #endif //LANGAJE_HASHTABLES_H

@@ -8,6 +8,8 @@
 
 #include "interpreter/interpreter.h"
 
+#define BASE_MEMORY_STACK_SIZE 16
+
 int main() {
 
     Lexer *l = new_lexer();
@@ -67,7 +69,10 @@ int main() {
         return 1;
     }
     printInstructionBlock(pr, 0);
-    run(pr);
+
+    hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
+
+    run(pr,stack);
 
     free_tokenList(tl);
     free_lexer(l);

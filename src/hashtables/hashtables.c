@@ -222,8 +222,8 @@ int hmStackPop(hmStack* stack){
 
 int hmStackExpand(hmStack* stack){
     
-    hm** tmpStack = hmStackCreate(stack->capacity * 2);
-    if(tmpStack == NULL)return NULL;
+    hm** tmpStack = malloc(sizeof(hm*) * stack->capacity* 2);
+    if(tmpStack == NULL)return 0;
 
     for(int i = 0; i < stack->capacity; i++){
         tmpStack[i] = stack->stack[i];
@@ -249,8 +249,17 @@ int getStackLength(hmStack* stack){
 
 //Return the index of the hashmap that contains the key 
 //-1 if none 
-int isInStack(hmStack* stack, char* key){
+int isInStackDownwards(hmStack* stack, char* key){
     for(int i = stack->length - 1; i >= 0; i--){
+        if((struct var*)hm_get(stack->stack[i],key) != NULL){
+            return i;
+        }
+    }
+    return -1;
+}
+
+int isInStackUpwards(hmStack* stack, char* key){
+    for(int i = 0; i < stack->length; i++){
         if((struct var*)hm_get(stack->stack[i],key) != NULL){
             return i;
         }
