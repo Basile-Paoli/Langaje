@@ -1,7 +1,1 @@
-def int a = 1;
-def int b = a - 1;
-def int c = 1 + + 2 * 3 / 4;
-def int d = (1 + 2) * 3;
-def int e = {1, 2, 3};
-def int f = [1, 2, 3];
-def int g = "def idef i;nt a = 1;";
+def int a = 4 / 2;

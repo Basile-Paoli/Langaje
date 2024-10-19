@@ -7,7 +7,6 @@ void calculate(astNode** values, astNode* node){
     
     var var1 = values[0]->value.value;
     var var2 = values[1]->value.value;
-    printf("\n%d + %d",var1.value._int,var2.value._int);
     
     switch(op){
         case ADDITION:{
@@ -27,7 +26,6 @@ void calculate(astNode** values, astNode* node){
             break;
         }
     }
-    printf("= %d\n",node->value.value.value._int);
 }
 
 int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hm* hashmap){

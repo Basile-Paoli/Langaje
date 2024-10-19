@@ -60,19 +60,80 @@ int assign(var* v, void* value){
 }
 
 void var2var(var* v, var* v2){
-
-    switch(v2->type){
+    switch(v->type){
         case(_int):
-            assign(v,&v2->value._int);
+            //assign(v,&v2->value._int);
+            switch(v2->type){
+                case _float:{
+                    v->value._int = (int)v2->value._float;
+                    break;
+                }
+                case _char:{
+                    v->value._int = (int)v2->value._char;
+                    break;
+                }
+                case _string:{
+                    //RAISE ERROR
+                    break;
+                }default:{
+                    v->value._int = v2->value._int;
+                    break;
+                }
+            }
             break;
         case(_float):
-            assign(v,&v2->value._float);
+            switch(v2->type){
+                case _int:{
+                    v->value._float = (float)v2->value._int;
+                    break;
+                }
+                case _char:{
+                    v->value._float = (float)v2->value._char;
+                    break;
+                }
+                case _string:{
+                    //RAISE ERROR
+                    break;
+                }
+                default:{
+                    v->value._float = v2->value._float;
+                    break;
+                }
+            }
             break;
+
         case(_char):
-            assign(v,&v2->value._char);
+            switch(v2->type){
+                case _int:{
+                    v->value._char = (char)v2->value._int;
+                    break;
+                }
+                case _float:{
+                    v->value._char = (char)v2->value._float;
+                    break; 
+                }
+                case _string:{
+                    // RAISE ERROR
+                    break;
+                }
+                default:{
+                    v->value._char = v2->value._char;
+                    break;
+                }
+            }
             break;
+
         case(_string):
-            assign(v,&v2->value._string);
+            switch(v2->type){
+                case _float:
+                case _int:
+                case _char:
+                    //RAISE ERROR
+                    break;
+                case _string:{
+                    assignString(v,v2->value._string);
+                }
+            }
             break;
         default:
             break;
