@@ -8,22 +8,9 @@
 #include "parser.h"
 #include "var_declaration.h"
 #include "expression.h"
-#include "assignment.h"
 #include "condition.h"
 
 
-int isAssignment(TokenList *tokenList, int *currentToken, error *err) {
-    if (*currentToken + 1 >= tokenList->nb_tokens) {
-        return 0;
-    }
-    Token first = tokenList->tokens[*currentToken];
-    Token second = tokenList->tokens[*currentToken + 1];
-    if (first.type == TOKEN_IDENTIFIER && second.type == TOKEN_EQUAL) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
 
 
 InstructionBlock *parse(TokenList *tokenList, error *err) {
@@ -88,9 +75,7 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
     if (first.type == TOKEN_KEYWORD && strcmp(first.value, "if") == 0) {
         return parseIfInstruction(tokenList, currentToken, err);
     }
-    if (isAssignment(tokenList, currentToken, err)) {
-        return parseAssignmentInstruction(tokenList, currentToken, err);
-    }
+
     return parseExpressionInstruction(tokenList, currentToken, err);
 }
 

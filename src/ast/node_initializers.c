@@ -76,6 +76,17 @@ astNode *newUnaryOperatorNode(TokenType token, astNode *child) {
     return node;
 }
 
+
+astNode *newSubscriptNode(astNode *array, astNode *index) {
+    astNode *node = newOperatorNode(SUBSCRIPT);
+    node->type = OPERATOR;
+    node->children = malloc(2 * sizeof(astNode *));
+    node->children[0] = array;
+    node->children[1] = index;
+    node->childrenCount = 2;
+    return node;
+}
+
 astNode *intTokenToNode(Token token) {
     var value = {.value._int = atoi(token.value), .type = _int};
     return newValueNode(value);

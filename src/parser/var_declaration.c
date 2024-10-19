@@ -27,6 +27,56 @@ varType typeFromString(const char *string, error *err) {
     }
 }
 
+void addArrayToType(initType *type, int size) {
+    if (type->type == _array) {
+        addArrayToType(type->elementsType, size);
+        return;
+    } else {
+        type->elementsType = malloc(sizeof(initType));
+        type->elementsType->type = type->type;
+        type->arraySize = size;
+        type->type = _array;
+        return;
+    }
+}
+
+initType parseType(TokenList *tokenList, int *currentToken, error *err) {
+    initType type;
+    type.type = typeFromString(tokenList->tokens[*currentToken].value, err);
+    if (err->value != ERR_SUCCESS) {
+        return type;
+    }
+
+    ++*currentToken;
+    if (*currentToken >= tokenList->nb_tokens) {
+        endOfInputError(err);
+        return type;
+    }
+
+    while (tokenList->tokens[*currentToken].type == TOKEN_LBRACKET) {
+        ++*currentToken;
+        if (*currentToken + 1 >= tokenList->nb_tokens) {
+            endOfInputError(err);
+            return type;
+        }
+        if (tokenList->tokens[*currentToken].type != TOKEN_NUMBER) {
+            err->value = ERR_SYNTAX;
+            err->message = strdup("Expected a number after '['");
+            return type;
+        }
+        addArrayToType(&type, atoi(tokenList->tokens[*currentToken].value));
+
+        ++*currentToken;
+        if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
+            err->value = ERR_SYNTAX;
+            err->message = strdup("Expected ']'");
+            return type;
+        }
+        ++*currentToken;
+    }
+
+    return type;
+}
 
 astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken, error *err) {
     assert(strcmp(tokenList->tokens[*currentToken].value, "def") == 0);
@@ -99,15 +149,14 @@ astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err
     ++*currentToken;
 
     int typed = 0;
-    varType type;
+    initType type;
 
     if (tokenList->tokens[*currentToken].type == TOKEN_KEYWORD) {
-        type = typeFromString(tokenList->tokens[*currentToken].value, err);
+        type = parseType(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             return NULL;
         }
         typed = 1;
-        ++*currentToken;
     }
 
     if (*currentToken >= tokenList->nb_tokens) {
@@ -126,7 +175,6 @@ astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err
     char *name = strdup(tokenList->tokens[*currentToken].value);
     ++*currentToken;
     astNode *initNode = newInitializationNode(name, typed, type);
-
 
     return initNode;
 }
