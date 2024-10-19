@@ -21,6 +21,9 @@ var power(var *, var *, error *);
 var logicalAnd(var *, var*, error *);
 var logicalOr(var *, var *, error *);
 var squareroot(var *, error *);
+var isEqual(var*, var*, int, error*);
+var isGreater(var*, var*, int, error*);
+var isLesser(var*, var*, int, error*);
 int concat(var *, char *, char *, char**);
 float getNumericValue(var*);
 

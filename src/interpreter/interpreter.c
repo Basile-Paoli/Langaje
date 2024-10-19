@@ -25,6 +25,30 @@ void calculate(astNode** values, astNode* node){
             node->value.value =  divide(&var1,&var2,&err);
             break;
         }
+        case EQUAL:{
+            node->value.value = isEqual(&var1,&var2,0,&err);
+            break;
+        }
+        case NOT_EQUAL:{
+            node->value.value = isEqual(&var1,&var2,1,&err);
+            break;
+        }
+        case GREATER:{
+            node->value.value = isGreater(&var1,&var2,1,&err);
+            break;
+        }
+        case GREATER_EQUAL:{
+            node->value.value = isGreater(&var1,&var2,0,&err);
+            break;
+        }
+        case LESS:{
+            node->value.value = isLesser(&var1,&var2,1,&err);
+            break;
+        }
+        case LESS_EQUAL:{
+            node->value.value = isLesser(&var1,&var2,0,&err);
+            break;
+        }
     }
 }
 
@@ -50,8 +74,11 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hm* hash
 }
 
 astNode* compute(astNode* node, hm* hashmap){
+    printf("Current node : %d %d\n",node->type,node->childrenCount);
     if(node->childrenCount == 0){
+       
         if(node->type == VARIABLE){
+             
             var tmp = *(var*)hm_get(hashmap,node->value.variable);
             node->type = VALUE;
             node->value.value = tmp;
@@ -59,11 +86,23 @@ astNode* compute(astNode* node, hm* hashmap){
         return node; //Send the whole node back
     }   
 
-    astNode** values = malloc(sizeof(astNode*) * 3);
-    short valueAmount = 0;
+    astNode** values = malloc(sizeof(astNode*) * node->childrenCount + 1);
     for(int i = 0; i < node->childrenCount; i++){
-        values[valueAmount] = compute(node->children[i], hashmap);
-        valueAmount++;
+        
+        
+        //IF WE ARE ON THEN
+        if(i == 1 && node->type == CONDITION && values[0]->value.value.value._int == 1){
+            values[i] = compute(node->children[i], hashmap);
+        } else if(i == 2 && node->type == CONDITION && values[0]->value.value.value._int == 0){
+            values[i] = compute(node->children[i], hashmap);
+        } else {
+            printf("test2 : I : %d Child amount : %d Node type : %d\n",i,node->childrenCount, node->type);
+            values[i] = compute(node->children[i], hashmap);
+            printf("test3\n");
+
+        }
+
+        
     }
 
     if(node->type == OPERATOR && node->value.operator == ASSIGNMENT){

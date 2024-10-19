@@ -452,3 +452,91 @@ var squareroot(var *var1, error *err){
 
     return result;
 }
+
+/*
+*
+* EQUAL FUNCTION
+*
+*/
+var isEqual(var* v, var* v2,int reversed, error* err){
+    printf("tset1\n");
+    var result;
+    result.type = _int;
+    switch(v->type){
+        case _int:
+        case _float:
+        case _char:{
+            if(v2->type == _string){
+                result.value._int = 0;
+                return result;
+            }
+
+            float value1 = getNumericValue(v);
+            float value2 = getNumericValue(v2);
+            if(reversed == 1){
+                result.value._int = value1 != value2;
+            } else {
+                result.value._int = value1 == value2;
+            }
+            
+            return result;
+            break;     
+        }
+        case _string:{
+            if(v2->type != _string){
+                result.value._int = 0;
+                return result;
+            }
+            
+            break;
+        }
+    }
+}
+
+/*
+*
+* GREATER FUNCTION
+*
+*/
+var isGreater(var* v, var* v2, int strict, error* err){
+    var result;
+    result.type = _int;
+    if(v->type == _string || v2->type == _string){
+        result.value._int = 0;
+        return result;
+    }
+
+    float value1 = getNumericValue(v);
+    float value2 = getNumericValue(v2);
+    if(strict == 1){
+        result.value._int = value1 > value2;
+        return result;
+    } else {
+        result.value._int = value1 >= value2;
+        return result;
+    }
+}
+
+/*
+*
+* LESSER FUNCTION
+*
+*/
+var isLesser(var* v, var* v2, int strict, error* err){
+    var result;
+    result.type = _int;
+    if(v->type == _string || v2->type == _string){
+        result.value._int = 0;
+        return result;
+    }
+
+    float value1 = getNumericValue(v);
+    float value2 = getNumericValue(v2);
+    if(strict == 1){
+        result.value._int = value1 < value2;
+        return result;
+    } else {
+        result.value._int = value1 <= value2;
+        return result;
+    }
+}
