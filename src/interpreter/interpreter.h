@@ -7,6 +7,10 @@
 #include "../functions/functions.h"
 #include <stdlib.h>
 
-int run(InstructionBlock* program, hmStack* stack);
+void subsituteValue(astNode* value, hmStack* stack);
+void calculateNode(astNode** values, astNode* node,hmStack* stack);
+int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack);
+astNode* computeNode(astNode* node, hmStack* stack);
+int runInstructionBlock(InstructionBlock* program, hmStack* stack);
 
 #endif

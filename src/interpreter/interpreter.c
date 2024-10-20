@@ -1,5 +1,9 @@
 #include "interpreter.h"
 
+/**
+* Function that replace the value of the variable in a node by its value in the hashmaps stack.
+* Raise error if the value doesn't exist
+*/
 void subsituteValue(astNode* value, hmStack* stack){
     int hmIndex = isInStackDownwards(stack,value->value.variable);
     
@@ -13,7 +17,11 @@ void subsituteValue(astNode* value, hmStack* stack){
     value->value.value = tmp;    
 }
 
-void calculate(astNode** values, astNode* node,hmStack* stack){
+/**
+* Function that calculate the result of a mathematical operation for two values.
+* Directly replaces the value of the operation node, returns void.
+*/
+void calculateNode(astNode** values, astNode* node,hmStack* stack){
     operator op = node->value.operator;
     error err;
 
@@ -67,6 +75,12 @@ void calculate(astNode** values, astNode* node,hmStack* stack){
     }
 }
 
+/**
+* Function that either : 
+*   Create a new variable in the top hashmap of the stack, if the value doesn't exist in an other hashmap 
+*   Change the value of a variable if it's found in the stack 
+* Return 1 on success, 0 on failure.
+*/
 int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack){
 
     if(nodeToAssign->type == VARIABLE){
@@ -75,6 +89,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
         if(hmIndex > -1){
             var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
             var2var(tmp, &(valueToAssign->value.value));  
+            return 1;
         }
     
     } else if(nodeToAssign->type == INITIALIZATION){
@@ -85,12 +100,19 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
             newVar->type = nodeToAssign->value.initialization.type;    
             var2var(newVar,&(valueToAssign->value.value));
             hm_set(stack->stack[stack->length-1], nodeToAssign->value.initialization.name, newVar);
+            return 1;
         }
     }
+    return 0;
  
 }
 
-astNode* compute(astNode* node, hmStack* stack){
+/**
+* Function that compute a node of the AST. 
+* Recursively call on each child of the node.
+* Call a new runInstructionBlock if a block of code is found in the AST.
+*/
+astNode* computeNode(astNode* node, hmStack* stack){
     if(node->childrenCount == 0){
         return node; //Send the whole node back
     }   
@@ -103,22 +125,19 @@ astNode* compute(astNode* node, hmStack* stack){
         //IF WE ARE ON THEN
         if(i == 1 && node->type == CONDITION && values[0]->value.value.value._int == 1){
             if(node->children[i]->type == BLOCK){
-                printf("Run exit code : %d\n",run(node->children[i]->value.block,stack));
+                printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block,stack));
             }
             i+=2;
             
         } else if(i == 2 && node->type == CONDITION && values[0]->value.value.value._int == 0){
             if(node->children[i]->type == BLOCK){
-                printf("Run exit code : %d\n",run(node->children[i]->value.block,stack));
+                printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block,stack));
             }
             i+=2;
             
         } else{
-            printf("______%d____%d__",node->childrenCount,i);
-            
             printf("Computing node\n");
-            
-            values[i] = compute(node->children[i], stack);
+            values[i] = computeNode(node->children[i], stack);
 
         }
     }
@@ -126,22 +145,28 @@ astNode* compute(astNode* node, hmStack* stack){
     if(node->type == OPERATOR && node->value.operator == ASSIGNMENT){
         assignValueToHashmap(values[0],values[1],stack);
     } else if(node->type == OPERATOR){
-        calculate(values,node,stack);
+        calculateNode(values,node,stack);
         free(values);
        return node;
     }
 }
 
 
-
-int run(InstructionBlock* program, hmStack* stack){
+/**
+* Function that allocate a hashmap and push it on top of the stack
+* Runs the instruction block sent in parameters.
+* After the run, pop the hashmap on top of the stack.
+*/
+int runInstructionBlock(InstructionBlock* program, hmStack* stack){
     //Withotu stack memory management
     hm* hashmap = hm_create();
     hmStackPush(stack,hashmap);
     printf("\nRunning block\n");
     for(int i = 0; i < program->instructionsCount; i++){
-        compute(program->instructions[i], stack);
+        computeNode(program->instructions[i], stack);
     }
+    
+    //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
     if(isInStackDownwards(stack,"b") > -1){
         printf("VALUE OF B : ");
         display((var*)hm_get(stack->stack[1],"b"));
