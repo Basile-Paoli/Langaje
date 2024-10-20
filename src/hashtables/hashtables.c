@@ -193,6 +193,10 @@ int hm_next(hmi* it) {
     return 0;
 }
 
+/**
+* Function that allocate a stack of hashmaps, with a size of baseSize
+* Returns null on failure
+*/
 hmStack* hmStackCreate(int baseSize){
     hmStack* hmS = malloc(sizeof(hmStack*) * 1);
     if(hmS == NULL)return NULL;
@@ -203,6 +207,11 @@ hmStack* hmStackCreate(int baseSize){
     return hmS;
 }
 
+/**
+* Function that push a hashmap on top of the stack
+* Double the stack size if it reach half the capacity
+* Returns 0 on failure, 1 on success
+*/
 int hmStackPush(hmStack* stack, hm* map){
     if(stack->length >= stack->capacity / 2){
         if(hmStackExpand(stack) == 0){
@@ -214,12 +223,20 @@ int hmStackPush(hmStack* stack, hm* map){
     return 1;
 }
 
+/**
+* Function that pop a hashmap from the top of the stack
+* Returns 1 on success
+*/
 int hmStackPop(hmStack* stack){
     hm_free(stack->stack[stack->length-1]);
     stack->length--;
     return 1;
 }
 
+/**
+* Function that double the size of the stack, and move the elements in the the allocated stack.
+* Returns 0 on failure, 1 on success
+*/
 int hmStackExpand(hmStack* stack){
     
     hm** tmpStack = malloc(sizeof(hm*) * stack->capacity* 2);
@@ -230,10 +247,13 @@ int hmStackExpand(hmStack* stack){
     }
     stack->capacity *= 2;
     stack->stack = tmpStack;
-    printf("expanding");
     return 1;
 }
 
+/**
+* Function that destroy the stack by freeing all the hashmaps, and then the stack.
+* Returns 1 on success
+*/
 int hmStackDestroy(hmStack* stack){
     for(int i = 0; i < stack->length; i++){
         hm_free(stack->stack[i]);
@@ -242,13 +262,17 @@ int hmStackDestroy(hmStack* stack){
     return 1;
 }
 
+/**
+* Returns stack length
+*/
 int getStackLength(hmStack* stack){
     return stack->length;
 }
 
-
-//Return the index of the hashmap that contains the key 
-//-1 if none 
+/**
+* Returns the hashmap index that contains the key by going through the stack by the top.
+* Returns -1 when nothing found.
+*/
 int isInStackDownwards(hmStack* stack, char* key){
     for(int i = stack->length - 1; i >= 0; i--){
         if((struct var*)hm_get(stack->stack[i],key) != NULL){
@@ -258,6 +282,10 @@ int isInStackDownwards(hmStack* stack, char* key){
     return -1;
 }
 
+/**
+* Returns the hashmap index that contains the key by going through the stack by the bottom.
+* Returns -1 when nothing found.
+*/
 int isInStackUpwards(hmStack* stack, char* key){
     for(int i = 0; i < stack->length; i++){
         if((struct var*)hm_get(stack->stack[i],key) != NULL){
