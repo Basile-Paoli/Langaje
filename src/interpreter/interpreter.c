@@ -9,6 +9,7 @@ void subsituteValue(astNode* value, hmStack* stack){
     
     if(hmIndex == -1){
         //RAISE ERROR
+        printf("Value not found : %s\n",value->value.variable);
         return;
     }
 
@@ -21,15 +22,18 @@ void subsituteValue(astNode* value, hmStack* stack){
 * Function that calculate the result of a mathematical operation for two values.
 * Directly replaces the value of the operation node, returns void.
 */
-void calculateNode(astNode** values, astNode* node,hmStack* stack){
+void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount){
     operator op = node->value.operator;
     error err;
 
     if(values[0]->type == VARIABLE)subsituteValue(values[0],stack);    
-    if(values[1]->type == VARIABLE)subsituteValue(values[1],stack);
-
     var var1 = values[0]->value.value;
-    var var2 = values[1]->value.value;
+    var var2;
+    if(valuesAmount > 1){
+        if(values[1]->type == VARIABLE)subsituteValue(values[1],stack);
+        var2 = values[1]->value.value;
+    }
+    
     
     switch(op){
         case ADDITION:{
@@ -49,7 +53,6 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack){
             break;
         }
         case EQUAL:{
-            printf("EQUAL CALLED\n");
             node->value.value = isEqual(&var1,&var2,0,&err);
             break;
         }
@@ -81,6 +84,10 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack){
         }
         case AND:{
             node->value.value = valueAnd(&var1,&var2,&err);
+            break;
+        }
+        case NOT:{
+            node->value.value = valueReverse(&var1,&err);
             break;
         }
 
@@ -134,10 +141,11 @@ astNode* computeNode(astNode* node, hmStack* stack){
     }   
 
     astNode** values = malloc(sizeof(astNode*) * node->childrenCount + 1);
+    int valuesAmount = 0;
     for(int i = 0; i < node->childrenCount; i++){
         
         if(node->children[i] == NULL)continue;
-        
+        valuesAmount++;
         //IF WE ARE ON THEN
         if(i == 1 && node->type == CONDITION && values[0]->value.value.value._int == 1 && node->children[i]->type != CONDITION){
             if(node->children[i]->type == BLOCK){
@@ -163,8 +171,8 @@ astNode* computeNode(astNode* node, hmStack* stack){
 
     if(node->type == OPERATOR && node->value.operator == ASSIGNMENT){
         assignValueToHashmap(values[0],values[1],stack);
-    } else if(node->type == OPERATOR){
-        calculateNode(values,node,stack);
+    } else if(node->type == OPERATOR && valuesAmount > 0){
+        calculateNode(values,node,stack,valuesAmount);
         free(values);
        return node;
     }
@@ -186,13 +194,24 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack){
     }
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
-    if(isInStackDownwards(stack,"b") > -1){
-        printf("VALUE OF B : ");
-        display((var*)hm_get(stack->stack[1],"b"));
-        printf("\n");
-    }
+    
+    char debugArr[2][255] = {"a", "b"};
+    debug(&debugArr,2,stack);
+
+
     printf("Stopping block\n");
     hmStackPop(stack);
     printf("Popped hm \n");
     return 0;
+}
+
+
+void debug(char key[][255], int arrSize, hmStack* stack){
+    for(int i = 0; i < arrSize; i++){
+        if(isInStackDownwards(stack,key[i]) > -1){
+            printf("VALUE OF %s : ",key[i]);
+            display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]));
+            printf("\n");
+        }   
+    }
 }

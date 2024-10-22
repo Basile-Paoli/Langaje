@@ -28,6 +28,7 @@ int concat(var *, char *, char *, char**);
 float getNumericValue(var*);
 var valueOr(var*, var*, error*);
 var valueAnd(var*, var*, error*);
+var valueReverse(var* v, error* err);
 
 
 #endif //LANGAJE_FUNCTIONS_H

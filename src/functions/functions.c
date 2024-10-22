@@ -556,3 +556,11 @@ var valueAnd(var* v, var* v2, error* err){
     result.value._int = (v->value._int == 1 && v2->value._int == 1);
     return result;
 }
+
+var valueReverse(var* v, error* err){
+    var result;
+    result.type = _int;
+    //result.value._int = v->value._int == 1 ? 0 : 1;
+    result.value._int = 1;
+    return result;
+}
