@@ -49,6 +49,7 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack){
             break;
         }
         case EQUAL:{
+            printf("EQUAL CALLED\n");
             node->value.value = isEqual(&var1,&var2,0,&err);
             break;
         }
@@ -138,17 +139,20 @@ astNode* computeNode(astNode* node, hmStack* stack){
         if(node->children[i] == NULL)continue;
         
         //IF WE ARE ON THEN
-        if(i == 1 && node->type == CONDITION && values[0]->value.value.value._int == 1){
+        if(i == 1 && node->type == CONDITION && values[0]->value.value.value._int == 1 && node->children[i]->type != CONDITION){
             if(node->children[i]->type == BLOCK){
                 printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block,stack));
             }
-            i+=2;
+            i+=1;
             
-        } else if(i == 2 && node->type == CONDITION && values[0]->value.value.value._int == 0){
+        } else if(i == 2 && node->type == CONDITION && values[0]->value.value.value._int == 0 && node->children[i]->type != CONDITION){
+            
             if(node->children[i]->type == BLOCK){
+                
                 printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block,stack));
             }
-            i+=2;
+
+            i+=1;
             
         } else{
             printf("Computing node\n");

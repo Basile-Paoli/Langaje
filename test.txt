@@ -1,4 +1,8 @@
-def int a = 3;
+def int a = 4;
 if(a == 3 && 1 == 1) {
     a = 10;
+} else if (a == 2){
+    def int b = 20;
+} else {
+    def int b = 40;
 }

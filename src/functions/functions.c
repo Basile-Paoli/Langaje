@@ -472,6 +472,7 @@ var isEqual(var* v, var* v2,int reversed, error* err){
 
             float value1 = getNumericValue(v);
             float value2 = getNumericValue(v2);
+            printf("Is equal : %.2f %.2f\n",value1,value2);
             if(reversed == 1){
                 result.value._int = value1 != value2;
             } else {
