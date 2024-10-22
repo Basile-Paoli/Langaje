@@ -72,6 +72,21 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack){
             node->value.value = isLesser(&var1,&var2,0,&err);
             break;
         }
+        case OR:{
+            printf("Entering or :");
+            node->value.value = valueOr(&var1,&var2,&err);
+            printf("%d\n",node->value.value.value._int);
+            break;
+        }
+        case AND:{
+            node->value.value = valueAnd(&var1,&var2,&err);
+            break;
+        }
+
+        default:{
+            printf("UNKNOWN OPERATOR\n");
+            break;
+        }
     }
 }
 

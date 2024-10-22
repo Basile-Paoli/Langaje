@@ -539,3 +539,19 @@ var isLesser(var* v, var* v2, int strict, error* err){
         return result;
     }
 }
+
+var valueOr(var* v, var* v2, error* err){
+    var result;
+    result.type = _int;
+
+    result.value._int = (v->value._int == 1 || v2->value._int == 1);
+    return result;
+}
+
+var valueAnd(var* v, var* v2, error* err){
+    var result;
+    result.type = _int;
+
+    result.value._int = (v->value._int == 1 && v2->value._int == 1);
+    return result;
+}

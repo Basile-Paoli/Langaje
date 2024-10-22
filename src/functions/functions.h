@@ -26,6 +26,8 @@ var isGreater(var*, var*, int, error*);
 var isLesser(var*, var*, int, error*);
 int concat(var *, char *, char *, char**);
 float getNumericValue(var*);
+var valueOr(var*, var*, error*);
+var valueAnd(var*, var*, error*);
 
 
 #endif //LANGAJE_FUNCTIONS_H
