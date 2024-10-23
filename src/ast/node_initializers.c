@@ -104,3 +104,25 @@ astNode *stringTokenToNode(Token token) {
             .type = _string
     });
 }
+
+
+astNode **newChildren(astNode *firstChild) {
+    astNode **res = malloc(sizeof(astNode *));
+    res[0] = firstChild;
+    return res;
+}
+
+
+astNode **appendChild(astNode **children, int childrenCount, astNode *child) {
+    children = realloc(children, childrenCount + 1);
+    children[childrenCount] = child;
+    return children;
+}
+
+
+void freeChildren(astNode **children, int childrenCount) {
+    for (int i = 0; i < childrenCount; i++) {
+        freeAstNode(children[i]);
+    }
+    free(children);
+}

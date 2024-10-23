@@ -1,7 +1,3 @@
-//
-// Created by user on 10/5/24.
-//
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,7 +45,7 @@ astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
         return node;
     }
 
-    if(node->type != VARIABLE && node->type != OPERATOR && node->value.operator != SUBSCRIPT) {
+    if (node->type != VARIABLE && node->type != OPERATOR && node->value.operator != SUBSCRIPT) {
         err->value = ERR_SYNTAX;
         err->message = strdup("Invalid left-hand side in assignment");
         freeAstNode(node);
@@ -286,6 +282,9 @@ astNode *parsePrimary(TokenList *tokenList, int *currentToken, error *err) {
         case TOKEN_LPAREN: {
             return parseParenthesisExpression(tokenList, currentToken, err);
         }
+        case TOKEN_LBRACKET: {
+            return parseArray(tokenList, currentToken, err);
+        }
         default: {
             err->value = ERR_SYNTAX;
             err->message = malloc(strlen("Unexpected token ") + strlen(tokenList->tokens[*currentToken].value) + 1);
@@ -350,6 +349,56 @@ astNode *parseBracketExpression(TokenList *tokenList, int *currentToken, error *
     ++*currentToken;
 
     return node;
+}
+
+
+astNode *parseArray(TokenList *tokenList, int *currentToken, error *err) {
+    assert(tokenList->tokens[*currentToken].type == TOKEN_LBRACKET);
+    ++*currentToken;
+    if (*currentToken >= tokenList->nb_tokens) {
+        return endOfInputError(err);
+    }
+    if (tokenList->tokens[*currentToken].type == TOKEN_RBRACKET) {
+        return newArrayNode(0, NULL);
+    }
+
+    astNode *firstVal = parseExpression(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+    astNode **values = newChildren(firstVal);
+    int valueCount = 1;
+
+    while (*currentToken < tokenList->nb_tokens && tokenList->tokens[*currentToken].type == TOKEN_COMMA) {
+        ++*currentToken;
+        if (*currentToken >= tokenList->nb_tokens) {
+            freeChildren(values, valueCount);
+            return endOfInputError(err);
+        }
+
+        astNode *val = parseExpression(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeChildren(values, valueCount);
+            return NULL;
+        }
+
+        values = appendChild(values, valueCount++, val);
+    }
+
+    if (*currentToken >= tokenList->nb_tokens) {
+        freeChildren(values, valueCount);
+        return endOfInputError(err);
+    }
+    if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
+        err->value = ERR_SYNTAX;
+        err->message = strdup("Expected ']' at the end of array expression");
+        freeChildren(values, valueCount);
+        return NULL;
+    }
+
+    ++*currentToken;
+
+    return newArrayNode(valueCount, values);
 }
 
 

@@ -38,6 +38,8 @@ typedef struct var{
 int assignString(var* v, char* value);
 int assign(var* v, void* value);
 void display(var* v);
+var newArrayVar(int size, varType type);
+void appendToArrayVar(var *tab, var val);
 
 
 #endif //LANGAJE_TYPES_H

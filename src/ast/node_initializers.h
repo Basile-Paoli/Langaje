@@ -20,4 +20,10 @@ astNode *stringTokenToNode(Token token);
 
 astNode *identifierTokenToNode(Token token);
 
+astNode **newChildren(astNode *firstChild);
+
+astNode **appendChild(astNode **children, int childrenCount, astNode *child);
+
+void freeChildren(astNode **children, int childrenCount);
+
 #endif //LANGAJE_NODE_INITIALIZERS_H

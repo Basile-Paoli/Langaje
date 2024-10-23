@@ -33,6 +33,8 @@ astNode *parseParenthesisExpression(TokenList *tokenList, int *currentToken, err
 
 astNode *parseBracketExpression(TokenList *tokenList, int *currentToken, error *err);
 
+astNode *parseArray(TokenList *tokenList, int *currentToken, error *err);
+
 astNode *parseIdentifier(TokenList *tokenList, int *currentToken, error *err);
 
 #endif //LANGAJE_EXPRESSION_H
