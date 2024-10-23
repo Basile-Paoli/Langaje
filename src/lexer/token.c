@@ -62,13 +62,32 @@ void free_tokenList(TokenList *tl) {
 
 char *token_type_to_str(TokenType type) {
     switch (type) {
-        case TOKEN_KEYWORD:
-            return "KEYWORD";
         case TOKEN_IDENTIFIER:
             return "IDENTIFIER";
 
+        case TOKEN_KEYWORD:
+            return "KEYWORD";
+        case TOKEN_KEYWORD_IF:
+            return "IF";
+        case TOKEN_KEYWORD_ELSE:
+            return "ELSE";
+        case TOKEN_KEYWORD_WHILE:
+            return "WHILE";
+        case TOKEN_KEYWORD_FOR:
+            return "FOR";
+
+        case TOKEN_PREPROCESSEUR_LANG:
+            return "PREPOCESSEUR_LANG";
+        case TOKEN_PREPROCESSEUR_INCLUDE:
+            return "PREPROCESSEUR_INCLUDE";
+
+        case TOKEN_FUNCTION_DECLARATION:
+            return "FUNCTION_DECLARATION";
+
         case TOKEN_NUMBER:
             return "NUMBER";
+        case TOKEN_FLOAT:
+            return "FLOAT";
         case TOKEN_STRING:
             return "STRING";
 
