@@ -59,20 +59,24 @@ initType parseType(TokenList *tokenList, int *currentToken, error *err) {
             endOfInputError(err);
             return type;
         }
-        if (tokenList->tokens[*currentToken].type != TOKEN_NUMBER) {
-            err->value = ERR_SYNTAX;
-            err->message = strdup("Expected a number after '['");
-            return type;
-        }
-        addArrayToType(&type, atoi(tokenList->tokens[*currentToken].value));
+        if (tokenList->tokens[*currentToken].type == TOKEN_NUMBER) {
+            addArrayToType(&type, atoi(tokenList->tokens[*currentToken].value));
 
-        ++*currentToken;
-        if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
+            ++*currentToken;
+            if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
+                err->value = ERR_SYNTAX;
+                err->message = strdup("Expected ']'");
+                return type;
+            }
+            ++*currentToken;
+        } else if (tokenList->tokens[*currentToken].type == TOKEN_RBRACKET) {
+            addArrayToType(&type, 0);
+            ++*currentToken;
+        } else {
             err->value = ERR_SYNTAX;
-            err->message = strdup("Expected ']'");
+            err->message = strdup("Invalid token after '['");
             return type;
         }
-        ++*currentToken;
     }
 
     return type;
