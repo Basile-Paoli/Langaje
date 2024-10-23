@@ -76,7 +76,7 @@ char *read_file(char *filename) {
 
 }
 
-lexer_rule *new_lexer_rule(Lexer *l, char *regex, TokenType type){
+lexer_rule *new_lexer_rule(char *regex, TokenType type){
     lexer_rule *rule = (lexer_rule *)malloc(sizeof(lexer_rule));
     if (rule == NULL) return NULL;
 

@@ -16,7 +16,7 @@ typedef struct {
 
 
 
-lexer_rule *new_lexer_rule(Lexer *l, char *regex, TokenType type);
+lexer_rule *new_lexer_rule(char *regex, TokenType type);
 void print_lexer_rule(lexer_rule *rule);
 
 Lexer *new_lexer();
