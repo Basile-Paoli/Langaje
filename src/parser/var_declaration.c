@@ -59,7 +59,7 @@ initType parseType(TokenList *tokenList, int *currentToken, error *err) {
             endOfInputError(err);
             return type;
         }
-        if (tokenList->tokens[*currentToken].type == TOKEN_NUMBER) {
+        if (tokenList->tokens[*currentToken].type == TOKEN_TYPE_INT) {
             addArrayToType(&type, atoi(tokenList->tokens[*currentToken].value));
 
             ++*currentToken;
@@ -155,6 +155,7 @@ astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err
     int typed = 0;
     initType type;
 
+    /* TODO : FIX THIS. TOKEN_KEYWORD has been removed.
     if (tokenList->tokens[*currentToken].type == TOKEN_KEYWORD) {
         type = parseType(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
@@ -162,6 +163,7 @@ astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err
         }
         typed = 1;
     }
+    */
 
     if (*currentToken >= tokenList->nb_tokens) {
         return endOfInputError(err);
