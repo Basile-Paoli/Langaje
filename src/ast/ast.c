@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "misc-no-recursion"
 //
 // Created by Basile on 02/10/2024.
 //
@@ -33,7 +31,7 @@ astNode *newOperatorNode(operator operator) {
 }
 
 
-astNode *newInitializationNode(char *name, int typed, varType type) {
+astNode *newInitializationNode(char *name, int typed, initType type) {
     astNode *node = malloc(sizeof(astNode));
     node->type = INITIALIZATION;
     node->value.initialization.name = malloc(sizeof(char) * strlen(name));
@@ -74,6 +72,14 @@ astNode *newConditionNode(astNode *condition, astNode *ifBlock, astNode *elseBlo
     node->children[1] = ifBlock;
     node->children[2] = elseBlock;
     node->childrenCount = 3;
+    return node;
+}
+
+astNode *newArrayNode(int size, astNode **values) {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = ARRAY;
+    node->childrenCount = size;
+    node->children = values;
     return node;
 }
 
@@ -133,6 +139,28 @@ void printValue(var value) {
     printf("\n");
 }
 
+void printType(initType type) {
+    switch (type.type) {
+        case _int:
+            printf("int");
+            break;
+        case _float:
+            printf("float");
+            break;
+        case _char:
+            printf("char");
+            break;
+        case _string:
+            printf("string");
+            break;
+        case _array:
+            printf("array(%d) of ", type.arraySize);
+            printType(*type.elementsType);
+            break;
+
+    }
+}
+
 void printAstNode(astNode *node, int depth) {
     for (int i = 0; i < depth * PRINT_SPACE; i++) {
         printf(" ");
@@ -148,7 +176,11 @@ void printAstNode(astNode *node, int depth) {
             printValue(node->value.value);
             break;
         case INITIALIZATION:
-            printf("Initialization: %s\n", node->value.initialization.name);
+            printf("Initialization: %s ", node->value.initialization.name);
+            if (node->value.initialization.typed) {
+                printType(node->value.initialization.type);
+            }
+            printf("\n");
             break;
         case BLOCK:
             printf("Block\n");
@@ -157,6 +189,13 @@ void printAstNode(astNode *node, int depth) {
         case CONDITION:
             printf("Condition\n");
             break;
+        case LOOP:
+            printf("Loop\n");
+            break;
+        case ARRAY:
+            printf("Array\n");
+            break;
+
     }
 }
 
@@ -205,6 +244,8 @@ const char *operatorToString(operator operator) {
             return "UNARY_MINUS";
         case UNARY_PLUS:
             return "UNARY_PLUS";
+        case SUBSCRIPT:
+            return "SUBSCRIPT";
     }
 }
 
@@ -260,5 +301,3 @@ void freeInstructionBlock(InstructionBlock *parseResult) {
     free(parseResult->instructions);
     free(parseResult);
 }
-
-#pragma clang diagnostic pop

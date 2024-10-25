@@ -27,25 +27,26 @@ TokenList *tokenizer(char *input, Lexer *l) {
 
         // For each rule
         for (int j = 0; j < l->nb_rules; j++) {
-
+            
             regex_t regex;
             regcomp(&regex, l->rules[j].regex, REG_EXTENDED);
-            regmatch_t match;
+            size_t maxGroup = 10;
+            regmatch_t match[maxGroup];
 
-            if (regexec(&regex, input + i, 1, &match, 0) == 0) {
+            if (regexec(&regex, input + i, maxGroup, match, 0) == 0) {
 
-                if (match.rm_so != 0) continue;
+                if (match->rm_so != 0) continue;
                 
-                char *buffer = (char *)calloc(match.rm_eo, sizeof(char));
+                char *buffer = (char *)calloc(match->rm_eo, sizeof(char));
                 if (buffer == NULL) return NULL;
-                strncpy(buffer, input + i, match.rm_eo);
+                strncpy(buffer, input + i, match->rm_eo);
 
                 Token *t = new_Token(l->rules[j].type, buffer);
                 add_Token(list, t);
                 
                 free(buffer);
 
-                i += match.rm_eo-1;
+                i += match->rm_eo-1;
                 break;
 
             }

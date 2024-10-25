@@ -15,6 +15,7 @@ typedef enum {
     BLOCK,
     CONDITION,
     LOOP,
+    ARRAY,
 } astNodeType;
 typedef enum operator {
     ADDITION,
@@ -35,13 +36,23 @@ typedef enum operator {
     NOT,
     UNARY_MINUS,
     UNARY_PLUS,
+    SUBSCRIPT,
 } operator;
+
+
+typedef struct initType {
+    varType type;
+    //Si type == _array
+    struct initType *elementsType;
+    int arraySize;
+} initType;
 
 typedef struct initializationNode {
     char *name;
     int typed;
-    varType type;
+    initType type;
 } initializationNode;
+
 
 typedef union {
     operator operator;
@@ -77,13 +88,15 @@ astNode *newVariableNode(char *variable);
 
 astNode *newOperatorNode(operator operator);
 
-astNode *newInitializationNode(char *name, int typed, varType type);
+astNode *newInitializationNode(char *name, int typed, initType type);
 
 astNode *newValueNode(var value);
 
 astNode *newInstructionBlockNode(InstructionBlock *block);
 
 astNode *newConditionNode(astNode *condition, astNode *ifBlock, astNode *elseBlock);
+
+astNode *newArrayNode(int size, astNode **values);
 
 void freeAstNode(astNode *node);
 

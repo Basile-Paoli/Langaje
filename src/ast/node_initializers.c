@@ -76,6 +76,17 @@ astNode *newUnaryOperatorNode(TokenType token, astNode *child) {
     return node;
 }
 
+
+astNode *newSubscriptNode(astNode *array, astNode *index) {
+    astNode *node = newOperatorNode(SUBSCRIPT);
+    node->type = OPERATOR;
+    node->children = malloc(2 * sizeof(astNode *));
+    node->children[0] = array;
+    node->children[1] = index;
+    node->childrenCount = 2;
+    return node;
+}
+
 astNode *intTokenToNode(Token token) {
     var value = {.value._int = atoi(token.value), .type = _int};
     return newValueNode(value);
@@ -92,4 +103,26 @@ astNode *stringTokenToNode(Token token) {
             .value._string = strndup(token.value + 1, strlen(token.value) - 2),
             .type = _string
     });
+}
+
+
+astNode **newChildren(astNode *firstChild) {
+    astNode **res = malloc(sizeof(astNode *));
+    res[0] = firstChild;
+    return res;
+}
+
+
+astNode **appendChild(astNode **children, int childrenCount, astNode *child) {
+    children = realloc(children, childrenCount + 1);
+    children[childrenCount] = child;
+    return children;
+}
+
+
+void freeChildren(astNode **children, int childrenCount) {
+    for (int i = 0; i < childrenCount; i++) {
+        freeAstNode(children[i]);
+    }
+    free(children);
 }

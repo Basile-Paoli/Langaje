@@ -12,13 +12,26 @@
 
 int main() {
 
+    for (int i = 0; i < 30; i++) printf("=");
+    printf("\n");
+
     Lexer *l = new_lexer();
     if (l == NULL)return 1;
 
+
     add_lexer_rule(l, new_lexer_rule(l, "def", TOKEN_KEYWORD));
     add_lexer_rule(l, new_lexer_rule(l, "int", TOKEN_KEYWORD));
-    add_lexer_rule(l, new_lexer_rule(l, "if", TOKEN_KEYWORD));
-    add_lexer_rule(l, new_lexer_rule(l, "[a-zA-Z_][a-zA-Z0-9_]{0,}", TOKEN_IDENTIFIER));
+    add_lexer_rule(l, new_lexer_rule(l, "float", TOKEN_KEYWORD));
+
+    add_lexer_rule(l, new_lexer_rule(l, "if", TOKEN_KEYWORD_IF));
+    add_lexer_rule(l, new_lexer_rule(l, "else", TOKEN_KEYWORD_ELSE));
+    add_lexer_rule(l, new_lexer_rule(l, "while", TOKEN_KEYWORD_WHILE));
+    add_lexer_rule(l, new_lexer_rule(l, "for", TOKEN_KEYWORD_FOR));
+
+    add_lexer_rule(l, new_lexer_rule(l, "#LANG_([A-Z]){1,}", TOKEN_PREPROCESSEUR_LANG));
+    add_lexer_rule(l, new_lexer_rule(l, "#include", TOKEN_PREPROCESSEUR_INCLUDE));
+    
+    add_lexer_rule(l, new_lexer_rule(l, "func", TOKEN_FUNCTION_DECLARATION));
 
     add_lexer_rule(l, new_lexer_rule(l, "==", TOKEN_EQUAL_EQUAL));
     add_lexer_rule(l, new_lexer_rule(l, "!=", TOKEN_NOT_EQUAL));
@@ -29,10 +42,11 @@ int main() {
 
     add_lexer_rule(l, new_lexer_rule(l, "&&", TOKEN_AND));
     add_lexer_rule(l, new_lexer_rule(l, "\\|\\|", TOKEN_OR));
-    add_lexer_rule(l, new_lexer_rule(l, "!", TOKEN_NOT));
+    add_lexer_rule(l, new_lexer_rule(l, "!|not", TOKEN_NOT));
 
     add_lexer_rule(l, new_lexer_rule(l, "=", TOKEN_EQUAL));
 
+    add_lexer_rule(l, new_lexer_rule(l, "[0-9]+\\.[0-9]+", TOKEN_FLOAT));
     add_lexer_rule(l, new_lexer_rule(l, "[0-9]+", TOKEN_NUMBER));
     add_lexer_rule(l, new_lexer_rule(l, "\"[^\"]*\"", TOKEN_STRING));
 
@@ -53,6 +67,8 @@ int main() {
     add_lexer_rule(l, new_lexer_rule(l, ",", TOKEN_COMMA));
     add_lexer_rule(l, new_lexer_rule(l, ";", TOKEN_SEMICOLON));
 
+    add_lexer_rule(l, new_lexer_rule(l, "[a-zA-Z_][a-zA-Z0-9_]{0,}", TOKEN_IDENTIFIER));
+
     // print_lexer(l);
 
     char *input = read_file("test.txt");
@@ -70,6 +86,7 @@ int main() {
     }
     printInstructionBlock(pr, 0);
 
+
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
     runInstructionBlock(pr,stack);
@@ -78,7 +95,6 @@ int main() {
     free_tokenList(tl);
     free_lexer(l);
     free(input);
-
 
     return 0;
 }

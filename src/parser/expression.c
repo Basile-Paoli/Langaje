@@ -1,7 +1,3 @@
-//
-// Created by user on 10/5/24.
-//
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,12 +31,42 @@ astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, err
 
 /**
  * Parses an expression
- * Starts with the lowest precedence operator (logical or)
+ * Starts with the lowest precedence operator (assignment)
  * Each following function parses a different operator with higher precedence
  * See grammar in README.md for more details
  */
 
 astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
+    astNode *node = parseLogicalOr(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+    if (*currentToken >= tokenList->nb_tokens || tokenList->tokens[*currentToken].type != TOKEN_EQUAL) {
+        return node;
+    }
+
+    if (node->type != VARIABLE && node->type != OPERATOR && node->value.operator != SUBSCRIPT) {
+        err->value = ERR_SYNTAX;
+        err->message = strdup("Invalid left-hand side in assignment");
+        freeAstNode(node);
+        return NULL;
+    }
+
+    ++*currentToken;
+    if (*currentToken >= tokenList->nb_tokens) {
+        return endOfInputError(err);
+    }
+
+    astNode *right = parseLogicalOr(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        freeAstNode(node);
+        return NULL;
+    }
+    return newBinaryOperatorNode(TOKEN_EQUAL, node, right);
+
+}
+
+astNode *parseLogicalOr(TokenList *tokenList, int *currentToken, error *err) {
     astNode *node = parseLogicalAnd(tokenList, currentToken, err);
     if (err->value != ERR_SUCCESS) {
         return NULL;
@@ -242,21 +268,22 @@ astNode *parseUnaryOperators(TokenList *tokenList, int *currentToken, error *err
  * See grammar in README.md for more details
  */
 astNode *parsePrimary(TokenList *tokenList, int *currentToken, error *err) {
-    if (*currentToken >= tokenList->nb_tokens) {
-        return endOfInputError(err);
-    }
+
     switch (tokenList->tokens[*currentToken].type) {
         case TOKEN_NUMBER: {
             return intTokenToNode(tokenList->tokens[(*currentToken)++]);
         }
         case TOKEN_IDENTIFIER: {
-            return identifierTokenToNode(tokenList->tokens[(*currentToken)++]);
+            return parseIdentifier(tokenList, currentToken, err);
         }
         case TOKEN_STRING: {
             return stringTokenToNode(tokenList->tokens[(*currentToken)++]);
         }
         case TOKEN_LPAREN: {
             return parseParenthesisExpression(tokenList, currentToken, err);
+        }
+        case TOKEN_LBRACKET: {
+            return parseArray(tokenList, currentToken, err);
         }
         default: {
             err->value = ERR_SYNTAX;
@@ -291,6 +318,103 @@ astNode *parseParenthesisExpression(TokenList *tokenList, int *currentToken, err
     }
 
     ++*currentToken;
+
+    return node;
+}
+
+
+astNode *parseBracketExpression(TokenList *tokenList, int *currentToken, error *err) {
+    assert(tokenList->tokens[*currentToken].type == TOKEN_LBRACKET);
+    ++*currentToken;
+    astNode *node = parseExpression(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    if (*currentToken >= tokenList->nb_tokens) {
+        return endOfInputError(err);
+    }
+
+    if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
+        err->value = ERR_SYNTAX;
+        err->message = malloc(
+                strlen("Expected closing bracket, found ") +
+                strlen(tokenList->tokens[*currentToken].value) + 1);
+        sprintf(err->message, "Expected closing bracket, found %s",
+                tokenList->tokens[*currentToken].value);
+        freeAstNode(node);
+        return NULL;
+    }
+
+    ++*currentToken;
+
+    return node;
+}
+
+
+astNode *parseArray(TokenList *tokenList, int *currentToken, error *err) {
+    assert(tokenList->tokens[*currentToken].type == TOKEN_LBRACKET);
+    ++*currentToken;
+    if (*currentToken >= tokenList->nb_tokens) {
+        return endOfInputError(err);
+    }
+    if (tokenList->tokens[*currentToken].type == TOKEN_RBRACKET) {
+        return newArrayNode(0, NULL);
+    }
+
+    astNode *firstVal = parseExpression(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+    astNode **values = newChildren(firstVal);
+    int valueCount = 1;
+
+    while (*currentToken < tokenList->nb_tokens && tokenList->tokens[*currentToken].type == TOKEN_COMMA) {
+        ++*currentToken;
+        if (*currentToken >= tokenList->nb_tokens) {
+            freeChildren(values, valueCount);
+            return endOfInputError(err);
+        }
+
+        astNode *val = parseExpression(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeChildren(values, valueCount);
+            return NULL;
+        }
+
+        values = appendChild(values, valueCount++, val);
+    }
+
+    if (*currentToken >= tokenList->nb_tokens) {
+        freeChildren(values, valueCount);
+        return endOfInputError(err);
+    }
+    if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
+        err->value = ERR_SYNTAX;
+        err->message = strdup("Expected ']' at the end of array expression");
+        freeChildren(values, valueCount);
+        return NULL;
+    }
+
+    ++*currentToken;
+
+    return newArrayNode(valueCount, values);
+}
+
+
+astNode *parseIdentifier(TokenList *tokenList, int *currentToken, error *err) {
+
+    astNode *node = identifierTokenToNode(tokenList->tokens[*currentToken]);
+    ++*currentToken;
+
+    while (*currentToken < tokenList->nb_tokens && tokenList->tokens[*currentToken].type == TOKEN_LBRACKET) {
+        astNode *index = parseBracketExpression(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeAstNode(node);
+            return NULL;
+        }
+        node = newSubscriptNode(node, index);
+    }
 
     return node;
 }
