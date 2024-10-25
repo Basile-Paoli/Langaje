@@ -14,20 +14,23 @@ int main() {
     Lexer *l = new_lexer();
     if (l == NULL)return 1;    
 
-    //readLexerFile(l, "CLASSIC.lang");
-    readLexerFile(l, "CUSTOM.lang");
-
     add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+", TOKEN_PREPROCESSEUR_LANG));
     add_lexer_rule(l, new_lexer_rule("#include", TOKEN_PREPROCESSEUR_INCLUDE));
     add_lexer_rule(l, new_lexer_rule("[0-9]+\\.[0-9]+", TOKEN_FLOAT));
     add_lexer_rule(l, new_lexer_rule("[0-9]+", TOKEN_INT));
     add_lexer_rule(l, new_lexer_rule("\"[^\"]*\"", TOKEN_STRING));
+    
+    //readLexerFile(l, "lang/CLASSIC.lang");
+    readLexerFile(l, "lang/FR.lang");
+    //readLexerFile(l, "lang/MEOW.lang");
 
     add_lexer_rule(l, new_lexer_rule("[a-zA-Z_][a-zA-Z0-9_]*", TOKEN_IDENTIFIER));
 
     //print_lexer(l);
 
-    char *input = read_file("test.txt");
+    //char *input = read_file("test.txt");
+    char *input = read_file("fr.txt");
+    //char *input = read_file("meow.txt");
 
     TokenList *tl = tokenizer(input, l);
     if (tl == NULL) return 1;

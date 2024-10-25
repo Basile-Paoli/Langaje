@@ -1,9 +1,10 @@
-definition d'une variable entier a égale à 1;
+def int a = 1;
+def float b = 1.0;
 
-Si (a est égale à 1) alors
-    print("égale à 1");
-fin sinon (a plus grand ou égale à 10) alors
-    print("plus grand ou égale à 10");
-fin
-
-a plus égale à 12;
+if (a == 1) {
+    print("La valeur est égale à 1");
+} else if (a >= 10) {
+    print("La valeur est supérieure ou égale à 10");
+} else {
+  print("Rien n'est valide");
+}

@@ -1,0 +1,7 @@
+e ee a eeeeeeeeeeeeeeeeee 1eeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+
+eeeee eeeeeeeeeeeeeeeeeeeeeeea eeeeeeeee 1eeeeeeeeeeeeeeeeeeeeeeee eeeeeeeeeeeeeeeeeeeeeeeee
+    print eeeeeeeeeeeeeeeeeeeeeee"La variable est égale à 1"eeeeeeeeeeeeeeeeeeeeeeee eeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeeeeeeeeeeeee eeeeee eeeee eeeeeeeeeeeeeeeeeeeeeeea eeeeeeeeeeee 10eeeeeeeeeeeeeeeeeeeeeeee eeeeeeeeeeeeeeeeeeeeeeeee
+    print eeeeeeeeeeeeeeeeeeeeeee"La variable est supérieur ou égale à 10"eeeeeeeeeeeeeeeeeeeeeeee eeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+eeeeeeeeeeeeeeeeeeeeeeeeee

@@ -1,0 +1,9 @@
+Définition d'une variable entière a dont la valeur est égale à 1 point virgule
+Définition d'une variable flotante b dont la valeur est égale à 1.0 point virgule
+
+Si parenthèse ouvrante a est égale à 1 parenthèse fermante alors
+    print parenthèse ouvrante "La valeure de la variable est égale à 1" point virgule
+fin Sinon Si parenthèse ouvrante b plus grand ou égale à 10.0 ou b plus a divisé par 2 est différent de 3.0 parenthèse fermante  alors
+    print parenthèse ouvrante "Le calcul est exact" point virgule
+fin Sinon alors
+    print parenthèse ouvrante "" point virgule

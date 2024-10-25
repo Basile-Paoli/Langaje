@@ -45,6 +45,7 @@ TokenList *tokenizer(char *input, Lexer *l) {
 
     char matchFound;
 
+
     // For each character in the input
     for (int i = 0; i < strlen(input); i++) {
         matchFound = 0;
@@ -52,7 +53,7 @@ TokenList *tokenizer(char *input, Lexer *l) {
         if (input[i] == ' ' || input[i] == '\n' || input[i] == '\t') continue;
 
         // For each rule
-        for (int j = 0; j < l->nb_rules; j++) {
+        for (int j = 0; j < l->nb_rules; j++)  {
             
             size_t maxGroup = 10;
             regmatch_t match[maxGroup];
@@ -83,7 +84,18 @@ TokenList *tokenizer(char *input, Lexer *l) {
         }
 
         if (!matchFound) {
-            printf("Unknown token: %c\n", input[i]);
+            printf("Unknown token: <%c>\n", input[i]);
+            printf("Error at position %d\n", i);
+            // print the line
+            int j = i;
+            while (input[j] != '\n' && j > 0) j--;
+            j++;
+            while (input[j] != '\n' && input[j] != '\0') printf("%c", input[j++]);
+            printf("\n");
+            for (int k = 0; k < i; k++) printf(" ");
+            printf("^\n");
+
+            free_tokenList(list);
             return NULL;
         }
 
