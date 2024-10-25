@@ -361,6 +361,7 @@ var modulo(var *var1, var *var2, error *err){
  * POWER FUNCTION
  *
  */
+
 var power(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
@@ -430,11 +431,13 @@ var logicalOr(var *var1, var *var2, error *err){
     return result;
 }
 
+
 /*
  *
  * SQRT FUNCTION
  *
  */
+
 var squareroot(var *var1, error *err){
     var result;
     result.type = _float;
@@ -447,5 +450,117 @@ var squareroot(var *var1, error *err){
         assignErrorMessage(err, "Please specify a valid type (float or int)");
     }
 
+    return result;
+}
+
+/*
+*
+* EQUAL FUNCTION
+*
+*/
+var isEqual(var* v, var* v2,int reversed, error* err){
+    var result;
+    result.type = _int;
+    switch(v->type){
+        case _int:
+        case _float:
+        case _char:{
+            if(v2->type == _string){
+                result.value._int = 0;
+                return result;
+            }
+
+            float value1 = getNumericValue(v);
+            float value2 = getNumericValue(v2);
+            printf("Is equal : %.2f %.2f\n",value1,value2);
+            if(reversed == 1){
+                result.value._int = value1 != value2;
+            } else {
+                result.value._int = value1 == value2;
+            }
+            
+            return result;
+            break;     
+        }
+        case _string:{
+            if(v2->type != _string){
+                result.value._int = 0;
+                return result;
+            }
+            
+            break;
+        }
+    }
+}
+
+/*
+*
+* GREATER FUNCTION
+*
+*/
+var isGreater(var* v, var* v2, int strict, error* err){
+    var result;
+    result.type = _int;
+    if(v->type == _string || v2->type == _string){
+        result.value._int = 0;
+        return result;
+    }
+
+    float value1 = getNumericValue(v);
+    float value2 = getNumericValue(v2);
+    if(strict == 1){
+        result.value._int = value1 > value2;
+        return result;
+    } else {
+        result.value._int = value1 >= value2;
+        return result;
+    }
+}
+
+/*
+*
+* LESSER FUNCTION
+*
+*/
+var isLesser(var* v, var* v2, int strict, error* err){
+    var result;
+    result.type = _int;
+    if(v->type == _string || v2->type == _string){
+        result.value._int = 0;
+        return result;
+    }
+
+    float value1 = getNumericValue(v);
+    float value2 = getNumericValue(v2);
+    if(strict == 1){
+        result.value._int = value1 < value2;
+        return result;
+    } else {
+        result.value._int = value1 <= value2;
+        return result;
+    }
+}
+
+var valueOr(var* v, var* v2, error* err){
+    var result;
+    result.type = _int;
+
+    result.value._int = (v->value._int == 1 || v2->value._int == 1);
+    return result;
+}
+
+var valueAnd(var* v, var* v2, error* err){
+    var result;
+    result.type = _int;
+
+    result.value._int = (v->value._int == 1 && v2->value._int == 1);
+    return result;
+}
+
+var valueReverse(var* v, error* err){
+    var result;
+    result.type = _int;
+    //result.value._int = v->value._int == 1 ? 0 : 1;
+    result.value._int = 1;
     return result;
 }

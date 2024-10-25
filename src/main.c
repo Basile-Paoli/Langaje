@@ -6,6 +6,10 @@
 #include "parser/parser.h"
 #include "functions/functions.h"
 
+#include "interpreter/interpreter.h"
+
+#define BASE_MEMORY_STACK_SIZE 16
+
 int main() {
 
     for (int i = 0; i < 30; i++) printf("=");
@@ -73,7 +77,7 @@ int main() {
 
     print_tokenList(tl);
 
-    /*error err;
+    error err;
     err.value = ERR_SUCCESS;
     InstructionBlock *pr = parse(tl, &err);
     if (err.value != ERR_SUCCESS) {
@@ -81,8 +85,13 @@ int main() {
         return 1;
     }
     printInstructionBlock(pr, 0);
-    */
 
+
+    hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
+
+    runInstructionBlock(pr,stack);
+
+    hmStackDestroy(stack);
     free_tokenList(tl);
     free_lexer(l);
     free(input);

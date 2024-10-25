@@ -19,6 +19,11 @@ typedef struct{
     int length;
 }hm;
 
+typedef struct{
+    hm** stack;
+    int capacity;
+    int length;
+}hmStack;
 
 
 hm* hm_create();
@@ -47,5 +52,16 @@ int hm_next(hmi* iterator);
 static const char* hm_set_entry(hm_entry* entries, int capacity, const char* key, void* value, int* plength);
 
 static int hm_expand(hm* hashtable);
+
+
+
+hmStack* hmStackCreate(int baseSize);
+int hmStackPush(hmStack* stack, hm* map);
+int hmStackPop(hmStack* stack);
+int hmStackExpand(hmStack* stack);
+int hmStackDestroy(hmStack* stack);
+int isInStackUpwards(hmStack* stack, char* key);
+int isInStackDownwards(hmStack* stack, char* key);
+
 
 #endif //LANGAJE_HASHTABLES_H

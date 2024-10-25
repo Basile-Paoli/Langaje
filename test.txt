@@ -1,16 +1,8 @@
-#LANG_CLASSICAL;
-#include <fichier>;
-
-func testValue() (int a) {
-    return 1;
-}
-
-def float a = 1.456456;
-
-if (testValue()) {
-    def int b = 1;
-} else if (not testValue()) {
-    def int b = 2;
+def int a = 4;
+if(a == 3 && 1 == 1) {
+    a = 10;
+} else if (a == 2){
+    def int b = 20;
 } else {
-    def int b = 3;
+    def int b = 40;
 }
