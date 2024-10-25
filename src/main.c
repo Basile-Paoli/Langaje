@@ -18,6 +18,7 @@ int main() {
     Lexer *l = new_lexer();
     if (l == NULL)return 1;
 
+    if (l == NULL)return 1;    
 
     add_lexer_rule(l, new_lexer_rule(l, "def", TOKEN_KEYWORD));
     add_lexer_rule(l, new_lexer_rule(l, "int", TOKEN_KEYWORD));
@@ -49,6 +50,14 @@ int main() {
     add_lexer_rule(l, new_lexer_rule(l, "[0-9]+\\.[0-9]+", TOKEN_FLOAT));
     add_lexer_rule(l, new_lexer_rule(l, "[0-9]+", TOKEN_NUMBER));
     add_lexer_rule(l, new_lexer_rule(l, "\"[^\"]*\"", TOKEN_STRING));
+    //readLexerFile(l, "CLASSIC.lang");
+    readLexerFile(l, "CUSTOM.lang");
+
+    add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+", TOKEN_PREPROCESSEUR_LANG));
+    add_lexer_rule(l, new_lexer_rule("#include", TOKEN_PREPROCESSEUR_INCLUDE));
+    add_lexer_rule(l, new_lexer_rule("[0-9]+\\.[0-9]+", TOKEN_FLOAT));
+    add_lexer_rule(l, new_lexer_rule("[0-9]+", TOKEN_INT));
+    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\"", TOKEN_STRING));
 
     add_lexer_rule(l, new_lexer_rule(l, "\\+", TOKEN_ADDITION));
     add_lexer_rule(l, new_lexer_rule(l, "-", TOKEN_SUBTRACTION));
@@ -68,16 +77,18 @@ int main() {
     add_lexer_rule(l, new_lexer_rule(l, ";", TOKEN_SEMICOLON));
 
     add_lexer_rule(l, new_lexer_rule(l, "[a-zA-Z_][a-zA-Z0-9_]{0,}", TOKEN_IDENTIFIER));
+    add_lexer_rule(l, new_lexer_rule("[a-zA-Z_][a-zA-Z0-9_]*", TOKEN_IDENTIFIER));
 
-    // print_lexer(l);
+    //print_lexer(l);
 
     char *input = read_file("test.txt");
 
     TokenList *tl = tokenizer(input, l);
+    if (tl == NULL) return 1;
 
     print_tokenList(tl);
 
-    error err;
+    /*error err;
     err.value = ERR_SUCCESS;
     InstructionBlock *pr = parse(tl, &err);
     if (err.value != ERR_SUCCESS) {
@@ -85,7 +96,7 @@ int main() {
         return 1;
     }
     printInstructionBlock(pr, 0);
-
+    */
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 

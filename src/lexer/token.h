@@ -15,8 +15,25 @@ typedef enum {
 
     TOKEN_FUNCTION_DECLARATION,
 
-    TOKEN_NUMBER,
+    TOKEN_DEF,
+    TOKEN_INT,
     TOKEN_FLOAT,
+
+    TOKEN_IF,
+    TOKEN_ELSE,
+    TOKEN_WHILE,
+    TOKEN_FOR,
+
+    TOKEN_PREPROCESSEUR_LANG,
+    TOKEN_PREPROCESSEUR_INCLUDE,
+
+    TOKEN_FUNCTION_DECLARATION,
+    TOKEN_FUNCTION_RETURN,
+
+    TOKEN_TYPE_INT,
+    TOKEN_TYPE_FLOAT,
+    TOKEN_TYPE_STRING,
+
     TOKEN_STRING,
 
     TOKEN_EQUAL_EQUAL,
@@ -33,7 +50,7 @@ typedef enum {
     TOKEN_EQUAL,
 
     TOKEN_ADDITION,
-    TOKEN_SUBTRACTION,
+    TOKEN_SUBSTRACTION,
     TOKEN_MULTIPLICATION,
     TOKEN_DIVISION,
 
@@ -48,6 +65,8 @@ typedef enum {
 
     TOKEN_COMMA,
     TOKEN_SEMICOLON,
+
+    TOKEN_UNKNOWN
 
 } TokenType;
 
@@ -76,6 +95,7 @@ void free_tokenList(TokenList *tl);
 
 void add_Token(TokenList *tl, Token *t);
 
+TokenType str_to_token_type(char *input);
 char *token_type_to_str(TokenType type);
 
 

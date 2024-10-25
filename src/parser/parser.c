@@ -67,10 +67,10 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
 
     Token first = tokenList->tokens[*currentToken];
 
-    if (first.type == TOKEN_KEYWORD && strcmp(first.value, "def") == 0) {
+    if (first.type == TOKEN_DEF) {
         return parseVarDeclarationInstruction(tokenList, currentToken, err);
     }
-    if (first.type == TOKEN_KEYWORD_IF) {
+    if (first.type == TOKEN_IF) {
         return parseIfInstruction(tokenList, currentToken, err);
     }
 

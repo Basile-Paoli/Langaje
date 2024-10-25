@@ -1,0 +1,9 @@
+definition d'une variable entier a égale à 1;
+
+Si (a est égale à 1) alors
+    print("égale à 1");
+fin sinon (a plus grand ou égale à 10) alors
+    print("plus grand ou égale à 10");
+fin
+
+a plus égale à 12;
