@@ -72,6 +72,7 @@ TokenType str_to_token_type(char *input) {
     else if (strcmp(input, "TOKEN_FOR") == 0) return TOKEN_FOR;
     
     else if (strcmp(input, "TOKEN_FUNCTION_DECLARATION") == 0) return TOKEN_FUNCTION_DECLARATION;
+    else if (strcmp(input, "TOKEN_FUNCTION_RETURN") == 0) return TOKEN_FUNCTION_RETURN;
     
     else if (strcmp(input, "TOKEN_EQUAL_EQUAL") == 0) return TOKEN_EQUAL_EQUAL;
     else if (strcmp(input, "TOKEN_NOT_EQUAL") == 0) return TOKEN_NOT_EQUAL;

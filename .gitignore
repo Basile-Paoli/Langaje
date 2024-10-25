@@ -53,4 +53,10 @@ dkms.conf
 
 cmake-build-debug
 .idea
+
+#Others
+CMakeCache.txt
+langaje
+
 test.txt
+

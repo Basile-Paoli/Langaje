@@ -6,13 +6,17 @@
 #include "parser/parser.h"
 #include "functions/functions.h"
 
+#include "interpreter/interpreter.h"
+
+#define BASE_MEMORY_STACK_SIZE 16
+
 int main() {
 
     for (int i = 0; i < 30; i++) printf("=");
     printf("\n");
 
     Lexer *l = new_lexer();
-    if (l == NULL)return 1;    
+    if (l == NULL)return 1;
 
     add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+", TOKEN_PREPROCESSEUR_LANG));
     add_lexer_rule(l, new_lexer_rule("#include", TOKEN_PREPROCESSEUR_INCLUDE));
@@ -47,6 +51,11 @@ int main() {
     printInstructionBlock(pr, 0);
     */
 
+    // hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
+
+//    runInstructionBlock(pr,stack);
+
+    // hmStackDestroy(stack);
     free_tokenList(tl);
     free_lexer(l);
     free(input);

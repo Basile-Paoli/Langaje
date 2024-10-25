@@ -10,7 +10,7 @@
 
 astNode *parseIfInstruction(TokenList *tokenList, int *currentToken, error *err) {
     assert(*currentToken < tokenList->nb_tokens);
-    assert(strcmp(tokenList->tokens[*currentToken].value, "if") == 0);
+    assert(tokenList->tokens[*currentToken].type == TOKEN_KEYWORD_IF);
 
     ++*currentToken;
     if (tokenList->tokens[*currentToken].type != TOKEN_LPAREN) {
@@ -47,7 +47,7 @@ astNode *parseIfInstruction(TokenList *tokenList, int *currentToken, error *err)
 
     astNode *elseNode = NULL;
 
-    if (*currentToken == tokenList->nb_tokens || strcmp(tokenList->tokens[*currentToken].value, "else") != 0) {
+    if (*currentToken == tokenList->nb_tokens || tokenList->tokens[*currentToken].type != TOKEN_KEYWORD_ELSE) {
         return newConditionNode(condition, thenNode, elseNode);
     }
 

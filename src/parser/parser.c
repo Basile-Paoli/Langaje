@@ -11,8 +11,6 @@
 #include "condition.h"
 
 
-
-
 InstructionBlock *parse(TokenList *tokenList, error *err) {
     int currentToken = 0;
     return parseInstructions(tokenList, &currentToken, err);

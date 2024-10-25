@@ -7,6 +7,7 @@ typedef enum {
     TOKEN_DEF,
     TOKEN_INT,
     TOKEN_FLOAT,
+    TOKEN_STRING,
 
     TOKEN_IF,
     TOKEN_ELSE,
@@ -22,8 +23,6 @@ typedef enum {
     TOKEN_TYPE_INT,
     TOKEN_TYPE_FLOAT,
     TOKEN_TYPE_STRING,
-
-    TOKEN_STRING,
 
     TOKEN_EQUAL_EQUAL,
     TOKEN_NOT_EQUAL,
