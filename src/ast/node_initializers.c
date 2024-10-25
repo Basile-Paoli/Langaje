@@ -11,7 +11,7 @@ operator tokenToBinaryOperator(TokenType type) {
     switch (type) {
         case TOKEN_ADDITION:
             return ADDITION;
-        case TOKEN_SUBTRACTION:
+        case TOKEN_SUBSTRACTION:
             return SUBTRACTION;
         case TOKEN_MULTIPLICATION:
             return MULTIPLICATION;
@@ -45,7 +45,7 @@ operator tokenToUnaryOperator(TokenType type) {
     switch (type) {
         case TOKEN_NOT:
             return NOT;
-        case TOKEN_SUBTRACTION:
+        case TOKEN_SUBSTRACTION:
             return UNARY_MINUS;
         case TOKEN_ADDITION:
             return UNARY_PLUS;

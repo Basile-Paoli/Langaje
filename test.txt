@@ -1,16 +1,9 @@
-#LANG_CLASSICAL;
-#include <fichier>;
+definition d'une variable entier a égale à 1;
 
-func testValue() (int a) {
-    return 1;
-}
+Si (a est égale à 1) alors
+    print("égale à 1");
+fin sinon (a plus grand ou égale à 10) alors
+    print("plus grand ou égale à 10");
+fin
 
-def float a = 1.456456;
-
-if (testValue()) {
-    def int b = 1;
-} else if (not testValue()) {
-    def int b = 2;
-} else {
-    def int b = 3;
-}
+a plus égale à 12;

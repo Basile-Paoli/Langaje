@@ -186,7 +186,7 @@ astNode *parseAddition(TokenList *tokenList, int *currentToken, error *err) {
 
     while (*currentToken < tokenList->nb_tokens &&
            (tokenList->tokens[*currentToken].type == TOKEN_ADDITION
-            || tokenList->tokens[*currentToken].type == TOKEN_SUBTRACTION)) {
+            || tokenList->tokens[*currentToken].type == TOKEN_SUBSTRACTION)) {
 
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
@@ -238,7 +238,7 @@ astNode *parseMultiplication(TokenList *tokenList, int *currentToken, error *err
 
 astNode *parseUnaryOperators(TokenList *tokenList, int *currentToken, error *err) {
 
-    if (tokenList->tokens[*currentToken].type == TOKEN_SUBTRACTION ||
+    if (tokenList->tokens[*currentToken].type == TOKEN_SUBSTRACTION ||
         tokenList->tokens[*currentToken].type == TOKEN_NOT) {
         Token operator = tokenList->tokens[*currentToken];
         ++*currentToken;
@@ -270,7 +270,7 @@ astNode *parseUnaryOperators(TokenList *tokenList, int *currentToken, error *err
 astNode *parsePrimary(TokenList *tokenList, int *currentToken, error *err) {
 
     switch (tokenList->tokens[*currentToken].type) {
-        case TOKEN_NUMBER: {
+        case TOKEN_TYPE_INT: {
             return intTokenToNode(tokenList->tokens[(*currentToken)++]);
         }
         case TOKEN_IDENTIFIER: {

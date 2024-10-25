@@ -3,7 +3,7 @@ CC = gcc
 
 SRC = $(shell find src -name "*.c")
 OBJ = $(SRC:.c=.o)
-TARGET = langaje
+TARGET = langaje.out
 LDFLAGS = -lm
 
 all: $(TARGET)
