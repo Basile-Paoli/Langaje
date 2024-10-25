@@ -10,20 +10,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-varType typeFromString(const char *string, error *err) {
-    if (strcmp(string, "int") == 0) {
-        return _int;
-    } else if (strcmp(string, "float") == 0) {
-        return _float;
-    } else if (strcmp(string, "char") == 0) {
-        return _char;
-    } else if (strcmp(string, "string") == 0) {
-        return _string;
-    } else {
-        err->value = ERR_SYNTAX;
-        err->message = malloc(strlen("Unknown type ") + strlen(string) + 1);
-        sprintf(err->message, "Unknown type %s", string);
-        return _int;
+varType typeFromKeyword(const TokenType type, error *err) {
+    switch (type) {
+        case TOKEN_TYPE_INT:
+            return _int;
+        case TOKEN_TYPE_FLOAT:
+            return _float;
+        case TOKEN_TYPE_STRING:
+            return _string;
+        default:
+            err->value = ERR_SYNTAX;
+            err->message = strdup("Invalid type keyword");
+            return _int;
     }
 }
 
@@ -42,7 +40,7 @@ void addArrayToType(initType *type, int size) {
 
 initType parseType(TokenList *tokenList, int *currentToken, error *err) {
     initType type;
-    type.type = typeFromString(tokenList->tokens[*currentToken].value, err);
+    type.type = typeFromKeyword(tokenList->tokens[*currentToken].type, err);
     if (err->value != ERR_SUCCESS) {
         return type;
     }
@@ -83,7 +81,7 @@ initType parseType(TokenList *tokenList, int *currentToken, error *err) {
 }
 
 astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken, error *err) {
-    assert(strcmp(tokenList->tokens[*currentToken].value, "def") == 0);
+    assert(tokenList->tokens[*currentToken].type == TOKEN_DEF);
 
 
     astNode *initNode = parseVarDeclaration(tokenList, currentToken, err);
@@ -147,23 +145,26 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
     return newBinaryOperatorNode(TOKEN_EQUAL, initNode, expression);
 }
 
+int isTypeKeyword(TokenType type) {
+    return type == TOKEN_TYPE_INT || type == TOKEN_TYPE_FLOAT || type == TOKEN_TYPE_STRING;
+}
+
 
 astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err) {
-    assert(strcmp(tokenList->tokens[*currentToken].value, "def") == 0);
+    assert(tokenList->tokens[*currentToken].type == TOKEN_DEF);
     ++*currentToken;
 
     int typed = 0;
     initType type;
 
-    /* TODO : FIX THIS. TOKEN_KEYWORD has been removed.
-    if (tokenList->tokens[*currentToken].type == TOKEN_KEYWORD) {
+    if (isTypeKeyword(tokenList->tokens[*currentToken].type)) {
         type = parseType(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             return NULL;
         }
         typed = 1;
     }
-    */
+
 
     if (*currentToken >= tokenList->nb_tokens) {
         return endOfInputError(err);

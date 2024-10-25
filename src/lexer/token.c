@@ -163,6 +163,5 @@ char *token_type_to_str(TokenType type) {
         case TOKEN_SEMICOLON: return "SEMICOLON";
         
         case TOKEN_UNKNOWN: return "UNKNOWN"; 
-        default: return "UNKNOWN";
     }
 }
