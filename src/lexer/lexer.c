@@ -5,6 +5,7 @@
 
 #include "lexer.h"
 #include "token.h"
+#include "../errors/errors.h"
 
 Lexer *new_lexer() {
 
@@ -18,24 +19,112 @@ Lexer *new_lexer() {
 
 }
 
-void readLexerFile(Lexer *l, char* filename) {
+int readLexerFile(Lexer *l, char* filename) {
     char *buffer = read_file(filename);
+    if (buffer == NULL){
+        printf("[ERROR][LEXER]: Cannot read file <%s>\n", filename);
+        return 1;
+    }
+
+    if (strlen(buffer) == 0) {
+        printf("[ERROR][LEXER]: Empty file\n");
+        return 1;
+    }
 
     // for each line in the file
     for (char *line = strtok(buffer, "\n"); line != NULL; line = strtok(NULL, "\n")) {
-        // print from the start of the line to the first "=" without strtok
-        char *tokenName = (char *)calloc(strlen(line), sizeof(char));
-        if (tokenName == NULL) return;
-        size_t k = 0;
 
-        while (*line != '=') *(tokenName+k++) = *line++;
+        char *tokenName = (char *)calloc(strlen(line), sizeof(char));
+        if (tokenName == NULL) return 1;
+        size_t k = 0;
+        char *tempLine = (char *)malloc(strlen(line) + 1);
+        if (tempLine == NULL) return 1;
+        strcpy(tempLine, line);
+
+        while (*tempLine != '=') *(tokenName+k++) = *tempLine++;
+
+        if (verifyLexerLine(line, tokenName, l) != 0) {
+            printf("[ERROR][LEXER]: Invalid line <%s>\n", line);
+            return 1;
+        }
 
         add_lexer_rule(l, new_lexer_rule(strstr(line, "=") + 1, str_to_token_type(tokenName)));
+
         free(tokenName);
     }
 
     free(buffer);
 
+    return 0;
+
+}
+
+int verifyLexerLine(char *line, char *tokenName, Lexer *l) {
+
+    if (strlen(line) == 0) {
+        printf("[ERROR][LEXER]: Empty line\n");
+        return 1;
+    }
+
+    if (strchr(line, '=') == NULL) {
+        printf("[ERROR][LEXER]: Missing '=' at line <%s>\n", line);
+        return 1;
+    }
+
+    if (strchr(line, '=') == line) {
+        printf("[ERROR][LEXER]: Missing token name at line <%s>\n", line);
+        return 1;
+    }
+
+    if (strchr(line, '=') == line + strlen(line) - 1) {
+        printf("[ERROR][LEXER]: Missing regex at line <%s>\n", line);
+        return 1;
+    }
+
+    if (str_to_token_type(tokenName) == TOKEN_UNKNOWN) {
+        printf("[ERROR][LEXER]: Token unknown at line <%s>\n", line);
+        return 1;
+    }
+
+    if (is_token_in_lexer(l, str_to_token_type(tokenName)) == 1) {
+        printf("[ERROR][LEXER]: Token already defined at line <%s>\n", line);
+        return 1;
+    }
+
+    regex_t reg;
+    if (regcomp(&reg, strstr(line, "=") + 1, REG_EXTENDED) != 0) {
+        printf("[ERROR][LEXER]: Invalid regex at line <%s>\n", line);
+        return 1;
+    }
+
+    if (is_token_reserved_by_system(str_to_token_type(tokenName))) {
+        printf("[ERROR][LEXER]: Token reserved by the system at line <%s>\n", line);
+        return 1;
+    }
+
+    return 0;
+}
+
+int is_token_reserved_by_system(TokenType type) {
+    switch (type) {
+        case TOKEN_UNKNOWN:
+        case TOKEN_INT:
+        case TOKEN_FLOAT:
+        case TOKEN_STRING:
+        case TOKEN_IDENTIFIER:
+        case TOKEN_PREPROCESSEUR_INCLUDE:
+        case TOKEN_PREPROCESSEUR_LANG:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+int is_token_in_lexer(Lexer *l, TokenType token) {
+    for (int i = 0; i < l->nb_rules; i++) {
+        if (l->rules[i].type == token) return 1;
+    }
+    return 0;
 }
 
 TokenList *tokenizer(char *input, Lexer *l) {
@@ -84,8 +173,8 @@ TokenList *tokenizer(char *input, Lexer *l) {
         }
 
         if (!matchFound) {
-            printf("Unknown token: <%c>\n", input[i]);
-            printf("Error at position %d\n", i);
+            printf("[ERROR][LEXER]: Unknown token: <%c> at position %d\n", input[i], i);
+            printf("[ERROR][LEXER]: The lang used may not be correctly configurated\n");
             // print the line
             int j = i;
             while (input[j] != '\n' && j > 0) j--;
@@ -138,13 +227,13 @@ lexer_rule *new_lexer_rule(char *regex, TokenType type){
 void add_lexer_rule(Lexer *l, lexer_rule *rule){
 
     if (rule == NULL) {
-        printf("Error: rule is NULL\n");
+        printf("[ERROR][LEXER]: rule is NULL\n");
         return;
     }
 
     l->rules = (lexer_rule *)realloc(l->rules, (l->nb_rules + 1) * sizeof(lexer_rule));
     if (l->rules == NULL) {
-        printf("Error: realloc\n");
+        printf("[ERROR][LEXER]: realloc\n");
         return;
     }
 

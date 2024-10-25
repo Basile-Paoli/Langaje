@@ -15,6 +15,7 @@ int main() {
     for (int i = 0; i < 30; i++) printf("=");
     printf("\n");
 
+    /*---------- LEXER ----------*/
     Lexer *l = new_lexer();
     if (l == NULL)return 1;
 
@@ -24,22 +25,23 @@ int main() {
     add_lexer_rule(l, new_lexer_rule("[0-9]+", TOKEN_INT));
     add_lexer_rule(l, new_lexer_rule("\"[^\"]*\"", TOKEN_STRING));
     
-    //readLexerFile(l, "lang/CLASSIC.lang");
-    readLexerFile(l, "lang/FR.lang");
-    //readLexerFile(l, "lang/MEOW.lang");
+    if (readLexerFile(l, "lang/CLASSIC.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
+    //if (readLexerFile(l, "lang/FR.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
+    //if (readLexerFile(l, "lang/MEOW.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
+
 
     add_lexer_rule(l, new_lexer_rule("[a-zA-Z_][a-zA-Z0-9_]*", TOKEN_IDENTIFIER));
 
     //print_lexer(l);
 
-    //char *input = read_file("test.txt");
-    char *input = read_file("fr.txt");
+    char *input = read_file("test.txt");
+    //char *input = read_file("fr.txt");
     //char *input = read_file("meow.txt");
 
     TokenList *tl = tokenizer(input, l);
     if (tl == NULL) return 1;
 
-    print_tokenList(tl);
+    print_tokenList(tl); return 0;
 
     error err;
     err.value = ERR_SUCCESS;

@@ -61,18 +61,27 @@ void free_tokenList(TokenList *tl) {
 }
 
 TokenType str_to_token_type(char *input) {
-    if (strcmp(input, "TOKEN_DEF") == 0) return TOKEN_DEF;
-    else if (strcmp(input, "TOKEN_TYPE_INT") == 0) return TOKEN_INT;
-    else if (strcmp(input, "TOKEN_TYPE_FLOAT") == 0) return TOKEN_FLOAT;
-    else if (strcmp(input, "TOKEN_TYPE_STRING") == 0) return TOKEN_STRING;
+    if (strcmp(input, "TOKEN_IDENTIFIER") == 0) return TOKEN_IDENTIFIER;
+
+    else if (strcmp(input, "TOKEN_DEF") == 0) return TOKEN_DEF;
+    else if (strcmp(input, "TOKEN_INT") == 0) return TOKEN_INT;
+    else if (strcmp(input, "TOKEN_FLOAT") == 0) return TOKEN_FLOAT;
+    else if (strcmp(input, "TOKEN_STRING") == 0) return TOKEN_STRING;
 
     else if (strcmp(input, "TOKEN_IF") == 0) return TOKEN_IF;
     else if (strcmp(input, "TOKEN_ELSE") == 0) return TOKEN_ELSE;
     else if (strcmp(input, "TOKEN_WHILE") == 0) return TOKEN_WHILE;
     else if (strcmp(input, "TOKEN_FOR") == 0) return TOKEN_FOR;
+
+    else if (strcmp(input, "TOKEN_PREPROCESSEUR_LANG") == 0) return TOKEN_PREPROCESSEUR_LANG;
+    else if (strcmp(input, "TOKEN_PREPROCESSEUR_INCLUDE") == 0) return TOKEN_PREPROCESSEUR_INCLUDE;
     
     else if (strcmp(input, "TOKEN_FUNCTION_DECLARATION") == 0) return TOKEN_FUNCTION_DECLARATION;
     else if (strcmp(input, "TOKEN_FUNCTION_RETURN") == 0) return TOKEN_FUNCTION_RETURN;
+
+    else if (strcmp(input, "TOKEN_TYPE_INT") == 0) return TOKEN_TYPE_INT;
+    else if (strcmp(input, "TOKEN_TYPE_FLOAT") == 0) return TOKEN_TYPE_FLOAT;
+    else if (strcmp(input, "TOKEN_TYPE_STRING") == 0) return TOKEN_TYPE_STRING;
     
     else if (strcmp(input, "TOKEN_EQUAL_EQUAL") == 0) return TOKEN_EQUAL_EQUAL;
     else if (strcmp(input, "TOKEN_NOT_EQUAL") == 0) return TOKEN_NOT_EQUAL;
@@ -103,6 +112,8 @@ TokenType str_to_token_type(char *input) {
     
     else if (strcmp(input, "TOKEN_COMMA") == 0) return TOKEN_COMMA;
     else if (strcmp(input, "TOKEN_SEMICOLON") == 0) return TOKEN_SEMICOLON;
+
+    else if (strcmp(input, "TOKEN_UNKNOWN") == 0) return TOKEN_UNKNOWN;
     else printf("Unknown token type: %s\n", input);
     return TOKEN_UNKNOWN;
 }
