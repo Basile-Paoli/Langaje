@@ -11,8 +11,6 @@
 #include "condition.h"
 
 
-
-
 InstructionBlock *parse(TokenList *tokenList, error *err) {
     int currentToken = 0;
     return parseInstructions(tokenList, &currentToken, err);
@@ -72,7 +70,7 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
     if (first.type == TOKEN_KEYWORD && strcmp(first.value, "def") == 0) {
         return parseVarDeclarationInstruction(tokenList, currentToken, err);
     }
-    if (first.type == TOKEN_KEYWORD && strcmp(first.value, "if") == 0) {
+    if (first.type == TOKEN_KEYWORD_IF) {
         return parseIfInstruction(tokenList, currentToken, err);
     }
 

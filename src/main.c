@@ -89,7 +89,7 @@ int main() {
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
-    runInstructionBlock(pr,stack);
+//    runInstructionBlock(pr,stack);
 
     hmStackDestroy(stack);
     free_tokenList(tl);
