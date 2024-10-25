@@ -38,7 +38,7 @@ int main() {
 
     print_tokenList(tl);
 
-    /*error err;
+    error err;
     err.value = ERR_SUCCESS;
     InstructionBlock *pr = parse(tl, &err);
     if (err.value != ERR_SUCCESS) {
@@ -46,7 +46,7 @@ int main() {
         return 1;
     }
     printInstructionBlock(pr, 0);
-    */
+
 
     // hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
