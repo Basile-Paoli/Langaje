@@ -160,12 +160,19 @@ TokenList *tokenizer(char *input, Lexer *l) {
     }
 
     char matchFound;
+    char nbLine = 1;
+    char nbColon = 1;
 
     // For each character in the input
     for (int i = 0; i < strlen(input); i++) {
         matchFound = 0;
 
-        if (input[i] == ' ' || input[i] == '\n' || input[i] == '\t') continue; // Skip spaces
+        if (input[i] == ' ' || input[i] == '\t') {nbColon++;continue;} // Skip spaces
+        if (input[i] == '\n') {
+            nbLine++;
+            nbColon = 1;
+            continue; // Skip new lines
+        }
 
         // For each rule
         for (int j = 0; j < l->nb_rules; j++)  {
@@ -186,7 +193,7 @@ TokenList *tokenizer(char *input, Lexer *l) {
                 }
                 strncpy(buffer, input + i, match->rm_eo);
 
-                Token *t = new_Token(l->rules[j].type, buffer);
+                Token *t = new_Token(l->rules[j].type, buffer, nbLine, i);
                 if (t == NULL) {
                     printf("[ERROR][LEXER]: Cannot allocate memory for token\n");
                     return NULL;
@@ -199,6 +206,7 @@ TokenList *tokenizer(char *input, Lexer *l) {
                 free(buffer);
 
                 i += match->rm_eo-1;
+                nbColon += match->rm_eo;
                 break;
 
             }
@@ -206,7 +214,7 @@ TokenList *tokenizer(char *input, Lexer *l) {
         }
 
         if (!matchFound) {
-            printf("[ERROR][LEXER]: Unknown token: <%c> at position %d\n", input[i], i);
+            printf("[ERROR][LEXER]: Unknown token: <%c> at position Ln-%d Col-%d\n", input[i], nbLine, nbColon);
             printf("[ERROR][LEXER]: The lang used may not be correctly configurated\n");
             // print the line
             int j = i;
@@ -214,7 +222,7 @@ TokenList *tokenizer(char *input, Lexer *l) {
             j++;
             while (input[j] != '\n' && input[j] != '\0') printf("%c", input[j++]);
             printf("\n");
-            for (int k = 0; k < i; k++) printf(" ");
+            for (int k = 1; k < nbColon; k++) printf(" ");
             printf("^\n");
 
             free_tokenList(list);

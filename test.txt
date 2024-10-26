@@ -8,3 +8,5 @@ if (a == 1) {
 } else {
   print("Rien n'est valide");
 }
+
+Volontary Error here => '

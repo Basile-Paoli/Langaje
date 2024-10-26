@@ -28,7 +28,7 @@ void print_token(Token *t) {
     if (t->type == TOKEN_SEMICOLON) printf("\n");
 }
 
-Token *new_Token(TokenType type, char *value) {
+Token *new_Token(TokenType type, char *value, int line, int column) {
     Token *t = (Token *)malloc(sizeof(Token));
     if (t == NULL) {
         printf("[ERROR][TOKEN]: Cannot allocate memory for Token\n");
@@ -42,6 +42,9 @@ Token *new_Token(TokenType type, char *value) {
         free(t);
         return NULL;
     }
+
+    t->line = line;
+    t->column = column;
 
     strcpy(t->value, value);
     return t;

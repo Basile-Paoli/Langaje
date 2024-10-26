@@ -61,6 +61,9 @@ typedef enum {
 typedef struct {
     TokenType type;
     char *value;
+
+    int line;
+    int column;
 } Token;
 
 typedef struct {
@@ -69,7 +72,7 @@ typedef struct {
 } TokenList;
 
 
-Token *new_Token(TokenType type, char *value);
+Token *new_Token(TokenType type, char *value, int line, int column);
 
 void print_token(Token *t);
 
