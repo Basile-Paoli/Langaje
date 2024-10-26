@@ -162,6 +162,11 @@ TokenList *tokenizer(char *input, Lexer *l) {
     char nbLine = 1;
     char nbColon = 1;
 
+    int lengthMatchMax;
+    int matchStartIndex;
+    int matchEndIndex;
+    int ruleIndex;
+
     // For each character in the input
     for (int i = 0; i < strlen(input); i++) {
         matchFound = 0;
@@ -173,6 +178,12 @@ TokenList *tokenizer(char *input, Lexer *l) {
             continue; // Skip new lines
         }
 
+        lengthMatchMax = 0;
+        matchStartIndex = 0;
+        matchEndIndex = 0;
+        
+        ruleIndex = 0;
+
         // For each rule
         for (int j = 0; j < l->nb_rules; j++)  {
             
@@ -183,41 +194,47 @@ TokenList *tokenizer(char *input, Lexer *l) {
 
                 if (match->rm_so != 0) continue; // The match MUST start at the beginning of the string
 
-                matchFound = 1;
-                
-                // We copy the matched string
-                char *buffer = (char *)calloc(match->rm_eo, sizeof(char));
-                if (buffer == NULL) {
-                    printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
-                    return NULL;
+                // We keep the longest match
+                if (match->rm_eo > lengthMatchMax) {
+                    lengthMatchMax = match->rm_eo;
+                    matchEndIndex = match->rm_eo;
+                    matchStartIndex = i;
+                    ruleIndex = j;
+                    matchFound = 1;
+
                 }
-                strncpy(buffer, input + i, match->rm_eo);
-
-                // Create the token
-                Token *t = new_Token(l->rules[j].type, buffer, nbLine, i);
-                if (t == NULL) {
-                    printf("[ERROR][LEXER]: Cannot allocate memory for token\n");
-                    return NULL;
-                }
-
-                // Add the token to the list
-                if (add_Token(list, t) != 0) {
-                    printf("[ERROR][LEXER]: Cannot add token to list\n");
-                    return NULL;
-                }
-                
-                free(buffer);
-
-                // We moved i to the end of the match
-                i += match->rm_eo-1;
-                nbColon += match->rm_eo; // Same for the number of colon
-                break; // We don't need to check the other rules
-
             }
-
         }
 
-        if (!matchFound) { // If no match has been found, we print an error
+        if (matchFound) {
+                
+            // We copy the matched string
+            char *buffer = (char *)calloc(matchEndIndex, sizeof(char));
+            if (buffer == NULL) {
+                printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+                return NULL;
+            }
+            strncpy(buffer, input + matchStartIndex, matchEndIndex);
+
+            // Create the token
+            Token *t = new_Token(l->rules[ruleIndex].type, buffer, nbLine, matchStartIndex);
+            if (t == NULL) {
+                printf("[ERROR][LEXER]: Cannot allocate memory for token\n");
+                return NULL;
+            }
+
+            // Add the token to the list
+            if (add_Token(list, t) != 0) {
+                printf("[ERROR][LEXER]: Cannot add token to list\n");
+                return NULL;
+            }
+            
+            free(buffer);
+
+            i+=matchEndIndex-1; // We move i to the end of the match
+            nbColon += matchEndIndex;
+            
+        } else { // If no match has been found, we print an error
             printf("[ERROR][LEXER]: Unknown token: <%c> at position Ln-%d Col-%d\n", input[i], nbLine, nbColon);
             printf("[ERROR][LEXER]: The lang used may not be correctly configurated\n");
 

@@ -19,20 +19,23 @@ int main() {
     Lexer *l = new_lexer();
     if (l == NULL) {printf("[ERROR][LEXER]: Error while creating lexer"); return 1;}
     
-    if (readLexerFile(l, "lang/CLASSIC.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
+    //if (readLexerFile(l, "lang/CLASSIC.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
     //if (readLexerFile(l, "lang/FR.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
     //if (readLexerFile(l, "lang/MEOW.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
+    if (readLexerFile(l, "lang/E.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
 
     //print_lexer(l);
 
-    char *input = read_file("test.txt");
+    //char *input = read_file("test.txt");
     //char *input = read_file("fr.txt");
     //char *input = read_file("meow.txt");
+    char *input = read_file("e.txt");
 
     TokenList *tl = tokenizer(input, l);
     if (tl == NULL) return 1;
 
     print_tokenList(tl);
+    return 0;
 
     error err;
     err.value = ERR_SUCCESS;

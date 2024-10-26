@@ -196,7 +196,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack){
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
     
     char debugArr[2][255] = {"a", "b"};
-    debug(&debugArr,2,stack);
+    //debug(&debugArr,2,stack);
 
 
     printf("Stopping block\n");

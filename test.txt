@@ -1,4 +1,1 @@
-def int a = 3;
-if(a == 3){
-  def int b =2;
-}
+def int inti = 1;
