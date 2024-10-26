@@ -25,7 +25,7 @@ Lexer *new_lexer();
 int readLexerFile(Lexer *l, char* filename);
 void print_lexer(Lexer *l);
 void free_lexer(Lexer *l);
-void add_lexer_rule(Lexer *l, lexer_rule *rule);
+int add_lexer_rule(Lexer *l, lexer_rule *rule);
 int verifyLexerLine(char *line, char *tokenName, Lexer *l);
 int is_token_reserved_by_system(TokenType type);
 int is_token_in_lexer(Lexer *l, TokenType tokenName);

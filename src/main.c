@@ -17,20 +17,11 @@ int main() {
 
     /*---------- LEXER ----------*/
     Lexer *l = new_lexer();
-    if (l == NULL)return 1;
-
-    add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+", TOKEN_PREPROCESSEUR_LANG));
-    add_lexer_rule(l, new_lexer_rule("#include", TOKEN_PREPROCESSEUR_INCLUDE));
-    add_lexer_rule(l, new_lexer_rule("[0-9]+\\.[0-9]+", TOKEN_FLOAT));
-    add_lexer_rule(l, new_lexer_rule("[0-9]+", TOKEN_INT));
-    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\"", TOKEN_STRING));
+    if (l == NULL) {printf("[ERROR][LEXER]: Error while creating lexer"); return 1;}
     
     if (readLexerFile(l, "lang/CLASSIC.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
     //if (readLexerFile(l, "lang/FR.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
     //if (readLexerFile(l, "lang/MEOW.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
-
-
-    add_lexer_rule(l, new_lexer_rule("[a-zA-Z_][a-zA-Z0-9_]*", TOKEN_IDENTIFIER));
 
     //print_lexer(l);
 
@@ -41,9 +32,9 @@ int main() {
     TokenList *tl = tokenizer(input, l);
     if (tl == NULL) return 1;
 
-    print_tokenList(tl); return 0;
+    print_tokenList(tl);// return 0;
 
-    error err;
+    /*error err;
     err.value = ERR_SUCCESS;
     InstructionBlock *pr = parse(tl, &err);
     if (err.value != ERR_SUCCESS) {
@@ -57,7 +48,7 @@ int main() {
 
 //    runInstructionBlock(pr,stack);
 
-    // hmStackDestroy(stack);
+    // hmStackDestroy(stack);*/
     free_tokenList(tl);
     free_lexer(l);
     free(input);

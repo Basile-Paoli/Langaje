@@ -81,7 +81,7 @@ void print_tokenList(TokenList *tl);
 
 void free_tokenList(TokenList *tl);
 
-void add_Token(TokenList *tl, Token *t);
+int add_Token(TokenList *tl, Token *t);
 
 TokenType str_to_token_type(char *input);
 char *token_type_to_str(TokenType type);
