@@ -92,6 +92,11 @@ astNode *intTokenToNode(Token token) {
     return newValueNode(value);
 }
 
+astNode *floatTokenToNode(Token token) {
+    var value = {.value._float = atof(token.value), .type = _float};
+    return newValueNode(value);
+}
+
 astNode *identifierTokenToNode(Token token) {
     return newVariableNode(token.value);
 }
@@ -100,7 +105,7 @@ astNode *stringTokenToNode(Token token) {
     // Remove the quotes
     token.value[strlen(token.value) - 1] = '\0';
     return newValueNode((var) {
-            .value._string = strndup(token.value + 1, strlen(token.value) - 2),
+            .value._string = strdup(token.value + 1),
             .type = _string
     });
 }

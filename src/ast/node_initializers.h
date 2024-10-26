@@ -16,6 +16,8 @@ astNode *newSubscriptNode(astNode *array, astNode *index);
 
 astNode *intTokenToNode(Token token);
 
+astNode *floatTokenToNode(Token token);
+
 astNode *stringTokenToNode(Token token);
 
 astNode *identifierTokenToNode(Token token);

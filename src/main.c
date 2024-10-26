@@ -32,9 +32,9 @@ int main() {
     TokenList *tl = tokenizer(input, l);
     if (tl == NULL) return 1;
 
-    print_tokenList(tl);// return 0;
+    print_tokenList(tl);
 
-    /*error err;
+    error err;
     err.value = ERR_SUCCESS;
     InstructionBlock *pr = parse(tl, &err);
     if (err.value != ERR_SUCCESS) {
@@ -44,11 +44,11 @@ int main() {
     printInstructionBlock(pr, 0);
 
 
-    // hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
+    hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
-//    runInstructionBlock(pr,stack);
+    runInstructionBlock(pr,stack);
 
-    // hmStackDestroy(stack);*/
+    hmStackDestroy(stack);
     free_tokenList(tl);
     free_lexer(l);
     free(input);
