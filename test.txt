@@ -1,4 +1,2 @@
-def int a = 3;
-if(a == 3){
-  def int b =2;
-}
+def float[2] b = [1.2,0];
+b[1] = 2.0;

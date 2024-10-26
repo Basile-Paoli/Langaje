@@ -52,7 +52,6 @@ int main() {
     }
     printInstructionBlock(pr, 0);
 
-
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
    runInstructionBlock(pr,stack);

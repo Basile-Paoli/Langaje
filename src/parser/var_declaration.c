@@ -57,7 +57,7 @@ initType parseType(TokenList *tokenList, int *currentToken, error *err) {
             endOfInputError(err);
             return type;
         }
-        if (tokenList->tokens[*currentToken].type == TOKEN_TYPE_INT) {
+        if (tokenList->tokens[*currentToken].type == TOKEN_INT) {
             addArrayToType(&type, atoi(tokenList->tokens[*currentToken].value));
 
             ++*currentToken;

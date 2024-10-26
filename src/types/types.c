@@ -239,6 +239,17 @@ var* newArrayVar(int size, varType type) {
     return res;
 }
 
+
+var* getVarPointerFromArray(var* array, int index){
+    if(index >= array->value._array->length){
+        //RAISE ERRPR
+        return NULL;
+    }
+    printf("RETURN TYPE : %d\n",array->value._array->values[index].type);
+    return &(array->value._array->values[index]);
+}
+
+
 void appendToArrayVar(var *tab, var val) {
     assert(tab->type == _array);
     array *arr = tab->value._array;

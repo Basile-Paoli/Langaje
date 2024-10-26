@@ -25,8 +25,11 @@ void subsituteValue(astNode* value, hmStack* stack){
 void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount){
     operator op = node->value.operator;
     error err;
-
-    if(values[0]->type == VARIABLE)subsituteValue(values[0],stack);    
+    int hasSubsituted = 0;
+    if(values[0]->type == VARIABLE){   
+        subsituteValue(values[0],stack);    
+        hasSubsituted = 1;
+    }
     var var1 = values[0]->value.value;
     var var2;
     if(valuesAmount > 1){
@@ -77,9 +80,7 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
             break;
         }
         case OR:{
-            printf("Entering or :");
             node->value.value = valueOr(&var1,&var2,&err);
-            printf("%d\n",node->value.value.value._int);
             break;
         }
         case AND:{
@@ -90,7 +91,16 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
             node->value.value = valueReverse(&var1,&err);
             break;
         }
-
+        case SUBSCRIPT:{
+            if(hasSubsituted == 1){
+                node->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int);
+            } else {
+                node->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int);
+            }
+            
+    
+            break;
+        }
         default:{
             printf("UNKNOWN OPERATOR\n");
             break;
@@ -112,8 +122,8 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
             var2var(&arr->value._array->values[i],subVar);
         }
             arr->type = type->type;
-            printf("Declared subarray : L : %d T : %d\n",arr->value._array->length, arr->type);
-            printf("First value type : %d\n",arr->value._array->values[0].type);
+            //printf("Declared subarray : L : %d T : %d\n",arr->value._array->length, arr->type);
+            //printf("First value type : %d\n",arr->value._array->values[0].type);
 
         return arr;
     }
@@ -127,12 +137,8 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
 * Return 1 on success, 0 on failure.
 */
 int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack){
-
-
-
     if(nodeToAssign->type == VARIABLE){
         int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
-        printf("Assigning variable in hm : %d \n",hmIndex);
         if(hmIndex > -1){
             var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
             var2var(tmp, &(valueToAssign->value.value));  
@@ -140,20 +146,14 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
         }
     } else if(nodeToAssign->type == INITIALIZATION){
         int hmIndex = isInStackUpwards(stack, nodeToAssign->value.variable);
-        printf("Creating variable in hm : %d \n",hmIndex);
         if(hmIndex == -1){
             //If it's an array
             if(valueToAssign->type == ARRAY){
-
                 var* newVar = declareArray(valueToAssign,&nodeToAssign->value.initialization.type,stack);
                 hm_set(stack->stack[stack->length-1],nodeToAssign->value.initialization.name, newVar);
-                printf("Created array : VARTYPE : %d LEN : %d SUBTYPE : %d\n",newVar->type, newVar->value._array->length, newVar->value._array->type);
-
                 return 1;
             } else {
-
                 var* newVar = malloc(sizeof(var));
-
                 newVar->type = nodeToAssign->value.initialization.type.type;    
                 var2var(newVar,&(valueToAssign->value.value));
                 hm_set(stack->stack[stack->length-1], nodeToAssign->value.initialization.name, newVar);
@@ -161,6 +161,11 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
             }
 
             
+        }
+    } else {
+        //FOR ARRAYS 
+        if(nodeToAssign->value.referencedValue != NULL){
+            var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value);
         }
     }
     return 0;
@@ -183,6 +188,7 @@ astNode* computeNode(astNode* node, hmStack* stack){
         
         if(node->children[i] == NULL)continue;
         valuesAmount++;
+
         //IF WE ARE ON THEN
         if(i == 1 && node->type == CONDITION && values[0]->value.value.value._int == 1 && node->children[i]->type != CONDITION){
             if(node->children[i]->type == BLOCK){
