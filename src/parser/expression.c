@@ -270,8 +270,11 @@ astNode *parseUnaryOperators(TokenList *tokenList, int *currentToken, error *err
 astNode *parsePrimary(TokenList *tokenList, int *currentToken, error *err) {
 
     switch (tokenList->tokens[*currentToken].type) {
-        case TOKEN_TYPE_INT: {
+        case TOKEN_INT: {
             return intTokenToNode(tokenList->tokens[(*currentToken)++]);
+        }
+        case TOKEN_FLOAT: {
+            return floatTokenToNode(tokenList->tokens[(*currentToken)++]);
         }
         case TOKEN_IDENTIFIER: {
             return parseIdentifier(tokenList, currentToken, err);
