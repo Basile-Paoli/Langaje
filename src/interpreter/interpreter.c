@@ -98,6 +98,28 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
     }
 }
 
+
+var* declareArray(astNode* node, initType* type, hmStack* stack){
+    if(type->type !=  _array){
+        node->value.value.type = type->type;
+        return &node->value.value;
+    } else {
+        var* arr = newArrayVar(node->childrenCount, type->elementsType->type);
+        for(int i = 0; i < node->childrenCount; i++){
+            var* subVar = declareArray(node->children[i],type->elementsType, stack);
+            subVar->type = type->elementsType->type;
+            
+            var2var(&arr->value._array->values[i],subVar);
+        }
+            arr->type = type->type;
+            printf("Declared subarray : L : %d T : %d\n",arr->value._array->length, arr->type);
+            printf("First value type : %d\n",arr->value._array->values[0].type);
+
+        return arr;
+    }
+}
+
+
 /**
 * Function that either : 
 *   Create a new variable in the top hashmap of the stack, if the value doesn't exist in an other hashmap 
@@ -105,6 +127,8 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
 * Return 1 on success, 0 on failure.
 */
 int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack){
+
+
 
     if(nodeToAssign->type == VARIABLE){
         int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
@@ -114,16 +138,29 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
             var2var(tmp, &(valueToAssign->value.value));  
             return 1;
         }
-    
     } else if(nodeToAssign->type == INITIALIZATION){
         int hmIndex = isInStackUpwards(stack, nodeToAssign->value.variable);
         printf("Creating variable in hm : %d \n",hmIndex);
         if(hmIndex == -1){
-            var* newVar = malloc(sizeof(var));
-            newVar->type = nodeToAssign->value.initialization.type.type;    
-            var2var(newVar,&(valueToAssign->value.value));
-            hm_set(stack->stack[stack->length-1], nodeToAssign->value.initialization.name, newVar);
-            return 1;
+            //If it's an array
+            if(valueToAssign->type == ARRAY){
+
+                var* newVar = declareArray(valueToAssign,&nodeToAssign->value.initialization.type,stack);
+                hm_set(stack->stack[stack->length-1],nodeToAssign->value.initialization.name, newVar);
+                printf("Created array : VARTYPE : %d LEN : %d SUBTYPE : %d\n",newVar->type, newVar->value._array->length, newVar->value._array->type);
+
+                return 1;
+            } else {
+
+                var* newVar = malloc(sizeof(var));
+
+                newVar->type = nodeToAssign->value.initialization.type.type;    
+                var2var(newVar,&(valueToAssign->value.value));
+                hm_set(stack->stack[stack->length-1], nodeToAssign->value.initialization.name, newVar);
+                return 1;
+            }
+
+            
         }
     }
     return 0;
@@ -163,9 +200,7 @@ astNode* computeNode(astNode* node, hmStack* stack){
             i+=1;
             
         } else{
-            printf("Computing node\n");
             values[i] = computeNode(node->children[i], stack);
-
         }
     }
 
@@ -175,6 +210,8 @@ astNode* computeNode(astNode* node, hmStack* stack){
         calculateNode(values,node,stack,valuesAmount);
         free(values);
        return node;
+    } else {
+        return node;
     }
 }
 
