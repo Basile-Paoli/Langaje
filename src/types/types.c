@@ -136,8 +136,34 @@ void var2var(var* v, var* v2){
                 }
             }
             break;
+        case(_array):{
+            switch(v2->type){
+                case _array:
+                    v->value._array = v2->value._array;
+                    break;
+                default:
+                    //RAISE ERROR
+                    break;
+            }
+            break;
+        }
+        
         default:
             break;
+    }
+}
+
+//THIS FUNCTION DOES NOT WORK ACTUALLY. NEED TO BE FIXED!!!
+void destroyVar(var* v){
+    if(v->type == _array){
+        for(int i = 0; i < v->value._array->length; i++){
+            destroyVar(&(v->value._array->values[i].value));
+        }
+    } else {
+        if(v != NULL){
+            //free(v);
+        }
+            
     }
 }
 
@@ -146,45 +172,70 @@ void var2var(var* v, var* v2){
  * @param v Pointer to a `var` structure.
  */
 
-void display(var* v){
-    if(v == NULL){
+
+void display(var* v) {
+    if (v == NULL) {
         printf("Null variable error\n");
         return;
     }
+
     switch (v->type) {
-        case (_int):
+        case _int:
             printf("%d\n", v->value._int);
             break;
-        case (_float):
+        case _float:
             printf("%f\n", v->value._float);
             break;
-        case (_char):
+        case _char:
             printf("%c\n", v->value._char);
             break;
-        case (_array):
-            for (int i = 0; i < v->value._array->length; i++) {
-                display(&v->value._array->values[i]);
-            }
-            break;
-        case (_string):
+        case _string:
             printf("%s\n", v->value._string);
             break;
+        case _array:
+            for (int i = 0; i < v->value._array->length; i++) {
+                if(v->value._array->values[i].type == _array){
+                    printf("\nSubarray :%d\n",i);
+                }
+                display(&v->value._array->values[i]);
+                
+            }
+            break;
         default:
-            printf("!Unknown type\n");
+            printf("Unknown type: %d\n", v->type);
             break;
     }
 }
 
-var newArrayVar(int size, varType type) {
-    array *arr = malloc(sizeof(array));
-    arr->capacity = size == 0 ? 1 : size;
-    arr->values = malloc(size * sizeof(var));
-    arr->length = size;
-    arr->type = type;
 
-    var res;
-    res.value._array = arr;
-    res.type = _array;
+var* newArrayVar(int size, varType type) {
+    var* res = malloc(sizeof(var));
+    res->value._array = malloc(sizeof(array));
+
+    res->value._array->capacity = size == 0 ? 1 : size;
+    res->value._array->values = malloc(size * sizeof(var));
+    res->value._array->length = size;
+    res->value._array->type = type;
+    for(int i = 0; i < size; i++){
+        res->value._array->values[i].type = type;
+        switch(type){
+            case _int:{
+                res->value._array->values[i].value._int = 0;
+                break;
+            }
+            case _float:{
+                res->value._array->values[i].value._float = 0.0;
+                break;
+            }
+            case _string:{
+                assignString(&res->value._array->values[i].value, "");
+                break;
+            }
+            
+        }
+    }
+
+
     return res;
 }
 

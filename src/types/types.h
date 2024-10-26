@@ -41,7 +41,7 @@ void display(var* v);
 
 void var2var(var* v, var* v2);
 
-var newArrayVar(int size, varType type);
+var* newArrayVar(int size, varType type);
 void appendToArrayVar(var *tab, var val);
 
 #endif //LANGAJE_TYPES_H
