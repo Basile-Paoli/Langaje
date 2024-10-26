@@ -1,7 +1,0 @@
-==============================
-[DEF:Définition d'une variable] [INT:entière] [IDENTIFIER:a] [EQUAL:dont la valeur est égale à ] [INT:1] [SEMICOLON:point virgule] 
-[DEF:Définition d'une variable] [FLOAT:flotante] [IDENTIFIER:b] [EQUAL:dont la valeur est égale à ] [FLOAT:1.0] [SEMICOLON:point virgule] 
-[IF:Si] [LPAREN:parenthèse ouvrante] [IDENTIFIER:a] [EQUAL_EQUAL:est égale à] [INT:1] [RPAREN:parenthèse fermante] [LBRACE:alors] [IDENTIFIER:print] [LPAREN:parenthèse ouvrante] [STRING:"La valeure de la variable est égale à 1"] [SEMICOLON:point virgule] 
-[RBRACE:fin] [ELSE:Sinon] [IF:Si] [LPAREN:parenthèse ouvrante] [IDENTIFIER:b] [GREATER_EQUAL:plus grand ou égale à] [FLOAT:10.0] [OR:ou] [IDENTIFIER:b] [ADDITION:plus] [IDENTIFIER:a] [DIVISION:divisé par] [INT:2] [NOT_EQUAL:est différent de ] [FLOAT:3.0] [RPAREN:parenthèse fermante] [LBRACE:alors] [IDENTIFIER:print] [LPAREN:parenthèse ouvrante] [STRING:"Le calcul est exact"] [SEMICOLON:point virgule] 
-[RBRACE:fin] [ELSE:Sinon] [LBRACE:alors] [IDENTIFIER:print] [LPAREN:parenthèse ouvrante] [STRING:"Rien n'est valide"] [SEMICOLON:point virgule] 
-

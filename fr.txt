@@ -1,3 +1,5 @@
+#LANG_FR
+
 Définition d'une variable entière a dont la valeur est égale à 1 point virgule
 Définition d'une variable flotante b dont la valeur est égale à 1.0 point virgule
 

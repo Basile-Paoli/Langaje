@@ -20,6 +20,7 @@ typedef struct {
 
 lexer_rule *new_lexer_rule(char *regex, TokenType type);
 void print_lexer_rule(lexer_rule *rule);
+char *get_lang(char *input);
 
 Lexer *new_lexer();
 int readLexerFile(Lexer *l, char* filename);

@@ -33,6 +33,39 @@ Lexer *new_lexer() {
 
 }
 
+char *get_lang(char *input) {
+    // input is the whole file
+    // We get the lang preprocessor
+    char *lang = NULL;
+
+    char *temp = (char *)calloc(strlen(input), sizeof(char));
+    if (temp == NULL) {
+        printf("[ERROR][LEXER]: Cannot allocate memory for temp\n");
+        return NULL;
+    }
+    strcpy(temp, input);
+    
+    if (strstr(temp, "#LANG_") != NULL) {
+        lang = (char *)calloc(10, sizeof(char));
+        if (lang == NULL) {
+            printf("[ERROR][LEXER]: Cannot allocate memory for lang\n");
+            return NULL;
+        }
+        size_t k = 0;
+        while (*temp != '\n' && *temp != '\0') {
+            if (*temp == '#') {
+                while (*temp != '_') temp++;
+                temp++;
+                while (*temp != '\n' && *temp != '\0') lang[k++] = *temp++;
+                break;
+            }
+            temp++;
+        }
+    }
+
+    return lang;
+}
+
 int readLexerFile(Lexer *l, char* filename) {
     char *buffer = read_file(filename);
     if (buffer == NULL){

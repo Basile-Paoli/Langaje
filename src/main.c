@@ -10,32 +10,40 @@
 
 #define BASE_MEMORY_STACK_SIZE 16
 
-int main() {
+int main(int argc, char **argv) {
+
+    if (argc != 2) {
+        printf("Usage: %s <file>\n", argv[0]);
+        return 1;
+    }
 
     for (int i = 0; i < 30; i++) printf("=");
     printf("\n");
 
+    // Reading the input file
+    char *input = read_file(argv[1]);
+    
     /*---------- LEXER ----------*/
     Lexer *l = new_lexer();
     if (l == NULL) {printf("[ERROR][LEXER]: Error while creating lexer"); return 1;}
-    
-    //if (readLexerFile(l, "lang/CLASSIC.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
-    //if (readLexerFile(l, "lang/FR.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
-    //if (readLexerFile(l, "lang/MEOW.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
-    if (readLexerFile(l, "lang/E.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
+
+    char *lang = get_lang(input); // Get the #LANG_
+    if (lang == NULL) lang = "CLASSIC"; // If none is found, we use the default one
+
+    char *langFile = (char *)calloc(strlen(lang) + 6, sizeof(char));
+    if (langFile == NULL) {printf("[ERROR][LEXER]: Error while creating langFile"); return 1;}
+    sprintf(langFile, "lang/%s.lang", lang);
+
+    // We read the lang file
+    if (readLexerFile(l, langFile) != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
 
     //print_lexer(l);
 
-    //char *input = read_file("test.txt");
-    //char *input = read_file("fr.txt");
-    //char *input = read_file("meow.txt");
-    char *input = read_file("e.txt");
-
+    // Tokenization
     TokenList *tl = tokenizer(input, l);
     if (tl == NULL) return 1;
 
-    print_tokenList(tl);
-    return 0;
+    print_tokenList(tl); // Print the token list
 
     error err;
     err.value = ERR_SUCCESS;
