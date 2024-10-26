@@ -5,14 +5,14 @@
 #include "token.h"
 
 typedef struct {
-    char *regex;
-    TokenType type;
-    regex_t reg;
+    char *regex; // the regex to match
+    TokenType type; // the token type associated with the regex
+    regex_t reg; // the compiled regex
 } lexer_rule;
 
 typedef struct {
-    lexer_rule *rules;
-    int nb_rules;
+    lexer_rule *rules; // a list of rules
+    int nb_rules; // the number of rules
 } Lexer;
 
 

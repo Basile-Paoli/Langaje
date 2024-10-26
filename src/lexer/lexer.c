@@ -5,7 +5,6 @@
 
 #include "lexer.h"
 #include "token.h"
-#include "../errors/errors.h"
 
 Lexer *new_lexer() {
 
@@ -180,12 +179,13 @@ TokenList *tokenizer(char *input, Lexer *l) {
             size_t maxGroup = 10;
             regmatch_t match[maxGroup];
 
-            if (regexec(&l->rules[j].reg, input + i, maxGroup, match, 0) == 0) {
+            if (regexec(&l->rules[j].reg, input + i, maxGroup, match, 0) == 0) { // If there is a match
 
                 if (match->rm_so != 0) continue; // The match MUST start at the beginning of the string
 
                 matchFound = 1;
                 
+                // We copy the matched string
                 char *buffer = (char *)calloc(match->rm_eo, sizeof(char));
                 if (buffer == NULL) {
                     printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
@@ -193,11 +193,14 @@ TokenList *tokenizer(char *input, Lexer *l) {
                 }
                 strncpy(buffer, input + i, match->rm_eo);
 
+                // Create the token
                 Token *t = new_Token(l->rules[j].type, buffer, nbLine, i);
                 if (t == NULL) {
                     printf("[ERROR][LEXER]: Cannot allocate memory for token\n");
                     return NULL;
                 }
+
+                // Add the token to the list
                 if (add_Token(list, t) != 0) {
                     printf("[ERROR][LEXER]: Cannot add token to list\n");
                     return NULL;
@@ -205,17 +208,19 @@ TokenList *tokenizer(char *input, Lexer *l) {
                 
                 free(buffer);
 
+                // We moved i to the end of the match
                 i += match->rm_eo-1;
-                nbColon += match->rm_eo;
-                break;
+                nbColon += match->rm_eo; // Same for the number of colon
+                break; // We don't need to check the other rules
 
             }
 
         }
 
-        if (!matchFound) {
+        if (!matchFound) { // If no match has been found, we print an error
             printf("[ERROR][LEXER]: Unknown token: <%c> at position Ln-%d Col-%d\n", input[i], nbLine, nbColon);
             printf("[ERROR][LEXER]: The lang used may not be correctly configurated\n");
+
             // print the line
             int j = i;
             while (input[j] != '\n' && j > 0) j--;
@@ -223,7 +228,7 @@ TokenList *tokenizer(char *input, Lexer *l) {
             while (input[j] != '\n' && input[j] != '\0') printf("%c", input[j++]);
             printf("\n");
             for (int k = 1; k < nbColon; k++) printf(" ");
-            printf("^\n");
+            printf("^\n"); // the error is here
 
             free_tokenList(list);
             return NULL;
@@ -235,6 +240,7 @@ TokenList *tokenizer(char *input, Lexer *l) {
 }
 
 char *read_file(char *filename) {
+    // We read the file and output a single char *
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         printf("[ERROR][LEXER]: Cannot open file <%s>\n", filename);
@@ -267,14 +273,15 @@ lexer_rule *new_lexer_rule(char *regex, TokenType type){
         printf("[ERROR][LEXER]: Cannot allocate memory for regex\n");
         return NULL;
     }
-    strcpy(rule->regex, regex);
+    strcpy(rule->regex, regex); // copy the regex string to the rule
 
     rule->type = type;
-    regcomp(&rule->reg, rule->regex, REG_EXTENDED);
+    regcomp(&rule->reg, rule->regex, REG_EXTENDED); // compile the regex in advance
 
     return rule;
 }
 int add_lexer_rule(Lexer *l, lexer_rule *rule){
+    // Add a rule to the lexer (a rule is a regex and a token type)
 
     if (rule == NULL) {
         printf("[ERROR][LEXER]: rule is NULL\n");

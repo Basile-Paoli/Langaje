@@ -43,6 +43,7 @@ Token *new_Token(TokenType type, char *value, int line, int column) {
         return NULL;
     }
 
+    // Where the token was found
     t->line = line;
     t->column = column;
 
@@ -57,8 +58,7 @@ int add_Token(TokenList *tl, Token *t) {
         return 1;
     }
     
-    tl->tokens[tl->nb_tokens] = *t;
-    tl->nb_tokens++;
+    tl->tokens[tl->nb_tokens++] = *t;
 
     return 0;
 }
