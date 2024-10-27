@@ -109,16 +109,29 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
 }
 
 
+/*
+* Function that declare an array based on a ARRAY node in the AST.
+* Returns the array
+*/
 var* declareArray(astNode* node, initType* type, hmStack* stack){
     if(type->type !=  _array){
-        node->value.value.type = type->type;
         return &node->value.value;
     } else {
+        if(node->childrenCount > type->arraySize){
+            //RAISE ERROR
+            printf("__TOO MUCH ELEMENTS IN ARRAY__\n");
+            return NULL;
+        }
+
         var* arr = newArrayVar(node->childrenCount, type->elementsType->type);
         for(int i = 0; i < node->childrenCount; i++){
             var* subVar = declareArray(node->children[i],type->elementsType, stack);
-            subVar->type = type->elementsType->type;
-            
+
+            if(subVar->type != arr->value._array->type){
+                //RAISE ERROR
+                printf("__WRONG TYPE__ \n");
+                return NULL;
+            }
             var2var(&arr->value._array->values[i],subVar);
         }
             arr->type = type->type;

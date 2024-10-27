@@ -1,4 +1,4 @@
-def int[2] b = [1,2,3];
+def int[2] b = [1,2];
 def int[2] a;
 a[1] = 1;
 b[0] = 3;
