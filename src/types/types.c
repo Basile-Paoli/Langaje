@@ -207,7 +207,10 @@ void display(var* v) {
     }
 }
 
-
+/**
+* Creates an array with default values at the size of the parameter and the type passed.
+* returns a pointer to this array.
+ */
 var* newArrayVar(int size, varType type) {
     var* res = malloc(sizeof(var));
     res->value._array = malloc(sizeof(array));
@@ -239,7 +242,9 @@ var* newArrayVar(int size, varType type) {
     return res;
 }
 
-
+/**
+* Function that returns the pointer of the array[index]
+*/
 var* getVarPointerFromArray(var* array, int index){
     if(index >= array->value._array->length){
         //RAISE ERROR
@@ -249,7 +254,7 @@ var* getVarPointerFromArray(var* array, int index){
     return &(array->value._array->values[index]);
 }
 
-
+//NOT USED OR WORKING I THINK CURRENTLY
 void appendToArrayVar(var *tab, var val) {
     assert(tab->type == _array);
     array *arr = tab->value._array;

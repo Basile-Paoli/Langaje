@@ -92,6 +92,9 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
             break;
         }
         case SUBSCRIPT:{
+            //If it has substituted means value is in &var1 else it's in values[0].value.referencedValue 
+            //We work with pointer because we go edit directly the memory of the array.
+            
             if(hasSubsituted == 1){
                 node->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int);
             } else {
@@ -123,9 +126,10 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
             printf("__TOO MUCH ELEMENTS IN ARRAY__\n");
             return NULL;
         }
-
+        //Declare array (types.c)
         var* arr = newArrayVar(node->childrenCount, type->elementsType->type);
         for(int i = 0; i < node->childrenCount; i++){
+            //For each children call the function recursively
             var* subVar = declareArray(node->children[i],type->elementsType, stack);
             if(subVar == NULL)return NULL;
 
@@ -134,6 +138,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
                 printf("__WRONG TYPE__ \n");
                 return NULL;
             }
+            //Assign the subvar to the array slot  (either NODE so value OR Subarray)
             var2var(&arr->value._array->values[i],subVar);
         }
             arr->type = type->type;
@@ -141,6 +146,9 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
     }
 }
 
+/*
+* Function that declares an empty array based on initialization node.
+*/
 var* declareEmptyArray(astNode* node){
     initType* curr = &node->value.initialization.type;
     
@@ -166,6 +174,9 @@ var* declareEmptyArray(astNode* node){
     return arr;
 }
 
+/*
+* Function that declares an empty var based on initialization node.
+*/
 var* declareVar(astNode* node){
     var* newVar = malloc(sizeof(var));
     newVar->type = node->value.initialization.type.type;
