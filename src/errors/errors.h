@@ -23,5 +23,6 @@ typedef struct {
 
 void *endOfInputError(error *err);
 int assignErrorMessage(error *err, char *msg);
+char* getNameTypeError(int errorNum);
 
 #endif //LANGAJE_ERRORS_H

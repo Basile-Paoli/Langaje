@@ -58,7 +58,7 @@ int main() {
     int runInstructionResult = runInstructionBlock(pr, stack, &err_run);
     if(runInstructionResult == 1){
         // Print the error msg
-        printf("Error: %s\n", err_run.message);
+        printf("%s\n", err_run.message);
         return 1;
     }
     printf("RESULT INSRCUTION BLOCK : %d", runInstructionResult);

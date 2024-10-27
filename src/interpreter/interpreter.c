@@ -32,6 +32,7 @@ void subsituteValue(astNode* value, hmStack* stack, error *err){
 void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount, error *err){
     operator op = node->value.operator;
     error err_op;
+    err_op.value = ERR_SUCCESS;
     int hasSubsituted = 0;
     if(values[0]->type == VARIABLE){   
         subsituteValue(values[0],stack, err);
@@ -117,6 +118,14 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
             //printf("UNKNOWN OPERATOR\n");
             break;
         }
+    }
+
+    if(err_op.value != ERR_SUCCESS){
+        // Get the error message if one of the basic function doesn't work
+        err->value = err_op.value;
+        err->message = malloc(strlen(err_op.message));
+        sprintf(err->message, "%s", err_op.message);
+        return;
     }
 }
 
@@ -367,6 +376,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     printf("\nRunning block\n");
     for(int i = 0; i < program->instructionsCount; i++){
         computeNode(program->instructions[i], stack, err);
+        // Stop computing if there's an error
         if(err->value != ERR_SUCCESS)
             return 1;
     }
