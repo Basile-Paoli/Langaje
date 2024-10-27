@@ -46,10 +46,9 @@ char* getNameTypeError(int errorNum){
             return "Unknown operator: ";
         case 7:
             return "Already exists: ";
+        case 8:
+            return "Pointer error: ";
         default:
             return "Unknown error: ";
     }
 }
-
-// Améliorer les msg d'erreurs en signifiant le type d'erreur (syntaxe, ..) avec errorValue
-

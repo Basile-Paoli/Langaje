@@ -13,7 +13,8 @@ typedef enum {
     ERR_OUT_OF_BOUNDS,
     ERR_NOT_FOUND,
     ERR_UNKNOWN_OPERATOR,
-    ERR_ALREADY_EXISTS
+    ERR_ALREADY_EXISTS,
+    ERR_NULL_POINTER,
 } errorValue;
 
 typedef struct {

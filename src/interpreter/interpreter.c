@@ -147,7 +147,6 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
             assignErrorMessage(err, msg);
             free(msg);
 
-            //printf("__TOO MUCH ELEMENTS IN ARRAY__\n");
             return NULL;
         }
         //Declare array (types.c)
@@ -167,6 +166,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
                 free(msg);
                 return NULL;
             }
+
             //Assign the subvar to the array slot  (either NODE so value OR Subarray)
             var2var(&arr->value._array->values[i],subVar);
         }
@@ -256,14 +256,13 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
             err->value = ERR_NOT_FOUND;
             assignErrorMessage(err, "Value not found in HM");
-            //printf("__VALUE NOT FOUDN IN HM__\n");
+
             return 0;
 
 
         } else {
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
             if(hmIndex > -1){
-
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
                 var2var(tmp, &(valueToAssign->value.value));  
                 return 1;
@@ -271,7 +270,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
             err->value = ERR_NOT_FOUND;
             assignErrorMessage(err, "Value not found in HM");
-            //printf("__VALUE NOT FOUDN IN HM__\n");
+
             return 0;
         }
     } else {
@@ -283,12 +282,11 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
         err->value = ERR_NOT_FOUND;
         assignErrorMessage(err, "Value not found in HM");
-        //printf("__VALUE NOT FOUDN IN HM__\n");
+
         return 0;
     }
     printf("__ERROR__");
     return 0;
- 
 }
 
 
@@ -297,7 +295,7 @@ int initializeValueInHM(astNode* node,hmStack* stack, error *err){
     if(hmIndex > - 1){
         err->value = ERR_ALREADY_EXISTS;
         assignErrorMessage(err, "Can't define a variable that already exists");
-        //printf("VAR ALREADY EXISTS RAISE ERROR\n");
+
         return 0;
     }
     if(node->value.initialization.type.type == _array){
@@ -397,7 +395,7 @@ void debug(char key[][255], int arrSize, hmStack* stack, error *err){
     for(int i = 0; i < arrSize; i++){
         if(isInStackDownwards(stack,key[i]) > -1){
             printf("VALUE OF %s : ",key[i]);
-            display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]));
+            display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]), err);
             printf("\n");
         }   
     }

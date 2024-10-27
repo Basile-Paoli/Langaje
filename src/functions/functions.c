@@ -48,7 +48,6 @@ int concat(var *result, char *var1, char *var2, char** resultValue){
 var add(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
     char buffer[20];
 
     // Define the type of var to return
@@ -176,7 +175,6 @@ var add(var *var1, var *var2, error *err){
 var substract(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int:
@@ -248,7 +246,6 @@ var substract(var *var1, var *var2, error *err){
 var multiply(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int:
@@ -298,7 +295,6 @@ var multiply(var *var1, var *var2, error *err){
 var divide(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int: case _float:
@@ -334,7 +330,6 @@ var divide(var *var1, var *var2, error *err){
 var modulo(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int:
@@ -370,7 +365,6 @@ var modulo(var *var1, var *var2, error *err){
 var power(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch (var1->type){
         case _int: case _float:
@@ -406,7 +400,6 @@ var power(var *var1, var *var2, error *err){
 var logicalAnd(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     if(var1->type == _int && var2->type == _int){
         int resultValue = var1->value._int & var2->value._int;
@@ -427,7 +420,6 @@ var logicalAnd(var *var1, var *var2, error *err){
 var logicalOr(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     if(var1->type == _int && var2->type == _int){
         int resultValue = var1->value._int | var2->value._int;
@@ -450,7 +442,6 @@ var logicalOr(var *var1, var *var2, error *err){
 var squareroot(var *var1, error *err){
     var result;
     result.type = _float;
-    err->value = ERR_SUCCESS;
 
     if(var1->type == _int || var1->type == _float){
         float resultValue = sqrtf(getNumericValue(var1));
@@ -499,7 +490,13 @@ var isEqual(var* v, var* v2,int reversed, error* err){
             
             break;
         }
+        default:
+            err->value = ERR_NOT_FOUND;
+            assignErrorMessage(err, "Variables must be of type int, float, char or string.");
+            break;
     }
+
+    return result;
 }
 
 /*
@@ -510,6 +507,14 @@ var isEqual(var* v, var* v2,int reversed, error* err){
 var isGreater(var* v, var* v2, int strict, error* err){
     var result;
     result.type = _int;
+
+    if(v == NULL || v2 == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        result.value._int = 0;
+        return result;
+    }
+
     if(v->type == _string || v2->type == _string){
         result.value._int = 0;
         return result;
@@ -534,6 +539,14 @@ var isGreater(var* v, var* v2, int strict, error* err){
 var isLesser(var* v, var* v2, int strict, error* err){
     var result;
     result.type = _int;
+
+    if(v == NULL || v2 == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        result.value._int = 0;
+        return result;
+    }
+
     if(v->type == _string || v2->type == _string){
         result.value._int = 0;
         return result;
@@ -554,6 +567,18 @@ var valueOr(var* v, var* v2, error* err){
     var result;
     result.type = _int;
 
+    if(v == NULL || v2 == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        return result;
+    }
+
+    if(v->type != _int || v2->type != _int){
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Type must be integer");
+        return result;
+    }
+
     result.value._int = (v->value._int == 1 || v2->value._int == 1);
     return result;
 }
@@ -562,6 +587,18 @@ var valueAnd(var* v, var* v2, error* err){
     var result;
     result.type = _int;
 
+    if(v == NULL || v2 == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        return result;
+    }
+
+    if(v->type != _int || v2->type != _int){
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Type must be integer");
+        return result;
+    }
+
     result.value._int = (v->value._int == 1 && v2->value._int == 1);
     return result;
 }
@@ -569,6 +606,19 @@ var valueAnd(var* v, var* v2, error* err){
 var valueReverse(var* v, error* err){
     var result;
     result.type = _int;
+
+    if(v == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        return result;
+    }
+
+    if(v->type != _int){
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Type must be integer");
+        return result;
+    }
+
     //result.value._int = v->value._int == 1 ? 0 : 1;
     result.value._int = 1;
     return result;

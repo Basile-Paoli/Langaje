@@ -55,7 +55,6 @@ int assign(var *v, void *value) {
             break;
         default:
             return 1;
-            break;
     }
     return 0;
 }
@@ -173,9 +172,11 @@ void destroyVar(var* v){
  */
 
 
-void display(var* v) {
+void display(var* v, error *err) {
     if (v == NULL) {
-        printf("Null variable error\n");
+        err->value = ERR_NOT_FOUND;
+        assignErrorMessage(err, "Null variable error");
+        //printf("Null variable error\n");
         return;
     }
 
@@ -197,12 +198,13 @@ void display(var* v) {
                 if(v->value._array->values[i].type == _array){
                     printf("\nSubarray :%d\n",i);
                 }
-                display(&v->value._array->values[i]);
+                display(&v->value._array->values[i], err);
                 
             }
             break;
         default:
-            printf("Unknown type: %d\n", v->type);
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Unknown type, expected float, int, char, string or array");
             break;
     }
 }

@@ -38,7 +38,7 @@ typedef struct var{
 
 int assignString(var* v, char* value);
 int assign(var* v, void* value);
-void display(var* v);
+void display(var* v, error *err);
 
 void var2var(var* v, var* v2);
 
