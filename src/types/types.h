@@ -44,5 +44,6 @@ void var2var(var* v, var* v2);
 var* newArrayVar(int size, varType type);
 void appendToArrayVar(var *tab, var val);
 var* getVarPointerFromArray(var* array, int index);
+void destroyVar(var* v);
 
 #endif //LANGAJE_TYPES_H

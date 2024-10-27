@@ -29,7 +29,6 @@ int main() {
     //if (readLexerFile(l, "lang/FR.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
     //if (readLexerFile(l, "lang/MEOW.lang") != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
 
-
     add_lexer_rule(l, new_lexer_rule("[a-zA-Z_][a-zA-Z0-9_]*", TOKEN_IDENTIFIER));
 
     //print_lexer(l);
@@ -54,7 +53,7 @@ int main() {
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
-   runInstructionBlock(pr,stack);
+    runInstructionBlock(pr,stack);
 
     hmStackDestroy(stack);
     free_tokenList(tl);

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include "../types/types.h"
 
 /**
 * Function that allocate an empty hashmap, with the size of #BASE_CAPACITY 
