@@ -53,7 +53,15 @@ int main() {
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
-    runInstructionBlock(pr,stack);
+    error err_run;
+    err_run.value = ERR_SUCCESS;
+    int runInstructionResult = runInstructionBlock(pr, stack, &err_run);
+    if(runInstructionResult == 1){
+        // Print the error msg
+        printf("Error: %s\n", err_run.message);
+        return 1;
+    }
+    printf("RESULT INSRCUTION BLOCK : %d", runInstructionResult);
 
     hmStackDestroy(stack);
     free_tokenList(tl);

@@ -26,3 +26,5 @@ int assignErrorMessage(error *err, char *msg){
     return 0;
 }
 
+// Améliorer les msg d'erreurs en signifiant le type d'erreur (syntaxe, ..) avec errorValue
+

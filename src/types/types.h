@@ -5,6 +5,7 @@
 #ifndef LANGAJE_TYPES_H
 #define LANGAJE_TYPES_H
 
+#include "../errors/errors.h"
 
 typedef enum varType {
     _int,
@@ -43,7 +44,8 @@ void var2var(var* v, var* v2);
 
 var* newArrayVar(int size, varType type);
 void appendToArrayVar(var *tab, var val);
-var* getVarPointerFromArray(var* array, int index);
+var* getVarPointerFromArray(var* array, int index, error *err);
 void destroyVar(var* v);
+char* getVarTypeName(int typeIdx);
 
 #endif //LANGAJE_TYPES_H

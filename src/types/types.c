@@ -245,10 +245,17 @@ var* newArrayVar(int size, varType type) {
 /**
 * Function that returns the pointer of the array[index]
 */
-var* getVarPointerFromArray(var* array, int index){
+var* getVarPointerFromArray(var* array, int index, error *err){
     if(index >= array->value._array->length){
-        //RAISE ERROR
-        printf("__OUT OF INDEX ERROR__\n");
+        err->value = ERR_OUT_OF_BOUNDS;
+
+        char *msg = malloc(strlen("Array access error: Index %d is out of range for the array of size %d.") + 1);
+        sprintf(msg, "Index is out of range for the array of size %d.", array->value._array->length);
+
+        assignErrorMessage(err, msg);
+        free(msg);
+
+        //printf("__OUT OF INDEX ERROR__\n");
         return NULL;
     }
     return &(array->value._array->values[index]);
@@ -264,5 +271,26 @@ void appendToArrayVar(var *tab, var val) {
         arr->capacity *= 2;
         arr->values = realloc(arr->values, arr->capacity);
         arr->values[arr->length++] = val;
+    }
+}
+
+/*
+ * Return the name of the varType
+ * Used for error msg
+ */
+char* getVarTypeName(int typeIdx){
+    switch (typeIdx) {
+        case 0:
+            return "integer";
+        case 1:
+            return "float";
+        case 2:
+            return "char";
+        case 3:
+            return "string";
+        case 4:
+            return "array";
+        default:
+            return "error";
     }
 }

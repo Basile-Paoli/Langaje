@@ -10,6 +10,10 @@ typedef enum {
     ERR_SYNTAX,
     ERR_END_OF_INPUT,
     ERR_TYPE,
+    ERR_OUT_OF_BOUNDS,
+    ERR_NOT_FOUND,
+    ERR_UNKNOWN_OPERATOR,
+    ERR_ALREADY_EXISTS
 } errorValue;
 
 typedef struct {
