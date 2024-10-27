@@ -235,7 +235,7 @@ var* newArrayVar(int size, varType type) {
         }
     }
 
-
+    res->type = _array;
     return res;
 }
 

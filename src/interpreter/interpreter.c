@@ -122,13 +122,58 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
             var2var(&arr->value._array->values[i],subVar);
         }
             arr->type = type->type;
-            //printf("Declared subarray : L : %d T : %d\n",arr->value._array->length, arr->type);
-            //printf("First value type : %d\n",arr->value._array->values[0].type);
+            printf("Declared subarray : L : %d T : %d\n",arr->value._array->length, arr->type);
+            printf("First value type : %d\n",arr->value._array->values[0].type);
 
         return arr;
     }
 }
 
+var* declareEmptyArray(astNode* node){
+    initType* curr = &node->value.initialization.type;
+    
+    //Declare main array
+    var* arr = newArrayVar(node->value.initialization.type.arraySize, node->value.initialization.type.elementsType->type);
+
+    //Go to next subarray if there's one
+    initType oldCurr = *curr;
+    curr = curr->elementsType;
+    var* currArray = arr;
+    while(curr->type == _array){
+        var* newArr;
+        for(int i = 0; i < oldCurr.arraySize; i++){
+            newArr = newArrayVar(curr->arraySize,curr->elementsType->type);
+            newArr->type = curr->elementsType->type;
+            var2var(&currArray->value._array->values[i],newArr);
+        }
+
+        oldCurr = *curr;
+        curr = curr->elementsType;
+        currArray = newArr;
+    }    
+    return arr;
+}
+
+var* declareVar(astNode* node){
+    var* newVar = malloc(sizeof(var));
+    newVar->type = node->value.initialization.type.type;
+    switch(newVar->type){
+        case _int:{
+            newVar->value._float = 0;
+            break;
+        }
+        case _float:{
+            newVar->value._float = 0.0;
+            break;
+        }
+        case _string:{
+            assignString(newVar,"");
+            break;
+        }
+    }
+
+    return newVar;
+}
 
 /**
 * Function that either : 
@@ -137,33 +182,27 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
 * Return 1 on success, 0 on failure.
 */
 int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack){
-    if(nodeToAssign->type == VARIABLE){
-        int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
-        if(hmIndex > -1){
-            var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
-            var2var(tmp, &(valueToAssign->value.value));  
-            return 1;
-        }
-    } else if(nodeToAssign->type == INITIALIZATION){
-        int hmIndex = isInStackUpwards(stack, nodeToAssign->value.variable);
-        if(hmIndex == -1){
-            //If it's an array
-            if(valueToAssign->type == ARRAY){
-                var* newVar = declareArray(valueToAssign,&nodeToAssign->value.initialization.type,stack);
-                hm_set(stack->stack[stack->length-1],nodeToAssign->value.initialization.name, newVar);
-                return 1;
-            } else {
-                var* newVar = malloc(sizeof(var));
-                newVar->type = nodeToAssign->value.initialization.type.type;    
-                var2var(newVar,&(valueToAssign->value.value));
-                hm_set(stack->stack[stack->length-1], nodeToAssign->value.initialization.name, newVar);
+
+    if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
+
+        if(valueToAssign->type == ARRAY){
+            
+            var* newArr = declareArray(valueToAssign,&nodeToAssign->value.initialization.type,stack);
+            int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
+            var* oldArr = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.initialization.name);
+            var2var(oldArr,newArr);
+
+        } else {
+            int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
+            if(hmIndex > -1){
+
+                var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
+                var2var(tmp, &(valueToAssign->value.value));  
                 return 1;
             }
-
-            
         }
     } else {
-        //FOR ARRAYS 
+        //FOR ARRAYS SUBSCRIPT
         if(nodeToAssign->value.referencedValue != NULL){
             var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value);
         }
@@ -172,13 +211,34 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
  
 }
 
+
+int initializeValueInHM(astNode* node,hmStack* stack){
+    int hmIndex = isInStackDownwards(stack, node->value.variable);
+    if(hmIndex > - 1){
+        //VAR ALREADY EXISTS RAISE ERROR
+        printf("VAR ALREADY EXISTS RAISE ERROR\n");
+        return 0;
+    }
+    if(node->value.initialization.type.type == _array){
+        var* newVar = declareEmptyArray(node);
+        hm_set(stack->stack[stack->length-1],node->value.initialization.name,newVar);
+    } else {
+        var* newVar = declareVar(node);
+        hm_set(stack->stack[stack->length-1],node->value.initialization.name,newVar);
+        return 1;
+    }
+
+}
+
+
 /**
 * Function that compute a node of the AST. 
 * Recursively call on each child of the node.
 * Call a new runInstructionBlock if a block of code is found in the AST.
 */
 astNode* computeNode(astNode* node, hmStack* stack){
-    if(node->childrenCount == 0){
+    
+    if(node->childrenCount == 0 && node->type != INITIALIZATION){
         return node; //Send the whole node back
     }   
 
@@ -209,8 +269,10 @@ astNode* computeNode(astNode* node, hmStack* stack){
             values[i] = computeNode(node->children[i], stack);
         }
     }
-
-    if(node->type == OPERATOR && node->value.operator == ASSIGNMENT){
+    if(node->type == INITIALIZATION){
+        initializeValueInHM(node,stack);
+        return node;
+    } else if((node->type == OPERATOR && node->value.operator == ASSIGNMENT)){
         assignValueToHashmap(values[0],values[1],stack);
     } else if(node->type == OPERATOR && valuesAmount > 0){
         calculateNode(values,node,stack,valuesAmount);
@@ -238,7 +300,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack){
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
     
-    char debugArr[2][255] = {"a", "b"};
+    char debugArr[2][255] = {"a","b"};
     debug(&debugArr,2,stack);
 
 

@@ -34,6 +34,7 @@ hm* hm_create(){
 void hm_free(hm* hashtable){
     for(int i = 0; i < hashtable->capacity; i++){
         if (hashtable->entries[i].value != NULL) {
+
             destroyVar((struct var*)hashtable->entries[i].value);
         }
         free((void*)hashtable->entries[i].key);
