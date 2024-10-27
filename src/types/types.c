@@ -242,10 +242,10 @@ var* newArrayVar(int size, varType type) {
 
 var* getVarPointerFromArray(var* array, int index){
     if(index >= array->value._array->length){
-        //RAISE ERRPR
+        //RAISE ERROR
+        printf("__OUT OF INDEX ERROR__\n");
         return NULL;
     }
-    printf("RETURN TYPE : %d\n",array->value._array->values[index].type);
     return &(array->value._array->values[index]);
 }
 

@@ -102,6 +102,7 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
             break;
         }
         default:{
+            //RAISE ERROR
             printf("UNKNOWN OPERATOR\n");
             break;
         }
@@ -126,6 +127,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
         var* arr = newArrayVar(node->childrenCount, type->elementsType->type);
         for(int i = 0; i < node->childrenCount; i++){
             var* subVar = declareArray(node->children[i],type->elementsType, stack);
+            if(subVar == NULL)return NULL;
 
             if(subVar->type != arr->value._array->type){
                 //RAISE ERROR
@@ -135,9 +137,6 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
             var2var(&arr->value._array->values[i],subVar);
         }
             arr->type = type->type;
-            printf("Declared subarray : L : %d T : %d\n",arr->value._array->length, arr->type);
-            printf("First value type : %d\n",arr->value._array->values[0].type);
-
         return arr;
     }
 }
@@ -201,9 +200,19 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
         if(valueToAssign->type == ARRAY){
             
             var* newArr = declareArray(valueToAssign,&nodeToAssign->value.initialization.type,stack);
+            if(newArr == NULL){
+                //RAISE ERROR MAYBE?
+                return 0;
+            }
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
-            var* oldArr = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.initialization.name);
-            var2var(oldArr,newArr);
+            if(hmIndex > -1){
+                var* oldArr = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.initialization.name);
+                var2var(oldArr,newArr);
+                return 1;
+            }
+            printf("__VALUE NOT FOUDN IN HM__\n");
+            return 0;
+
 
         } else {
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
@@ -213,13 +222,19 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
                 var2var(tmp, &(valueToAssign->value.value));  
                 return 1;
             }
+            printf("__VALUE NOT FOUDN IN HM__\n");
+            return 0;
         }
     } else {
         //FOR ARRAYS SUBSCRIPT
         if(nodeToAssign->value.referencedValue != NULL){
             var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value);
+            return 1;
         }
+        printf("__VALUE NOT FOUDN IN HM__\n");
+        return 0;
     }
+    printf("__ERROR__");
     return 0;
  
 }
@@ -228,7 +243,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 int initializeValueInHM(astNode* node,hmStack* stack){
     int hmIndex = isInStackDownwards(stack, node->value.variable);
     if(hmIndex > - 1){
-        //VAR ALREADY EXISTS RAISE ERROR
+        //RAISE ERROR
         printf("VAR ALREADY EXISTS RAISE ERROR\n");
         return 0;
     }
