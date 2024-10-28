@@ -168,7 +168,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
             }
 
             //Assign the subvar to the array slot  (either NODE so value OR Subarray)
-            var2var(&arr->value._array->values[i],subVar);
+            var2var(&arr->value._array->values[i],subVar, err);
         }
             arr->type = type->type;
         return arr;
@@ -193,7 +193,7 @@ var* declareEmptyArray(astNode* node, error *err){
         for(int i = 0; i < oldCurr.arraySize; i++){
             newArr = newArrayVar(curr->arraySize,curr->elementsType->type);
             newArr->type = curr->elementsType->type;
-            var2var(&currArray->value._array->values[i],newArr);
+            var2var(&currArray->value._array->values[i],newArr, err);
         }
 
         oldCurr = *curr;
@@ -250,7 +250,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
             if(hmIndex > -1){
                 var* oldArr = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.initialization.name);
-                var2var(oldArr,newArr);
+                var2var(oldArr,newArr,err);
                 return 1;
             }
 
@@ -264,7 +264,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
             if(hmIndex > -1){
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
-                var2var(tmp, &(valueToAssign->value.value));  
+                var2var(tmp, &(valueToAssign->value.value), err);
                 return 1;
             }
 
@@ -276,7 +276,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
     } else {
         //FOR ARRAYS SUBSCRIPT
         if(nodeToAssign->value.referencedValue != NULL){
-            var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value);
+            var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value,err);
             return 1;
         }
 

@@ -56,20 +56,20 @@ var add(var *var1, var *var2, error *err){
             if(var2->type == _float) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _string) {
                 sprintf(buffer, "%d", var1->value._int);
                 char *resultValue;
 
                 concat(&result, buffer, var2->value._string, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }
             else if(var2->type == _char || var2->type == _int){
                 result.type = var2->type == _char ? _char : _int;
                 int resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 assignErrorMessage(err, "Variables must be of type int, float, char or string.");
@@ -82,13 +82,13 @@ var add(var *var1, var *var2, error *err){
                 char *resultValue;
 
                 concat(&result, buffer, var2->value._string, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }
             else if(var2->type == _float || var2->type == _int || var2->type == _char){
                 result.type = _float ;
                 float resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 err->value = ERR_TYPE;
@@ -103,7 +103,7 @@ var add(var *var1, var *var2, error *err){
                 char *resultValue;
 
                 concat(&result, buffer, var2->value._string, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }
             else if(var2->type == _char) {
@@ -112,17 +112,17 @@ var add(var *var1, var *var2, error *err){
                 char *resultValue = malloc(3 * sizeof(char));
                 sprintf(resultValue, "%c%c", var1->value._char, var2->value._char);
 
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }else if (var2->type == _float) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _int){
                 result.type = _char;
                 int resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 err->value = ERR_TYPE;
@@ -135,7 +135,7 @@ var add(var *var1, var *var2, error *err){
                 char *resultValue;
 
                 concat(&result, var1->value._string, var2->value._string, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             } else {
                 if (var2->type == _int)
@@ -151,7 +151,7 @@ var add(var *var1, var *var2, error *err){
                 }
                 char *resultValue;
                 concat(&result, var1->value._string, buffer, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }
             break;
@@ -181,17 +181,17 @@ var substract(var *var1, var *var2, error *err){
             if(var2->type == _int){
                 result.type = _int;
                 int resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _float){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _char){
                 result.type = _int;
                 int resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 err->value = ERR_TYPE;
@@ -203,7 +203,7 @@ var substract(var *var1, var *var2, error *err){
             if(var2->type == _float || var2->type == _int || var2->type == _char) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 err->value = ERR_TYPE;
@@ -215,12 +215,12 @@ var substract(var *var1, var *var2, error *err){
             if(var2->type == _float){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _int || var2->type == _char){
                 result.type = _int;
                 int resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 err->value = ERR_TYPE;
@@ -252,12 +252,12 @@ var multiply(var *var1, var *var2, error *err){
             if(var2->type == _float){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) * getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _int) {
                 result.type = _int;
                 int resultValue = getNumericValue(var1) * getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 err->value = ERR_TYPE;
@@ -269,7 +269,7 @@ var multiply(var *var1, var *var2, error *err){
             if(var2->type == _float || var2->type == _int){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) * getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 err->value = ERR_TYPE;
@@ -305,7 +305,7 @@ var divide(var *var1, var *var2, error *err){
             else if(var2->type == _int || var2->type == _float) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) / getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 err->value = ERR_TYPE;
@@ -340,7 +340,7 @@ var modulo(var *var1, var *var2, error *err){
             else if(var2->type == _int) {
                 result.type = _int;
                 int resultValue = var1->value._int % var2->value._int;
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
                 err->value = ERR_TYPE;
@@ -372,10 +372,10 @@ var power(var *var1, var *var2, error *err){
                result.type = (var2->type == _float || var1->type == _float) ? _float : _int;
                if(var2->type == _float || var1->type == _float) {
                    float resultValue = pow(getNumericValue(var1), getNumericValue(var2));
-                   assign(&result, &resultValue);
+                   assign(&result, &resultValue, err);
                } else {
                    int resultValue = pow(getNumericValue(var1), getNumericValue(var2));
-                   assign(&result, &resultValue);
+                   assign(&result, &resultValue, err);
                }
             }
             else {
@@ -403,7 +403,7 @@ var logicalAnd(var *var1, var *var2, error *err){
 
     if(var1->type == _int && var2->type == _int){
         int resultValue = var1->value._int & var2->value._int;
-        assign(&result, &resultValue);
+        assign(&result, &resultValue, err);
     } else {
         err->value = ERR_TYPE;
         assignErrorMessage(err, "Both variables must be of type int");
@@ -423,7 +423,7 @@ var logicalOr(var *var1, var *var2, error *err){
 
     if(var1->type == _int && var2->type == _int){
         int resultValue = var1->value._int | var2->value._int;
-        assign(&result, &resultValue);
+        assign(&result, &resultValue, err);
     } else {
         err->value = ERR_TYPE;
         assignErrorMessage(err, "Both variables must be of type int");
@@ -445,7 +445,7 @@ var squareroot(var *var1, error *err){
 
     if(var1->type == _int || var1->type == _float){
         float resultValue = sqrtf(getNumericValue(var1));
-        assign(&result, &resultValue);
+        assign(&result, &resultValue, err);
     } else {
         err->value = ERR_TYPE;
         assignErrorMessage(err, "Variables must be of type int or float.");

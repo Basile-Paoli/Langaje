@@ -37,10 +37,10 @@ typedef struct var{
 }var;
 
 int assignString(var* v, char* value);
-int assign(var* v, void* value);
+int assign(var* v, void* value, error *err);
 void display(var* v, error *err);
 
-void var2var(var* v, var* v2);
+void var2var(var* v, var* v2, error *err);
 
 var* newArrayVar(int size, varType type);
 void appendToArrayVar(var *tab, var val);

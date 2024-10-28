@@ -39,7 +39,7 @@ int assignString(var *v, char *value) {
  * @param value Value to assign.
  * @return 0 on success, 1 on failure.
  */
-int assign(var *v, void *value) {
+int assign(var *v, void *value, error *err) {
     switch (v->type) {
         case _int:
             v->value._int = *(int *) value;
@@ -54,12 +54,14 @@ int assign(var *v, void *value) {
             assignString(v, (char *) value);
             break;
         default:
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Variable must be of type int, float, char or string.");
             return 1;
     }
     return 0;
 }
 
-void var2var(var* v, var* v2){
+void var2var(var* v, var* v2, error *err){
     switch(v->type){
         case(_int):
             //assign(v,&v2->value._int);
@@ -73,7 +75,8 @@ void var2var(var* v, var* v2){
                     break;
                 }
                 case _string:{
-                    //RAISE ERROR
+                    err->value = ERR_TYPE;
+                    assignErrorMessage(err, "Can't convert string into integer");
                     break;
                 }default:{
                     v->value._int = v2->value._int;
@@ -92,7 +95,8 @@ void var2var(var* v, var* v2){
                     break;
                 }
                 case _string:{
-                    //RAISE ERROR
+                    err->value = ERR_TYPE;
+                    assignErrorMessage(err, "Can't convert string into float");
                     break;
                 }
                 default:{
@@ -113,7 +117,8 @@ void var2var(var* v, var* v2){
                     break; 
                 }
                 case _string:{
-                    // RAISE ERROR
+                    err->value = ERR_TYPE;
+                    assignErrorMessage(err, "Can't convert string into char");
                     break;
                 }
                 default:{
@@ -125,13 +130,21 @@ void var2var(var* v, var* v2){
 
         case(_string):
             switch(v2->type){
+                /*
                 case _float:
                 case _int:
                 case _char:
-                    //RAISE ERROR
+                    err->value = ERR_TYPE;
+                    assignErrorMessage(err, "Expected string, other given");
                     break;
+                    */
                 case _string:{
                     assignString(v,v2->value._string);
+                }
+                default:{
+                    err->value = ERR_TYPE;
+                    assignErrorMessage(err, "Expected string, other given");
+                    break;
                 }
             }
             break;
@@ -141,13 +154,16 @@ void var2var(var* v, var* v2){
                     v->value._array = v2->value._array;
                     break;
                 default:
-                    //RAISE ERROR
+                    err->value = ERR_TYPE;
+                    assignErrorMessage(err, "Expected array, other given");
                     break;
             }
             break;
         }
         
         default:
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Variable must be of type int, float, char, string or array.");
             break;
     }
 }
@@ -176,7 +192,6 @@ void display(var* v, error *err) {
     if (v == NULL) {
         err->value = ERR_NOT_FOUND;
         assignErrorMessage(err, "Null variable error");
-        //printf("Null variable error\n");
         return;
     }
 
@@ -257,7 +272,6 @@ var* getVarPointerFromArray(var* array, int index, error *err){
         assignErrorMessage(err, msg);
         free(msg);
 
-        //printf("__OUT OF INDEX ERROR__\n");
         return NULL;
     }
     return &(array->value._array->values[index]);
