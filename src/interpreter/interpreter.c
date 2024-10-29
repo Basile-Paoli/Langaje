@@ -4,12 +4,19 @@
 * Function that replace the value of the variable in a node by its value in the hashmaps stack.
 * Raise error if the value doesn't exist
 */
-void subsituteValue(astNode* value, hmStack* stack){
+void subsituteValue(astNode* value, hmStack* stack, error *err){
     int hmIndex = isInStackDownwards(stack,value->value.variable);
     
     if(hmIndex == -1){
-        //RAISE ERROR
-        printf("Value not found : %s\n",value->value.variable);
+        err->value = ERR_NOT_FOUND;
+
+        char *msg = malloc(strlen("Value not found : %s") + 1);
+        sprintf(msg, "Value not found : %s", value->value.variable);
+
+        assignErrorMessage(err, msg);
+        free(msg);
+
+        //printf("Value not found : %s\n",value->value.variable);
         return;
     }
 
@@ -22,73 +29,74 @@ void subsituteValue(astNode* value, hmStack* stack){
 * Function that calculate the result of a mathematical operation for two values.
 * Directly replaces the value of the operation node, returns void.
 */
-void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount){
+void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount, error *err){
     operator op = node->value.operator;
-    error err;
+    error err_op;
+    err_op.value = ERR_SUCCESS;
     int hasSubsituted = 0;
     if(values[0]->type == VARIABLE){   
-        subsituteValue(values[0],stack);    
+        subsituteValue(values[0],stack, err);
         hasSubsituted = 1;
     }
     var var1 = values[0]->value.value;
     var var2;
     if(valuesAmount > 1){
-        if(values[1]->type == VARIABLE)subsituteValue(values[1],stack);
+        if(values[1]->type == VARIABLE)subsituteValue(values[1],stack,err);
         var2 = values[1]->value.value;
     }
     
     
     switch(op){
         case ADDITION:{
-            node->value.value =  add(&var1,&var2, &err);
+            node->value.value =  add(&var1,&var2, &err_op);
             break;
         }
         case SUBTRACTION:{
-            node->value.value =  substract(&var1,&var2,&err);
+            node->value.value =  substract(&var1,&var2,&err_op);
             break;
         }
         case MULTIPLICATION:{
-            node->value.value =  multiply(&var1,&var2,&err);
+            node->value.value =  multiply(&var1,&var2,&err_op);
             break;
         }
         case DIVISION:{
-            node->value.value =  divide(&var1,&var2,&err);
+            node->value.value =  divide(&var1,&var2,&err_op);
             break;
         }
         case EQUAL:{
-            node->value.value = isEqual(&var1,&var2,0,&err);
+            node->value.value = isEqual(&var1,&var2,0,&err_op);
             break;
         }
         case NOT_EQUAL:{
-            node->value.value = isEqual(&var1,&var2,1,&err);
+            node->value.value = isEqual(&var1,&var2,1,&err_op);
             break;
         }
         case GREATER:{
-            node->value.value = isGreater(&var1,&var2,1,&err);
+            node->value.value = isGreater(&var1,&var2,1,&err_op);
             break;
         }
         case GREATER_EQUAL:{
-            node->value.value = isGreater(&var1,&var2,0,&err);
+            node->value.value = isGreater(&var1,&var2,0,&err_op);
             break;
         }
         case LESS:{
-            node->value.value = isLesser(&var1,&var2,1,&err);
+            node->value.value = isLesser(&var1,&var2,1,&err_op);
             break;
         }
         case LESS_EQUAL:{
-            node->value.value = isLesser(&var1,&var2,0,&err);
+            node->value.value = isLesser(&var1,&var2,0,&err_op);
             break;
         }
         case OR:{
-            node->value.value = valueOr(&var1,&var2,&err);
+            node->value.value = valueOr(&var1,&var2,&err_op);
             break;
         }
         case AND:{
-            node->value.value = valueAnd(&var1,&var2,&err);
+            node->value.value = valueAnd(&var1,&var2,&err_op);
             break;
         }
         case NOT:{
-            node->value.value = valueReverse(&var1,&err);
+            node->value.value = valueReverse(&var1,&err_op);
             break;
         }
         case SUBSCRIPT:{
@@ -96,19 +104,28 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
             //We work with pointer because we go edit directly the memory of the array.
             
             if(hasSubsituted == 1){
-                node->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int);
+                node->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int,err);
             } else {
-                node->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int);
+                node->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
             }
             
     
             break;
         }
         default:{
-            //RAISE ERROR
-            printf("UNKNOWN OPERATOR\n");
+            err->value = ERR_UNKNOWN_OPERATOR;
+            assignErrorMessage(err, "Unknown operator");
+            //printf("UNKNOWN OPERATOR\n");
             break;
         }
+    }
+
+    if(err_op.value != ERR_SUCCESS){
+        // Get the error message if one of the basic function doesn't work
+        err->value = err_op.value;
+        err->message = malloc(strlen(err_op.message));
+        sprintf(err->message, "%s", err_op.message);
+        return;
     }
 }
 
@@ -117,29 +134,41 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
 * Function that declare an array based on a ARRAY node in the AST.
 * Returns the array
 */
-var* declareArray(astNode* node, initType* type, hmStack* stack){
+var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
     if(type->type !=  _array){
         return &node->value.value;
     } else {
         if(node->childrenCount > type->arraySize){
-            //RAISE ERROR
-            printf("__TOO MUCH ELEMENTS IN ARRAY__\n");
+            err->value = ERR_OUT_OF_BOUNDS;
+
+            char *msg = malloc(strlen("Array size too large. Expected maximum size: %d, but received: %d") + 1);
+            sprintf(msg, "The number of elements in the array exceeds the specified size limit. Expected maximum size: %d, but received: %d", type->arraySize, node->childrenCount);
+
+            assignErrorMessage(err, msg);
+            free(msg);
+
             return NULL;
         }
         //Declare array (types.c)
         var* arr = newArrayVar(node->childrenCount, type->elementsType->type);
         for(int i = 0; i < node->childrenCount; i++){
             //For each children call the function recursively
-            var* subVar = declareArray(node->children[i],type->elementsType, stack);
+            var* subVar = declareArray(node->children[i],type->elementsType, stack, err);
             if(subVar == NULL)return NULL;
 
             if(subVar->type != arr->value._array->type){
-                //RAISE ERROR
-                printf("__WRONG TYPE__ \n");
+                err->value = ERR_TYPE;
+
+                char *msg = malloc(strlen("Wrong type specified in array, expected %d, got %d") + 1);
+                sprintf(msg, "Wrong type specified in array, expected %s, got %s", getVarTypeName(arr->value._array->type), getVarTypeName(subVar->type));
+
+                assignErrorMessage(err, msg);
+                free(msg);
                 return NULL;
             }
+
             //Assign the subvar to the array slot  (either NODE so value OR Subarray)
-            var2var(&arr->value._array->values[i],subVar);
+            var2var(&arr->value._array->values[i],subVar, err);
         }
             arr->type = type->type;
         return arr;
@@ -149,7 +178,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack){
 /*
 * Function that declares an empty array based on initialization node.
 */
-var* declareEmptyArray(astNode* node){
+var* declareEmptyArray(astNode* node, error *err){
     initType* curr = &node->value.initialization.type;
     
     //Declare main array
@@ -164,7 +193,7 @@ var* declareEmptyArray(astNode* node){
         for(int i = 0; i < oldCurr.arraySize; i++){
             newArr = newArrayVar(curr->arraySize,curr->elementsType->type);
             newArr->type = curr->elementsType->type;
-            var2var(&currArray->value._array->values[i],newArr);
+            var2var(&currArray->value._array->values[i],newArr, err);
         }
 
         oldCurr = *curr;
@@ -177,7 +206,7 @@ var* declareEmptyArray(astNode* node){
 /*
 * Function that declares an empty var based on initialization node.
 */
-var* declareVar(astNode* node){
+var* declareVar(astNode* node, error *err){
     var* newVar = malloc(sizeof(var));
     newVar->type = node->value.initialization.type.type;
     switch(newVar->type){
@@ -193,6 +222,9 @@ var* declareVar(astNode* node){
             assignString(newVar,"");
             break;
         }
+        default:
+            err->value = ERR_TYPE;
+            break;
     }
 
     return newVar;
@@ -204,13 +236,13 @@ var* declareVar(astNode* node){
 *   Change the value of a variable if it's found in the stack 
 * Return 1 on success, 0 on failure.
 */
-int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack){
+int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, error *err){
 
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
 
         if(valueToAssign->type == ARRAY){
             
-            var* newArr = declareArray(valueToAssign,&nodeToAssign->value.initialization.type,stack);
+            var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack, err);
             if(newArr == NULL){
                 //RAISE ERROR MAYBE?
                 return 0;
@@ -218,51 +250,59 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
             if(hmIndex > -1){
                 var* oldArr = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.initialization.name);
-                var2var(oldArr,newArr);
+                var2var(oldArr,newArr,err);
                 return 1;
             }
-            printf("__VALUE NOT FOUDN IN HM__\n");
+
+            err->value = ERR_NOT_FOUND;
+            assignErrorMessage(err, "Value not found in HM");
+
             return 0;
 
 
         } else {
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
             if(hmIndex > -1){
-
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
-                var2var(tmp, &(valueToAssign->value.value));  
+                var2var(tmp, &(valueToAssign->value.value), err);
                 return 1;
             }
-            printf("__VALUE NOT FOUDN IN HM__\n");
+
+            err->value = ERR_NOT_FOUND;
+            assignErrorMessage(err, "Value not found in HM");
+
             return 0;
         }
     } else {
         //FOR ARRAYS SUBSCRIPT
         if(nodeToAssign->value.referencedValue != NULL){
-            var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value);
+            var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value,err);
             return 1;
         }
-        printf("__VALUE NOT FOUDN IN HM__\n");
+
+        err->value = ERR_NOT_FOUND;
+        assignErrorMessage(err, "Value not found in HM");
+
         return 0;
     }
     printf("__ERROR__");
     return 0;
- 
 }
 
 
-int initializeValueInHM(astNode* node,hmStack* stack){
+int initializeValueInHM(astNode* node,hmStack* stack, error *err){
     int hmIndex = isInStackDownwards(stack, node->value.variable);
     if(hmIndex > - 1){
-        //RAISE ERROR
-        printf("VAR ALREADY EXISTS RAISE ERROR\n");
+        err->value = ERR_ALREADY_EXISTS;
+        assignErrorMessage(err, "Can't define a variable that already exists");
+
         return 0;
     }
     if(node->value.initialization.type.type == _array){
-        var* newVar = declareEmptyArray(node);
+        var* newVar = declareEmptyArray(node, err);
         hm_set(stack->stack[stack->length-1],node->value.initialization.name,newVar);
     } else {
-        var* newVar = declareVar(node);
+        var* newVar = declareVar(node, err);
         hm_set(stack->stack[stack->length-1],node->value.initialization.name,newVar);
         return 1;
     }
@@ -275,8 +315,7 @@ int initializeValueInHM(astNode* node,hmStack* stack){
 * Recursively call on each child of the node.
 * Call a new runInstructionBlock if a block of code is found in the AST.
 */
-astNode* computeNode(astNode* node, hmStack* stack){
-    
+astNode* computeNode(astNode* node, hmStack* stack, error *err){
     if(node->childrenCount == 0 && node->type != INITIALIZATION){
         return node; //Send the whole node back
     }   
@@ -291,7 +330,7 @@ astNode* computeNode(astNode* node, hmStack* stack){
         //IF WE ARE ON THEN
         if(i == 1 && node->type == CONDITION && values[0]->value.value.value._int == 1 && node->children[i]->type != CONDITION){
             if(node->children[i]->type == BLOCK){
-                printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block,stack));
+                printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block, stack, err));
             }
             i+=1;
             
@@ -299,22 +338,22 @@ astNode* computeNode(astNode* node, hmStack* stack){
             
             if(node->children[i]->type == BLOCK){
                 
-                printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block,stack));
+                printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block, stack, err));
             }
 
             i+=1;
             
         } else{
-            values[i] = computeNode(node->children[i], stack);
+            values[i] = computeNode(node->children[i], stack, err);
         }
     }
     if(node->type == INITIALIZATION){
-        initializeValueInHM(node,stack);
+        initializeValueInHM(node, stack, err);
         return node;
     } else if((node->type == OPERATOR && node->value.operator == ASSIGNMENT)){
-        assignValueToHashmap(values[0],values[1],stack);
+        assignValueToHashmap(values[0], values[1], stack, err);
     } else if(node->type == OPERATOR && valuesAmount > 0){
-        calculateNode(values,node,stack,valuesAmount);
+        calculateNode(values, node, stack, valuesAmount, err);
         free(values);
        return node;
     } else {
@@ -328,20 +367,22 @@ astNode* computeNode(astNode* node, hmStack* stack){
 * Runs the instruction block sent in parameters.
 * After the run, pop the hashmap on top of the stack.
 */
-int runInstructionBlock(InstructionBlock* program, hmStack* stack){
+int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     //Withotu stack memory management
     hm* hashmap = hm_create();
     hmStackPush(stack,hashmap);
     printf("\nRunning block\n");
     for(int i = 0; i < program->instructionsCount; i++){
-        computeNode(program->instructions[i], stack);
+        computeNode(program->instructions[i], stack, err);
+        // Stop computing if there's an error
+        if(err->value != ERR_SUCCESS)
+            return 1;
     }
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
     
     char debugArr[2][255] = {"a","b"};
-    debug(&debugArr,2,stack);
-
+    debug(&debugArr,2,stack,err);
 
     printf("Stopping block\n");
     hmStackPop(stack);
@@ -350,11 +391,11 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack){
 }
 
 
-void debug(char key[][255], int arrSize, hmStack* stack){
+void debug(char key[][255], int arrSize, hmStack* stack, error *err){
     for(int i = 0; i < arrSize; i++){
         if(isInStackDownwards(stack,key[i]) > -1){
             printf("VALUE OF %s : ",key[i]);
-            display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]));
+            display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]), err);
             printf("\n");
         }   
     }
