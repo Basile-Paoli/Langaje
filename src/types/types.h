@@ -46,6 +46,6 @@ var* newArrayVar(int size, varType type);
 void appendToArrayVar(var *tab, var val);
 var* getVarPointerFromArray(var* array, int index, error *err);
 void destroyVar(var* v);
-char* getVarTypeName(int typeIdx);
+char* getVarTypeName(varType type);
 
 #endif //LANGAJE_TYPES_H

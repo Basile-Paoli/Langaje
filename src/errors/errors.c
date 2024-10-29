@@ -30,24 +30,26 @@ int assignErrorMessage(error *err, char *msg){
 /*
  * Get the name of the error with the index of enum
  */
-char* getNameTypeError(int errorNum){
-    switch (errorNum) {
-        case 1:
+char* getNameTypeError(errorValue error){
+    switch (error) {
+        case ERR_SUCCESS:
             return "Syntax error: ";
-        case 2:
+        case ERR_SYNTAX:
             return "Unexpected end of input: ";
-        case 3:
+        case ERR_END_OF_INPUT:
             return "Type mismatch: ";
-        case 4:
+        case ERR_TYPE:
             return "Index out of bounds: ";
-        case 5:
+        case ERR_OUT_OF_BOUNDS:
             return "Item not found: ";
-        case 6:
+        case ERR_NOT_FOUND:
             return "Unknown operator: ";
-        case 7:
+        case ERR_UNKNOWN_OPERATOR:
             return "Already exists: ";
-        case 8:
+        case ERR_ALREADY_EXISTS:
             return "Pointer error: ";
+        case ERR_NULL_POINTER:
+            return "Null pointer: ";
         default:
             return "Unknown error: ";
     }

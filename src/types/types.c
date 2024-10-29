@@ -294,17 +294,17 @@ void appendToArrayVar(var *tab, var val) {
  * Return the name of the varType
  * Used for error msg
  */
-char* getVarTypeName(int typeIdx){
-    switch (typeIdx) {
-        case 0:
+char* getVarTypeName(varType type){
+    switch (type) {
+        case _int:
             return "integer";
-        case 1:
+        case _float:
             return "float";
-        case 2:
+        case _char:
             return "char";
-        case 3:
+        case _string:
             return "string";
-        case 4:
+        case _array:
             return "array";
         default:
             return "error";
