@@ -14,7 +14,7 @@ typedef enum {
     INITIALIZATION,
     BLOCK,
     CONDITION,
-    LOOP,
+    WHILE_LOOP,
     ARRAY,
 } astNodeType;
 typedef enum operator {
@@ -96,6 +96,8 @@ astNode *newValueNode(var value);
 astNode *newInstructionBlockNode(InstructionBlock *block);
 
 astNode *newConditionNode(astNode *condition, astNode *ifBlock, astNode *elseBlock);
+
+astNode *newWhileNode(astNode *condition, astNode *block);
 
 astNode *newArrayNode(int size, astNode **values);
 
