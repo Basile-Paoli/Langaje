@@ -75,6 +75,17 @@ astNode *newConditionNode(astNode *condition, astNode *ifBlock, astNode *elseBlo
     return node;
 }
 
+
+astNode *newWhileNode(astNode *condition, astNode *block) {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = WHILE_LOOP;
+    node->children = malloc(sizeof(astNode *) * 2);
+    node->children[0] = condition;
+    node->children[1] = block;
+    node->childrenCount = 2;
+    return node;
+}
+
 astNode *newArrayNode(int size, astNode **values) {
     astNode *node = malloc(sizeof(astNode));
     node->type = ARRAY;
@@ -189,8 +200,8 @@ void printAstNode(astNode *node, int depth) {
         case CONDITION:
             printf("Condition\n");
             break;
-        case LOOP:
-            printf("Loop\n");
+        case WHILE_LOOP:
+            printf("While\n");
             break;
         case ARRAY:
             printf("Array\n");
