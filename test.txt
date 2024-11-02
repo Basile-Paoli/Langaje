@@ -1,4 +1,4 @@
-def int[2] b = [1.0,2];
-def int[2] a = [1,2,3];
-a[5] = 1;
-c = 3;
+def int a = 0;
+while(a  < 3){
+    a = a + 1;
+}

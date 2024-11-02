@@ -8,6 +8,10 @@
 
 #include "interpreter/interpreter.h"
 
+
+#include <time.h>
+
+
 #define BASE_MEMORY_STACK_SIZE 16
 
 int main() {
@@ -55,7 +59,15 @@ int main() {
 
     error err_run;
     err_run.value = ERR_SUCCESS;
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
     int runInstructionResult = runInstructionBlock(pr, stack, &err_run);
+    end = clock();
+
+    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+    printf("Time taken to execute : %f seconds\n", cpu_time_used);
     if(runInstructionResult == 1){
         // Print the error msg
         printf("%s\n", err_run.message);

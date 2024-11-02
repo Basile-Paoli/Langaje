@@ -4,7 +4,7 @@
 * Function that replace the value of the variable in a node by its value in the hashmaps stack.
 * Raise error if the value doesn't exist
 */
-void subsituteValue(astNode* value, hmStack* stack, error *err){
+var subsituteValue(astNode* value, hmStack* stack, error *err){
     int hmIndex = isInStackDownwards(stack,value->value.variable);
     
     if(hmIndex == -1){
@@ -21,8 +21,8 @@ void subsituteValue(astNode* value, hmStack* stack, error *err){
     }
 
     var tmp = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
-    value->type = VALUE;
-    value->value.value = tmp;    
+    
+    return tmp;
 }
 
 /**
@@ -34,18 +34,21 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
     error err_op;
     err_op.value = ERR_SUCCESS;
     int hasSubsituted = 0;
+    var var1;
     if(values[0]->type == VARIABLE){   
-        subsituteValue(values[0],stack, err);
+        var1 = subsituteValue(values[0],stack, err);
         hasSubsituted = 1;
+    } else {
+        var1 = values[0]->value.value;
     }
-    var var1 = values[0]->value.value;
     var var2;
     if(valuesAmount > 1){
-        if(values[1]->type == VARIABLE)subsituteValue(values[1],stack,err);
-        var2 = values[1]->value.value;
+        if(values[1]->type == VARIABLE){
+            var2 = subsituteValue(values[1],stack,err);
+        } else {
+            var2 = values[1]->value.value;
+        }
     }
-    
-    
     switch(op){
         case ADDITION:{
             node->value.value =  add(&var1,&var2, &err_op);
@@ -124,6 +127,7 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
         // Get the error message if one of the basic function doesn't work
         err->value = err_op.value;
         err->message = malloc(strlen(err_op.message));
+        printf("__DEBUG__ TYPE : %d %d\n",var1.type, var2.type);
         sprintf(err->message, "%s", err_op.message);
         return;
     }
@@ -309,6 +313,23 @@ int initializeValueInHM(astNode* node,hmStack* stack, error *err){
 
 }
 
+int runWhileLoop(astNode* node,hmStack* stack,error* err){
+    astNode condition = *node->children[0];
+
+    InstructionBlock instructions = *(node->children[1]->value.block);
+    computeNode(&condition,stack,err);
+    while(condition.value.value.value._int == 1){
+        
+        if(runInstructionBlock(&instructions,stack,err) == 1){
+            printf("%s\n", err->message);
+            return 1;
+        }
+        
+        condition = *(node->children[0]);
+        computeNode(&condition,stack,err);
+    }
+}
+
 
 /**
 * Function that compute a node of the AST. 
@@ -342,7 +363,9 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
             }
 
             i+=1;
-            
+        } else if(node->type == WHILE_LOOP){
+            runWhileLoop(node,stack,err);
+            break;
         } else{
             values[i] = computeNode(node->children[i], stack, err);
         }
@@ -384,9 +407,9 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     char debugArr[2][255] = {"a","b"};
     debug(&debugArr,2,stack,err);
 
-    printf("Stopping block\n");
+    printf("Stopping block\n\n");
     hmStackPop(stack);
-    printf("Popped hm \n");
+    // printf("Popped hm \n");
     return 0;
 }
 
@@ -396,7 +419,7 @@ void debug(char key[][255], int arrSize, hmStack* stack, error *err){
         if(isInStackDownwards(stack,key[i]) > -1){
             printf("VALUE OF %s : ",key[i]);
             display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]), err);
-            printf("\n");
+            
         }   
     }
 }
