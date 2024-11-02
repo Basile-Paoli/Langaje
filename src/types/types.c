@@ -168,15 +168,15 @@ void var2var(var* v, var* v2, error *err){
     }
 }
 
-//THIS FUNCTION DOES NOT WORK ACTUALLY. NEED TO BE FIXED!!!
+/* 
+* Function that destroy variables 
+*/
 void destroyVar(var* v){
     if(v->type == _array){
-        for(int i = 0; i < v->value._array->length; i++){
-            destroyVar(&(v->value._array->values[i].value));
-        }
+        destroyVar(v->value._array->values);
     } else {
         if(v != NULL){
-            //free(v);
+            free(v);
         }
             
     }
