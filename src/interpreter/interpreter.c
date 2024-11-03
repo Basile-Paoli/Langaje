@@ -134,7 +134,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         sprintf(err->message, "%s", err_op.message);
         return NULL;
     }
-    
+    tmpNode->type = VALUE;
     return tmpNode;
 }
 
@@ -273,7 +273,13 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
             if(hmIndex > -1){
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
-                var2var(tmp, &(valueToAssign->value.value), err);
+                if(valueToAssign->type == VALUE){
+                    var2var(tmp, &(valueToAssign->value.value), err);
+                } else {
+                    var tmpVar = subsituteValue(valueToAssign, stack, err);
+                    var2var(tmp, &(tmpVar), err);
+                }
+                
                 return 1;
             }
 
