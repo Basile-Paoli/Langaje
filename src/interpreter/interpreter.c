@@ -29,7 +29,7 @@ var subsituteValue(astNode* value, hmStack* stack, error *err){
 * Function that calculate the result of a mathematical operation for two values.
 * Directly replaces the value of the operation node, returns void.
 */
-void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount, error *err){
+astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount, error *err){
     operator op = node->value.operator;
     error err_op;
     err_op.value = ERR_SUCCESS;
@@ -49,57 +49,61 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
             var2 = values[1]->value.value;
         }
     }
+
+    astNode* tmpNode = malloc(sizeof(astNode));
+    
+
     switch(op){
         case ADDITION:{
-            node->value.value =  add(&var1,&var2, &err_op);
+            tmpNode->value.value =  add(&var1,&var2, &err_op);
             break;
         }
         case SUBTRACTION:{
-            node->value.value =  substract(&var1,&var2,&err_op);
+            tmpNode->value.value =  substract(&var1,&var2,&err_op);
             break;
         }
         case MULTIPLICATION:{
-            node->value.value =  multiply(&var1,&var2,&err_op);
+            tmpNode->value.value =  multiply(&var1,&var2,&err_op);
             break;
         }
         case DIVISION:{
-            node->value.value =  divide(&var1,&var2,&err_op);
+            tmpNode->value.value =  divide(&var1,&var2,&err_op);
             break;
         }
         case EQUAL:{
-            node->value.value = isEqual(&var1,&var2,0,&err_op);
+            tmpNode->value.value = isEqual(&var1,&var2,0,&err_op);
             break;
         }
         case NOT_EQUAL:{
-            node->value.value = isEqual(&var1,&var2,1,&err_op);
+            tmpNode->value.value = isEqual(&var1,&var2,1,&err_op);
             break;
         }
         case GREATER:{
-            node->value.value = isGreater(&var1,&var2,1,&err_op);
+            tmpNode->value.value = isGreater(&var1,&var2,1,&err_op);
             break;
         }
         case GREATER_EQUAL:{
-            node->value.value = isGreater(&var1,&var2,0,&err_op);
+            tmpNode->value.value = isGreater(&var1,&var2,0,&err_op);
             break;
         }
         case LESS:{
-            node->value.value = isLesser(&var1,&var2,1,&err_op);
+            tmpNode->value.value = isLesser(&var1,&var2,1,&err_op);
             break;
         }
         case LESS_EQUAL:{
-            node->value.value = isLesser(&var1,&var2,0,&err_op);
+            tmpNode->value.value = isLesser(&var1,&var2,0,&err_op);
             break;
         }
         case OR:{
-            node->value.value = valueOr(&var1,&var2,&err_op);
+            tmpNode->value.value = valueOr(&var1,&var2,&err_op);
             break;
         }
         case AND:{
-            node->value.value = valueAnd(&var1,&var2,&err_op);
+            tmpNode->value.value = valueAnd(&var1,&var2,&err_op);
             break;
         }
         case NOT:{
-            node->value.value = valueReverse(&var1,&err_op);
+            tmpNode->value.value = valueReverse(&var1,&err_op);
             break;
         }
         case SUBSCRIPT:{
@@ -127,10 +131,11 @@ void calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmo
         // Get the error message if one of the basic function doesn't work
         err->value = err_op.value;
         err->message = malloc(strlen(err_op.message));
-        printf("__DEBUG__ TYPE : %d %d\n",var1.type, var2.type);
         sprintf(err->message, "%s", err_op.message);
-        return;
+        return NULL;
     }
+    
+    return tmpNode;
 }
 
 
@@ -317,8 +322,10 @@ int runWhileLoop(astNode* node,hmStack* stack,error* err){
     astNode condition = *node->children[0];
 
     InstructionBlock instructions = *(node->children[1]->value.block);
-    computeNode(&condition,stack,err);
-    while(condition.value.value.value._int == 1){
+    astNode* result;
+    result = computeNode(&condition,stack,err);
+    int shouldContinue = result->value.value.value._int;
+    while(shouldContinue == 1){
         
         if(runInstructionBlock(&instructions,stack,err) == 1){
             printf("%s\n", err->message);
@@ -326,7 +333,8 @@ int runWhileLoop(astNode* node,hmStack* stack,error* err){
         }
         
         condition = *(node->children[0]);
-        computeNode(&condition,stack,err);
+        result = computeNode(&condition,stack,err);
+        shouldContinue = result->value.value.value._int;
     }
 }
 
@@ -364,6 +372,7 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
 
             i+=1;
         } else if(node->type == WHILE_LOOP){
+            printf("__RUN WHILE LOOP__\n");
             runWhileLoop(node,stack,err);
             break;
         } else{
@@ -376,7 +385,7 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
     } else if((node->type == OPERATOR && node->value.operator == ASSIGNMENT)){
         assignValueToHashmap(values[0], values[1], stack, err);
     } else if(node->type == OPERATOR && valuesAmount > 0){
-        calculateNode(values, node, stack, valuesAmount, err);
+        return calculateNode(values, node, stack, valuesAmount, err);
         free(values);
        return node;
     } else {
@@ -404,8 +413,8 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
     
-    char debugArr[2][255] = {"a","b"};
-    debug(&debugArr,2,stack,err);
+    char debugArr[3][255] = {"a","b","c"};
+    debug(&debugArr,3,stack,err);
 
     printf("Stopping block\n\n");
     hmStackPop(stack);
