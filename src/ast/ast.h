@@ -60,6 +60,7 @@ typedef union {
     char *variable;
     initializationNode initialization;
     struct InstructionBlock *block;
+    var* referencedValue;
 } astNodeValue;
 
 typedef struct astNode {

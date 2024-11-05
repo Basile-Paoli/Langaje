@@ -1,4 +1,4 @@
-def int a = 3;
-if(a == 3){
-  def int b =2;
+def int a = 0;
+while(a  < 3){
+    a = a + 1;
 }

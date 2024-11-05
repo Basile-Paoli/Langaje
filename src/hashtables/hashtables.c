@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include "../types/types.h"
 
 /**
 * Function that allocate an empty hashmap, with the size of #BASE_CAPACITY 
@@ -33,7 +34,10 @@ hm* hm_create(){
 
 void hm_free(hm* hashtable){
     for(int i = 0; i < hashtable->capacity; i++){
-        free((void*)hashtable->entries[i].value);
+        if (hashtable->entries[i].value != NULL) {
+
+            destroyVar((struct var*)hashtable->entries[i].value);
+        }
         free((void*)hashtable->entries[i].key);
     }
 
@@ -85,7 +89,7 @@ void* hm_get(hm* hashtable, const char* key){
 */
 const char* hm_set(hm* hashtable, const char* key, void* value){
     if(value == NULL) return NULL;
-
+    
     if(hashtable->length >= hashtable->capacity / 2) {
         if(hm_expand(hashtable) == 0){
             return NULL;
