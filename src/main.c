@@ -57,6 +57,7 @@ int main() {
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
+
     error err_run;
     err_run.value = ERR_SUCCESS;
     clock_t start, end;

@@ -4,6 +4,7 @@
 * Function that replace the value of the variable in a node by its value in the hashmaps stack.
 * Raise error if the value doesn't exist
 */
+
 var subsituteValue(astNode* value, hmStack* stack, error *err){
     int hmIndex = isInStackDownwards(stack,value->value.variable);
     
@@ -29,6 +30,7 @@ var subsituteValue(astNode* value, hmStack* stack, error *err){
 * Function that calculate the result of a mathematical operation for two values.
 * Directly replaces the value of the operation node, returns void.
 */
+
 astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount, error *err){
     operator op = node->value.operator;
     error err_op;
@@ -245,6 +247,7 @@ var* declareVar(astNode* node, error *err){
 *   Change the value of a variable if it's found in the stack 
 * Return 1 on success, 0 on failure.
 */
+
 int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, error *err){
 
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
@@ -345,11 +348,13 @@ int runWhileLoop(astNode* node,hmStack* stack,error* err){
 }
 
 
+
 /**
 * Function that compute a node of the AST. 
 * Recursively call on each child of the node.
 * Call a new runInstructionBlock if a block of code is found in the AST.
 */
+
 astNode* computeNode(astNode* node, hmStack* stack, error *err){
     if(node->childrenCount == 0 && node->type != INITIALIZATION){
         return node; //Send the whole node back
@@ -362,6 +367,7 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
         if(node->children[i] == NULL)continue;
         valuesAmount++;
 
+
         //IF WE ARE ON THEN
         if(i == 1 && node->type == CONDITION && values[0]->value.value.value._int == 1 && node->children[i]->type != CONDITION){
             if(node->children[i]->type == BLOCK){
@@ -373,6 +379,7 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
             
             if(node->children[i]->type == BLOCK){
                 
+
                 printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block, stack, err));
             }
 
@@ -405,6 +412,7 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
 * Runs the instruction block sent in parameters.
 * After the run, pop the hashmap on top of the stack.
 */
+
 int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     //Withotu stack memory management
     hm* hashmap = hm_create();
@@ -419,6 +427,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
     
+
     char debugArr[3][255] = {"a","b","c"};
     debug(&debugArr,3,stack,err);
 
@@ -427,6 +436,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     // printf("Popped hm \n");
     return 0;
 }
+
 
 
 void debug(char key[][255], int arrSize, hmStack* stack, error *err){
