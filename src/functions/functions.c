@@ -623,3 +623,55 @@ var valueReverse(var* v, error* err){
     result.value._int = 1;
     return result;
 }
+/*
+
+    BUFFER MAX LEN IS ONLY FOR STRINGS, IF SET TO 1 OR UNDER, USES THE MAX BUFFER SIZE
+*/
+var* userInput(varType inputType, char* inputMessage, int bufferMaxLen, error* err){
+    var* inputVar = malloc(sizeof(var));
+    switch(inputType){
+        case _int:{
+            if(inputMessage != NULL) printf("%s",inputMessage);
+            if(!scanf("%d",&(inputVar->value._int))){
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Wrong type entered.");
+                return NULL;
+            }
+            break;
+        }
+        case _float:{
+            if(inputMessage != NULL) printf("%s",inputMessage);
+            if(!scanf("%f",&(inputVar->value._float))){
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Wrong type entered.");
+                return NULL;
+            }
+            break;
+        }
+        case _string:{
+            
+            if(inputMessage != NULL) printf("%s",inputMessage);
+            int bufferLen = bufferMaxLen <= 1 ? MAX_BUFFER_SIZE : bufferMaxLen;
+            
+            char buffer[bufferLen];
+            if (fgets(buffer, bufferLen, stdin) == NULL) {
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Wrong type entered.");
+                return NULL;
+            }
+            assignString(inputVar,&buffer);
+            break;
+        }
+        default:{
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Unknown type configured.");
+            free(inputVar);
+            return NULL;
+            break;
+        }
+        
+    }
+    inputVar->type = inputType;
+    fflush(stdin);
+    return inputVar;
+}
