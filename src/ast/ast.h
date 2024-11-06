@@ -15,6 +15,8 @@ typedef enum {
     BLOCK,
     CONDITION,
     WHILE_LOOP,
+    FOR_LOOP,
+    FOREACH_LOOP,
     ARRAY,
 } astNodeType;
 typedef enum operator {
@@ -60,7 +62,7 @@ typedef union {
     char *variable;
     initializationNode initialization;
     struct InstructionBlock *block;
-    var* referencedValue;
+    var *referencedValue;
 } astNodeValue;
 
 typedef struct astNode {
@@ -98,6 +100,8 @@ astNode *newInstructionBlockNode(InstructionBlock *block);
 astNode *newConditionNode(astNode *condition, astNode *ifBlock, astNode *elseBlock);
 
 astNode *newWhileNode(astNode *condition, astNode *block);
+
+astNode *newForNode(char *variable, astNode **children, int childrenCount);
 
 astNode *newArrayNode(int size, astNode **values);
 

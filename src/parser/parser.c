@@ -77,6 +77,9 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
     if (first.type == TOKEN_WHILE) {
         return parseWhileInstruction(tokenList, currentToken, err);
     }
+    if (first.type == TOKEN_FOR) {
+        return parseForInstruction(tokenList, currentToken, err);
+    }
 
     return parseExpressionInstruction(tokenList, currentToken, err);
 }
