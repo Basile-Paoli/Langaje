@@ -119,7 +119,7 @@ astNode **newChildren(astNode *firstChild) {
 
 
 astNode **appendChild(astNode **children, int childrenCount, astNode *child) {
-    children = realloc(children, childrenCount + 1);
+    children = realloc(children, (childrenCount + 1) * sizeof(astNode *));
     children[childrenCount] = child;
     return children;
 }

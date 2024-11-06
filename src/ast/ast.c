@@ -86,6 +86,15 @@ astNode *newWhileNode(astNode *condition, astNode *block) {
     return node;
 }
 
+astNode *newForNode(char *variable, astNode **children, int childrenCount) {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = FOR_LOOP;
+    node->value.variable = variable;
+    node->children = children;
+    node->childrenCount = childrenCount;
+    return node;
+}
+
 astNode *newArrayNode(int size, astNode **values) {
     astNode *node = malloc(sizeof(astNode));
     node->type = ARRAY;
@@ -114,6 +123,7 @@ void freeAstNode(astNode *node) {
     for (int i = 0; i < node->childrenCount; i++) {
         freeAstNode(node->children[i]);
     }
+    printAST(node, 0);
     free(node->children);
     free(node);
 }
@@ -202,6 +212,12 @@ void printAstNode(astNode *node, int depth) {
             break;
         case WHILE_LOOP:
             printf("While\n");
+            break;
+        case FOR_LOOP:
+            printf("For %s\n", node->value.variable);
+            break;
+        case FOREACH_LOOP:
+            printf("Foreach %s\n", node->value.variable);
             break;
         case ARRAY:
             printf("Array\n");
