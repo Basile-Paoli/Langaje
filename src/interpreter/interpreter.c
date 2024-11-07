@@ -18,7 +18,6 @@ var subsituteValue(astNode* value, hmStack* stack, error *err){
         free(msg);
 
         //printf("Value not found : %s\n",value->value.variable);
-        return;
     }
 
     var tmp = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
@@ -429,7 +428,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     
 
     char debugArr[3][255] = {"a","b","c"};
-    debug(&debugArr,3,stack,err);
+    //debug(&debugArr,3,stack,err);
 
     printf("Stopping block\n\n");
     hmStackPop(stack);

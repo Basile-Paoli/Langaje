@@ -248,7 +248,7 @@ var* newArrayVar(int size, varType type) {
                 break;
             }
             case _string:{
-                assignString(&res->value._array->values[i].value, "");
+                assignString(&res->value._array->values[i], "");
                 break;
             }
             

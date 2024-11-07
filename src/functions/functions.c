@@ -653,13 +653,15 @@ var* userInput(varType inputType, char* inputMessage, int bufferMaxLen, error* e
             if(inputMessage != NULL) printf("%s",inputMessage);
             int bufferLen = bufferMaxLen <= 1 ? MAX_BUFFER_SIZE : bufferMaxLen;
             
-            char buffer[bufferLen];
+            //char buffer[bufferLen];
+            char *buffer = (char *)malloc(bufferLen * sizeof(char));
             if (fgets(buffer, bufferLen, stdin) == NULL) {
                 err->value = ERR_TYPE;
                 assignErrorMessage(err, "Wrong type entered.");
                 return NULL;
             }
-            assignString(inputVar,&buffer);
+            assignString(inputVar,buffer);
+            free(buffer);
             break;
         }
         default:{
