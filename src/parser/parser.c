@@ -9,6 +9,7 @@
 #include "var_declaration.h"
 #include "expression.h"
 #include "condition.h"
+#include "loop.h"
 
 
 InstructionBlock *parse(TokenList *tokenList, error *err) {
@@ -72,6 +73,12 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
     }
     if (first.type == TOKEN_IF) {
         return parseIfInstruction(tokenList, currentToken, err);
+    }
+    if (first.type == TOKEN_WHILE) {
+        return parseWhileInstruction(tokenList, currentToken, err);
+    }
+    if (first.type == TOKEN_FOR) {
+        return parseForInstruction(tokenList, currentToken, err);
     }
 
     return parseExpressionInstruction(tokenList, currentToken, err);

@@ -8,6 +8,10 @@
 
 #include "interpreter/interpreter.h"
 
+
+#include <time.h>
+
+
 #define BASE_MEMORY_STACK_SIZE 16
 
 int main(int argc, char **argv) {
@@ -54,12 +58,28 @@ int main(int argc, char **argv) {
     }
     printInstructionBlock(pr, 0);
 
-
-    hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
-
-    runInstructionBlock(pr,stack);
-
-    hmStackDestroy(stack);
+//    hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
+//
+//
+//    error err_run;
+//    err_run.value = ERR_SUCCESS;
+//    clock_t start, end;
+//    double cpu_time_used;
+//    start = clock();
+//    int runInstructionResult = runInstructionBlock(pr, stack, &err_run);
+//    end = clock();
+//
+//    cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+//
+//    printf("Time taken to execute : %f seconds\n", cpu_time_used);
+//    if(runInstructionResult == 1){
+//        // Print the error msg
+//        printf("%s\n", err_run.message);
+//        return 1;
+//    }
+//    printf("RESULT INSRCUTION BLOCK : %d", runInstructionResult);
+//
+//    hmStackDestroy(stack);
     free_tokenList(tl);
     free_lexer(l);
     free(input);

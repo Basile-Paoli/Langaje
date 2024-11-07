@@ -7,6 +7,7 @@
 /*
  *
  * GET NUMERIC VALUE
+ * Returns a float value
  *
  */
 float getNumericValue(var* v) {
@@ -37,19 +38,6 @@ int concat(var *result, char *var1, char *var2, char** resultValue){
 
 /*
  *
- * ASSIGN MESSAGE TO ERROR
- *
- * */
-int assignErrorMessage(error *err, char *msg){
-    err->value = ERR_SYNTAX;
-    err->message = malloc(strlen(msg) + 1);
-    strcpy(err->message, msg);
-
-    return 0;
-}
-
-/*
- *
  * ADD FUNCTION
  * int + int = int / int + float = float / int + char = char / int + str = str
  * float = int = float / float + float = float / float + char = float / float + str = str
@@ -60,7 +48,6 @@ int assignErrorMessage(error *err, char *msg){
 var add(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
     char buffer[20];
 
     // Define the type of var to return
@@ -69,23 +56,23 @@ var add(var *var1, var *var2, error *err){
             if(var2->type == _float) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _string) {
                 sprintf(buffer, "%d", var1->value._int);
                 char *resultValue;
 
                 concat(&result, buffer, var2->value._string, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }
             else if(var2->type == _char || var2->type == _int){
                 result.type = var2->type == _char ? _char : _int;
                 int resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (int, float, string, char)");
+                assignErrorMessage(err, "Variables must be of type int, float, char or string.");
             }
             break;
 
@@ -95,16 +82,17 @@ var add(var *var1, var *var2, error *err){
                 char *resultValue;
 
                 concat(&result, buffer, var2->value._string, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }
             else if(var2->type == _float || var2->type == _int || var2->type == _char){
                 result.type = _float ;
                 float resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (int, float, string, char)");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variables must be of type int, float, char or string.");
             }
             break;
 
@@ -115,7 +103,7 @@ var add(var *var1, var *var2, error *err){
                 char *resultValue;
 
                 concat(&result, buffer, var2->value._string, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }
             else if(var2->type == _char) {
@@ -124,20 +112,21 @@ var add(var *var1, var *var2, error *err){
                 char *resultValue = malloc(3 * sizeof(char));
                 sprintf(resultValue, "%c%c", var1->value._char, var2->value._char);
 
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }else if (var2->type == _float) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _int){
                 result.type = _char;
                 int resultValue = getNumericValue(var1) + getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (int, float, string, char)");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variables must be of type int, float, char or string.");
             }
             break;
 
@@ -146,7 +135,7 @@ var add(var *var1, var *var2, error *err){
                 char *resultValue;
 
                 concat(&result, var1->value._string, var2->value._string, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             } else {
                 if (var2->type == _int)
@@ -156,17 +145,19 @@ var add(var *var1, var *var2, error *err){
                 else if (var2->type == _char)
                     sprintf(buffer, "%c", var2->value._char);
                 else {
-                    assignErrorMessage(err, "Please specify a valid type (int, float, string, char)");
+                    err->value = ERR_TYPE;
+                    assignErrorMessage(err, "Variables must be of type int, float, char or string.");
                     break;
                 }
                 char *resultValue;
                 concat(&result, var1->value._string, buffer, &resultValue);
-                assign(&result, resultValue);
+                assign(&result, resultValue, err);
                 free(resultValue);
             }
             break;
         default:
-            assignErrorMessage(err, "Please specify a valid type (int, float, char, string)");
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Variables must be of type int, float, char or string.");
             break;
     }
 
@@ -184,27 +175,27 @@ var add(var *var1, var *var2, error *err){
 var substract(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int:
             if(var2->type == _int){
                 result.type = _int;
                 int resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _float){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _char){
                 result.type = _int;
                 int resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (int, float, char)");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variables must be of type int, float or char");
             }
             break;
 
@@ -212,10 +203,11 @@ var substract(var *var1, var *var2, error *err){
             if(var2->type == _float || var2->type == _int || var2->type == _char) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (int, float, char)");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variables must be of type int, float or char");
             }
             break;
 
@@ -223,19 +215,21 @@ var substract(var *var1, var *var2, error *err){
             if(var2->type == _float){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _int || var2->type == _char){
                 result.type = _int;
                 int resultValue = getNumericValue(var1) - getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (int, float, char)");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variables must be of type int, float or char");
             }
             break;
         default:
-            assignErrorMessage(err, "Please specify a valid type (int, float, char)");
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Variables must be of type int, float or char");
             break;
     }
 
@@ -252,22 +246,22 @@ var substract(var *var1, var *var2, error *err){
 var multiply(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int:
             if(var2->type == _float){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) * getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else if(var2->type == _int) {
                 result.type = _int;
                 int resultValue = getNumericValue(var1) * getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (float or int)");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variables must be of type int or float");
             }
             break;
 
@@ -275,15 +269,17 @@ var multiply(var *var1, var *var2, error *err){
             if(var2->type == _float || var2->type == _int){
                 result.type = _float;
                 float resultValue = getNumericValue(var1) * getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (float or int)");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variables must be of type int or float");
             }
             break;
 
         default:
-            assignErrorMessage(err, "Please specify a valid type (float or int)");
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Variables must be of type int or float");
             break;
     }
 
@@ -299,25 +295,27 @@ var multiply(var *var1, var *var2, error *err){
 var divide(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int: case _float:
             if(getNumericValue(var2) == 0){
+                err->value = ERR_SYNTAX;
                 assignErrorMessage(err,"Divider cannot be equal to 0");
             }
             else if(var2->type == _int || var2->type == _float) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) / getNumericValue(var2);
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (float or int)");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variables must be of type int or float");
             }
             break;
 
         default:
-            assignErrorMessage(err, "Please specify a valid type (float or int)");
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Variables must be of type int or float");
             break;
     }
 
@@ -332,24 +330,26 @@ var divide(var *var1, var *var2, error *err){
 var modulo(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch(var1->type){
         case _int:
             if(getNumericValue(var2) == 0){
+                err->value = ERR_SYNTAX;
                 assignErrorMessage(err,"Divider cannot be equal to 0");
             }
             else if(var2->type == _int) {
                 result.type = _int;
                 int resultValue = var1->value._int % var2->value._int;
-                assign(&result, &resultValue);
+                assign(&result, &resultValue, err);
             }
             else {
-                assignErrorMessage(err, "Parameters must be integers");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Both variables must be of type int");
             }
             break;
         default:
-            assignErrorMessage(err, "Parameters must be integers");
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Both variables must be of type int");
             break;
     }
 
@@ -365,7 +365,6 @@ var modulo(var *var1, var *var2, error *err){
 var power(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     switch (var1->type){
         case _int: case _float:
@@ -373,18 +372,20 @@ var power(var *var1, var *var2, error *err){
                result.type = (var2->type == _float || var1->type == _float) ? _float : _int;
                if(var2->type == _float || var1->type == _float) {
                    float resultValue = pow(getNumericValue(var1), getNumericValue(var2));
-                   assign(&result, &resultValue);
+                   assign(&result, &resultValue, err);
                } else {
                    int resultValue = pow(getNumericValue(var1), getNumericValue(var2));
-                   assign(&result, &resultValue);
+                   assign(&result, &resultValue, err);
                }
             }
             else {
-                assignErrorMessage(err, "Please specify a valid type (float or int)");
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variables must be of type int or float");
             }
             break;
         default:
-            assignErrorMessage(err, "Please specify a valid type (float or int)");
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Variables must be of type int or float");
             break;
     }
 
@@ -399,13 +400,13 @@ var power(var *var1, var *var2, error *err){
 var logicalAnd(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     if(var1->type == _int && var2->type == _int){
         int resultValue = var1->value._int & var2->value._int;
-        assign(&result, &resultValue);
+        assign(&result, &resultValue, err);
     } else {
-        assignErrorMessage(err, "Invalid type: Both variables must be of type int.");
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Both variables must be of type int");
     }
 
     return result;
@@ -419,13 +420,13 @@ var logicalAnd(var *var1, var *var2, error *err){
 var logicalOr(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
-    err->value = ERR_SUCCESS;
 
     if(var1->type == _int && var2->type == _int){
         int resultValue = var1->value._int | var2->value._int;
-        assign(&result, &resultValue);
+        assign(&result, &resultValue, err);
     } else {
-        assignErrorMessage(err, "Invalid type: Both variables must be of type int.");
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Both variables must be of type int");
     }
 
     return result;
@@ -441,13 +442,13 @@ var logicalOr(var *var1, var *var2, error *err){
 var squareroot(var *var1, error *err){
     var result;
     result.type = _float;
-    err->value = ERR_SUCCESS;
 
     if(var1->type == _int || var1->type == _float){
         float resultValue = sqrtf(getNumericValue(var1));
-        assign(&result, &resultValue);
+        assign(&result, &resultValue, err);
     } else {
-        assignErrorMessage(err, "Please specify a valid type (float or int)");
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Variables must be of type int or float.");
     }
 
     return result;
@@ -480,7 +481,6 @@ var isEqual(var* v, var* v2,int reversed, error* err){
             }
             
             return result;
-            break;     
         }
         case _string:{
             if(v2->type != _string){
@@ -490,7 +490,13 @@ var isEqual(var* v, var* v2,int reversed, error* err){
             
             break;
         }
+        default:
+            err->value = ERR_NOT_FOUND;
+            assignErrorMessage(err, "Variables must be of type int, float, char or string.");
+            break;
     }
+
+    return result;
 }
 
 /*
@@ -501,6 +507,14 @@ var isEqual(var* v, var* v2,int reversed, error* err){
 var isGreater(var* v, var* v2, int strict, error* err){
     var result;
     result.type = _int;
+
+    if(v == NULL || v2 == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        result.value._int = 0;
+        return result;
+    }
+
     if(v->type == _string || v2->type == _string){
         result.value._int = 0;
         return result;
@@ -525,6 +539,14 @@ var isGreater(var* v, var* v2, int strict, error* err){
 var isLesser(var* v, var* v2, int strict, error* err){
     var result;
     result.type = _int;
+
+    if(v == NULL || v2 == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        result.value._int = 0;
+        return result;
+    }
+
     if(v->type == _string || v2->type == _string){
         result.value._int = 0;
         return result;
@@ -545,6 +567,18 @@ var valueOr(var* v, var* v2, error* err){
     var result;
     result.type = _int;
 
+    if(v == NULL || v2 == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        return result;
+    }
+
+    if(v->type != _int || v2->type != _int){
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Type must be integer");
+        return result;
+    }
+
     result.value._int = (v->value._int == 1 || v2->value._int == 1);
     return result;
 }
@@ -553,6 +587,18 @@ var valueAnd(var* v, var* v2, error* err){
     var result;
     result.type = _int;
 
+    if(v == NULL || v2 == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        return result;
+    }
+
+    if(v->type != _int || v2->type != _int){
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Type must be integer");
+        return result;
+    }
+
     result.value._int = (v->value._int == 1 && v2->value._int == 1);
     return result;
 }
@@ -560,7 +606,72 @@ var valueAnd(var* v, var* v2, error* err){
 var valueReverse(var* v, error* err){
     var result;
     result.type = _int;
+
+    if(v == NULL){
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Pointer is null");
+        return result;
+    }
+
+    if(v->type != _int){
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Type must be integer");
+        return result;
+    }
+
     //result.value._int = v->value._int == 1 ? 0 : 1;
     result.value._int = 1;
     return result;
+}
+/*
+
+    BUFFER MAX LEN IS ONLY FOR STRINGS, IF SET TO 1 OR UNDER, USES THE MAX BUFFER SIZE
+*/
+var* userInput(varType inputType, char* inputMessage, int bufferMaxLen, error* err){
+    var* inputVar = malloc(sizeof(var));
+    switch(inputType){
+        case _int:{
+            if(inputMessage != NULL) printf("%s",inputMessage);
+            if(!scanf("%d",&(inputVar->value._int))){
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Wrong type entered.");
+                return NULL;
+            }
+            break;
+        }
+        case _float:{
+            if(inputMessage != NULL) printf("%s",inputMessage);
+            if(!scanf("%f",&(inputVar->value._float))){
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Wrong type entered.");
+                return NULL;
+            }
+            break;
+        }
+        case _string:{
+            
+            if(inputMessage != NULL) printf("%s",inputMessage);
+            int bufferLen = bufferMaxLen <= 1 ? MAX_BUFFER_SIZE : bufferMaxLen;
+            
+            char buffer[bufferLen];
+            if (fgets(buffer, bufferLen, stdin) == NULL) {
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Wrong type entered.");
+                return NULL;
+            }
+            assignString(inputVar,&buffer);
+            break;
+        }
+        default:{
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Unknown type configured.");
+            free(inputVar);
+            return NULL;
+            break;
+        }
+        
+    }
+    inputVar->type = inputType;
+    fflush(stdin);
+    return inputVar;
 }

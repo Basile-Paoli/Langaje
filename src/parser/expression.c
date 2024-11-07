@@ -421,3 +421,35 @@ astNode *parseIdentifier(TokenList *tokenList, int *currentToken, error *err) {
 
     return node;
 }
+
+astNode **parseExpressionsSeparatedByCommas(TokenList *tokenList, int *currentToken, int *nbExpressions, error *err) {
+    astNode **expressions = NULL;
+    *nbExpressions = 0;
+
+    astNode *first = parseExpression(tokenList, currentToken, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    expressions = newChildren(first);
+    ++*nbExpressions;
+
+    while (*currentToken < tokenList->nb_tokens && tokenList->tokens[*currentToken].type == TOKEN_COMMA) {
+        ++*currentToken;
+        if (*currentToken >= tokenList->nb_tokens) {
+            freeChildren(expressions, *nbExpressions);
+            return endOfInputError(err);
+        }
+
+        astNode *expr = parseExpression(tokenList, currentToken, err);
+        if (err->value != ERR_SUCCESS) {
+            freeChildren(expressions, *nbExpressions);
+            return NULL;
+        }
+
+        expressions = appendChild(expressions, *nbExpressions, expr);
+        ++*nbExpressions;
+    }
+
+    return expressions;
+}

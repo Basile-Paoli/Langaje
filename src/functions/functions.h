@@ -12,6 +12,8 @@
 #include "../types/types.h"
 #include "../errors/errors.h"
 
+#define MAX_BUFFER_SIZE 4096
+
 var add(var *, var *, error *);
 var substract(var *, var *, error *);
 var multiply(var *, var *, error *);
@@ -29,6 +31,7 @@ float getNumericValue(var*);
 var valueOr(var*, var*, error*);
 var valueAnd(var*, var*, error*);
 var valueReverse(var* v, error* err);
+var* userInput(varType inputType, char* inputMessage,int bufferMaxLen,error* err);
 
 
 #endif //LANGAJE_FUNCTIONS_H

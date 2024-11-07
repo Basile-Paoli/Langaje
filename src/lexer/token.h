@@ -13,6 +13,8 @@ typedef enum {
     TOKEN_ELSE,
     TOKEN_WHILE,
     TOKEN_FOR,
+    TOKEN_FOREACH,
+    TOKEN_IN,
 
     TOKEN_PREPROCESSEUR_LANG,
     TOKEN_PREPROCESSEUR_INCLUDE,
@@ -87,6 +89,7 @@ void free_tokenList(TokenList *tl);
 int add_Token(TokenList *tl, Token *t);
 
 TokenType str_to_token_type(char *input);
+
 char *token_type_to_str(TokenType type);
 
 

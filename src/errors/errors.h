@@ -9,6 +9,12 @@ typedef enum {
     ERR_SUCCESS,
     ERR_SYNTAX,
     ERR_END_OF_INPUT,
+    ERR_TYPE,
+    ERR_OUT_OF_BOUNDS,
+    ERR_NOT_FOUND,
+    ERR_UNKNOWN_OPERATOR,
+    ERR_ALREADY_EXISTS,
+    ERR_NULL_POINTER,
 } errorValue;
 
 typedef struct {
@@ -17,5 +23,7 @@ typedef struct {
 } error;
 
 void *endOfInputError(error *err);
+int assignErrorMessage(error *err, char *msg);
+char* getNameTypeError(errorValue error);
 
 #endif //LANGAJE_ERRORS_H
