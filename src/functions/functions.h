@@ -31,6 +31,7 @@ float getNumericValue(var*);
 var valueOr(var*, var*, error*);
 var valueAnd(var*, var*, error*);
 var valueReverse(var* v, error* err);
+var unaryMinus(var* v, error* err);
 var* userInput(varType inputType, char* inputMessage,int bufferMaxLen,error* err);
 
 

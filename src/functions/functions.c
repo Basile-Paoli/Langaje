@@ -620,6 +620,31 @@ var valueReverse(var* v, error* err){
     result.value._int = 1;
     return result;
 }
+
+
+var unaryMinus(var* v, error* err){
+    var result;
+    result.type = v->type;
+    switch(v->type){
+        case _int:{
+            int tmp = v->value._int;
+            result.value._int = -tmp;
+            break;
+        }
+        case _float:{
+            int tmp = v->value._float;
+            result.value._float = -tmp;
+            break;
+        }
+        default:{
+            err->value = ERR_TYPE;
+            assignErrorMessage(err, "Type must be numeric");
+            break;
+        }
+    }
+    return result;
+}
+
 /*
 
     BUFFER MAX LEN IS ONLY FOR STRINGS, IF SET TO 1 OR UNDER, USES THE MAX BUFFER SIZE
