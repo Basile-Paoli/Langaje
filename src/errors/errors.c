@@ -32,24 +32,22 @@ int assignErrorMessage(error *err, char *msg){
  */
 char* getNameTypeError(errorValue error){
     switch (error) {
-        case ERR_SUCCESS:
-            return "Syntax error: ";
         case ERR_SYNTAX:
-            return "Unexpected end of input: ";
+            return "Syntax error: ";
         case ERR_END_OF_INPUT:
-            return "Type mismatch: ";
+            return "Unexpected end of input: ";
         case ERR_TYPE:
-            return "Index out of bounds: ";
+            return "Type mismatch: ";
         case ERR_OUT_OF_BOUNDS:
-            return "Item not found: ";
+            return "Index out of bounds: ";
         case ERR_NOT_FOUND:
-            return "Unknown operator: ";
+            return "Item not found: ";
         case ERR_UNKNOWN_OPERATOR:
-            return "Already exists: ";
+            return "Unknown operator: ";
         case ERR_ALREADY_EXISTS:
-            return "Pointer error: ";
+            return "Already exists: ";
         case ERR_NULL_POINTER:
-            return "Null pointer: ";
+            return "Pointer error: ";
         default:
             return "Unknown error: ";
     }
