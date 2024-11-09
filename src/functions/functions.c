@@ -53,25 +53,22 @@ var add(var *var1, var *var2, error *err){
     // Define the type of var to return
     switch (var1->type) {
         case _int:
-            if(var2->type == _float) {
+            if (var2->type == _float) {
                 result.type = _float;
                 float resultValue = getNumericValue(var1) + getNumericValue(var2);
                 assign(&result, &resultValue, err);
-            }
-            else if(var2->type == _string) {
+            } else if (var2->type == _string) {
                 sprintf(buffer, "%d", var1->value._int);
                 char *resultValue;
 
                 concat(&result, buffer, var2->value._string, &resultValue);
                 assign(&result, resultValue, err);
                 free(resultValue);
-            }
-            else if(var2->type == _char || var2->type == _int){
+            } else if (var2->type == _char || var2->type == _int) {
                 result.type = var2->type == _char ? _char : _int;
                 int resultValue = getNumericValue(var1) + getNumericValue(var2);
                 assign(&result, &resultValue, err);
-            }
-            else {
+            } else {
                 assignErrorMessage(err, "Variables must be of type int, float, char or string.");
             }
             break;
