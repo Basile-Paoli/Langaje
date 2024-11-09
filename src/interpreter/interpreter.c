@@ -120,6 +120,10 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     
             break;
         }
+        case UNARY_MINUS:{
+            tmpNode->value.value = unaryMinus(&var1,&err_op);
+            break;
+        }
         default:{
             err->value = ERR_UNKNOWN_OPERATOR;
             assignErrorMessage(err, "Unknown operator");
@@ -352,26 +356,48 @@ int runWhileLoop(astNode* node,hmStack* stack,error* err){
  * Run for loop condition
  */
 int runForLoop(astNode *node, hmStack *stack, error *err) {
+    //Copy instruction block to run 
     InstructionBlock instructions = *(node->children[node->childrenCount-1]->value.block);
 
-    astNode condition = node->childrenCount == 4 ? *node->children[node->childrenCount-3] : *node->children[node->childrenCount-2];
+    //Default increment value
+    int incrementValue = 1;
 
+    //Create var for incrementation
     var* newVar = malloc(sizeof(var));
     newVar->type = _int;
-    newVar->value._int = node->childrenCount > 2 ? node->children[0]->value.value.value._int : 0;
-
+    newVar->value._int = 0;
+    //If we have more than 2 children, compute the start value
+    if(node->childrenCount > 2){
+        newVar->value._int = computeNode(node->children[0],stack,err)->value.value.value._int;
+    }
     hm_set(stack->stack[stack->length-1],node->value.variable,newVar);
     int hmIndex = stack->length-1;
-
+    
+    //If we have 4 children, means we have a different increment value
+    if(node->childrenCount == 4){
+        incrementValue = computeNode(node->children[node->childrenCount-2],stack,err)->value.value.value._int;
+    }
+    //Ternary to know which child to select
+    astNode conditionNode = node->childrenCount == 4 ? *node->children[node->childrenCount-3] : *node->children[node->childrenCount-2];
+    int conditionValue = computeNode(&conditionNode,stack,err)->value.value.value._int;
+     
+    
     int loopIndexValue = newVar->value._int;
 
-    while (loopIndexValue < condition.value.value.value._int) {
-        runInstructionBlock(&instructions, stack, err);
-
-        int increment = node->childrenCount == 4 ? node->children[node->childrenCount-2]->value.value.value._int : 1;
-        newVar->value._int += increment;
-        hm_set(stack->stack[hmIndex], node->value.variable, newVar);
-        loopIndexValue =  newVar->value._int;
+    if(loopIndexValue > conditionValue){
+        while (loopIndexValue > conditionValue) {
+            runInstructionBlock(&instructions, stack, err);
+            newVar->value._int += incrementValue;
+            hm_set(stack->stack[hmIndex], node->value.variable, newVar);
+            loopIndexValue =  newVar->value._int;
+        }
+    } else {
+        while (loopIndexValue < conditionValue) {
+            runInstructionBlock(&instructions, stack, err);
+            newVar->value._int += incrementValue;
+            hm_set(stack->stack[hmIndex], node->value.variable, newVar);
+            loopIndexValue =  newVar->value._int;
+        }
     }
 
     return 0;
@@ -461,8 +487,8 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
-    char debugArr[3][255] = {"a","b","c"};
-    //debug(&debugArr,3,stack,err);
+    char debugArr[3][255] = {"a","b","i"};
+    debug(&debugArr,3,stack,err);
 
     printf("Stopping block\n\n");
     hmStackPop(stack);
