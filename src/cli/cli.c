@@ -95,8 +95,6 @@ int cliMode(Lexer *l) {
                 return 1;
             }
 
-            free_tokenList(tl);
-
             curLine = (char *)calloc(1, sizeof(char));
             printf(">>>");
         }
