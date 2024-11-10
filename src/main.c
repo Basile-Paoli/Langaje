@@ -41,8 +41,6 @@ int main(int argc, char **argv) {
     input = include_files(input);
     
     /*---------- LEXER ----------*/
-    Lexer *l = new_lexer();
-    if (l == NULL) {printf("[ERROR][LEXER]: Error while creating lexer"); return 1;}
 
     char *lang = get_lang(input); // Get the #LANG_
     if (lang == NULL) lang = "CLASSIC"; // If none is found, we use the default one
