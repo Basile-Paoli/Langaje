@@ -1,11 +1,8 @@
-def int a = 1; // Définition de la variable a
+def int a = 0;
 
-/* this
-is
-a
-long
-comment
-on
-multiple
-lines
-*/
+a++;
+a--;
+a+=1;
+a-=2;
+a*=3;
+a/=4;

@@ -31,6 +31,7 @@ int verifyLexerLine(char *line, char *tokenName, Lexer *l);
 int is_token_reserved_by_system(TokenType type);
 int is_token_in_lexer(Lexer *l, TokenType tokenName);
 
+TokenList *replaceSugar(TokenList *tl);
 TokenList *tokenizer(char *input, Lexer *l) ;
 char *read_file(char *filename);
 void split_into_instructions(char *buffer, char ***instructions, int *nbInstructions, lexer_rule *ruleInstructions);
