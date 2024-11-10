@@ -17,7 +17,14 @@ typedef enum {
     WHILE_LOOP,
     FOR_LOOP,
     FOREACH_LOOP,
+    BREAK,
+    CONTINUE,
     ARRAY,
+    FUNCTION_CALL,
+    FUNCTION_DECLARATION,
+    RETURN,
+    BREAKPOINT,
+    MEMORY_DUMP,
 } astNodeType;
 typedef enum operator {
     ADDITION,
@@ -55,6 +62,23 @@ typedef struct initializationNode {
     initType type;
 } initializationNode;
 
+typedef struct functionCallNode {
+    char *name;
+} functionCallNode;
+
+typedef struct functionParameter {
+    char *name;
+    initType type;
+} functionParameter;
+
+typedef struct functionDeclarationNode {
+    char *name;
+    functionParameter *parameters;
+    int parametersCount;
+    int voidReturn;
+    initType returnType;
+} functionDeclarationNode;
+
 
 typedef union {
     operator operator;
@@ -63,6 +87,8 @@ typedef union {
     initializationNode initialization;
     struct InstructionBlock *block;
     var *referencedValue;
+    functionCallNode functionCall;
+    functionDeclarationNode functionDeclaration;
 } astNodeValue;
 
 typedef struct astNode {
@@ -103,7 +129,30 @@ astNode *newWhileNode(astNode *condition, astNode *block);
 
 astNode *newForNode(char *variable, astNode **children, int childrenCount);
 
+astNode *newBreakNode();
+
+astNode *newContinueNode();
+
 astNode *newArrayNode(int size, astNode **values);
+
+astNode *newFunctionCallNode(char *name, astNode **arguments, int argumentsCount);
+
+astNode *newFunctionDeclarationNode(
+        char *name,
+        functionParameter *parameters,
+        int parameterCount,
+        int voidReturn,
+        initType returnType,
+        astNode *block
+);
+
+astNode *newEmptyReturnNode();
+
+astNode *newReturnValueNode(astNode *value);
+
+astNode *newMemoryDumpNode();
+
+astNode *newBreakpointNode();
 
 void freeAstNode(astNode *node);
 

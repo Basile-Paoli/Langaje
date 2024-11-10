@@ -406,9 +406,15 @@ astNode *parseArray(TokenList *tokenList, int *currentToken, error *err) {
 
 
 astNode *parseIdentifier(TokenList *tokenList, int *currentToken, error *err) {
+    assert(tokenList->tokens[*currentToken].type == TOKEN_IDENTIFIER);
+    astNode *node;
+    if (*currentToken + 1 < tokenList->nb_tokens && tokenList->tokens[*currentToken + 1].type == TOKEN_LPAREN) {
+        node = parseFunctionCall(tokenList, currentToken, err);
+    } else {
+        node = identifierTokenToNode(tokenList->tokens[*currentToken]);
+        ++*currentToken;
+    }
 
-    astNode *node = identifierTokenToNode(tokenList->tokens[*currentToken]);
-    ++*currentToken;
 
     while (*currentToken < tokenList->nb_tokens && tokenList->tokens[*currentToken].type == TOKEN_LBRACKET) {
         astNode *index = parseBracketExpression(tokenList, currentToken, err);
@@ -420,6 +426,39 @@ astNode *parseIdentifier(TokenList *tokenList, int *currentToken, error *err) {
     }
 
     return node;
+}
+
+
+astNode *parseFunctionCall(TokenList *tokenList, int *currentToken, error *err) {
+    assert(tokenList->tokens[*currentToken].type == TOKEN_IDENTIFIER);
+    assert(tokenList->tokens[*currentToken + 1].type == TOKEN_LPAREN);
+    char *name = tokenList->tokens[*currentToken].value;
+    *currentToken += 2;
+    int nbArgs = 0;
+    astNode **args = parseExpressionsSeparatedByCommas(tokenList, currentToken, &nbArgs, err);
+    if (err->value != ERR_SUCCESS) {
+        return NULL;
+    }
+
+    if (*currentToken >= tokenList->nb_tokens) {
+        freeChildren(args, nbArgs);
+        return endOfInputError(err);
+    }
+
+    if (tokenList->tokens[*currentToken].type != TOKEN_RPAREN) {
+        freeChildren(args, nbArgs);
+        err->value = ERR_SYNTAX;
+        err->message = malloc(
+                strlen("Expected closing parenthesis, found ") +
+                strlen(tokenList->tokens[*currentToken].value) + 1);
+        sprintf(err->message, "Expected closing parenthesis, found %s",
+                tokenList->tokens[*currentToken].value);
+        return NULL;
+    }
+
+    ++*currentToken;
+    return newFunctionCallNode(name, args, nbArgs);
+
 }
 
 astNode **parseExpressionsSeparatedByCommas(TokenList *tokenList, int *currentToken, int *nbExpressions, error *err) {
