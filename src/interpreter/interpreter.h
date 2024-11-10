@@ -7,6 +7,7 @@
 #include "../functions/functions.h"
 #include <stdlib.h>
 
+#define MAX_UNCHANGED_LOOP_DEPTH 4096
 
 var subsituteValue(astNode* value, hmStack* stack, error *err);
 astNode* calculateNode(astNode** values, astNode* node,hmStack* stack,int valuesAmount, error *err);

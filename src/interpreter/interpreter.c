@@ -120,6 +120,10 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     
             break;
         }
+        case UNARY_MINUS:{
+            tmpNode->value.value = unaryMinus(&var1,&err_op);
+            break;
+        }
         default:{
             err->value = ERR_UNKNOWN_OPERATOR;
             assignErrorMessage(err, "Unknown operator");
@@ -331,6 +335,7 @@ int runWhileLoop(astNode* node,hmStack* stack,error* err){
 
     InstructionBlock instructions = *(node->children[1]->value.block);
     astNode* result;
+
     result = computeNode(&condition,stack,err);
     int shouldContinue = result->value.value.value._int;
     while(shouldContinue == 1){
@@ -339,12 +344,66 @@ int runWhileLoop(astNode* node,hmStack* stack,error* err){
             printf("%s\n", err->message);
             return 1;
         }
-        
+
         condition = *(node->children[0]);
         result = computeNode(&condition,stack,err);
         shouldContinue = result->value.value.value._int;
     }
 }
+
+
+/**
+ * Run for loop condition
+ */
+int runForLoop(astNode *node, hmStack *stack, error *err) {
+    //Copy instruction block to run 
+    InstructionBlock instructions = *(node->children[node->childrenCount-1]->value.block);
+
+    //Default increment value
+    int incrementValue = 1;
+
+    //Create var for incrementation
+    var* newVar = malloc(sizeof(var));
+    newVar->type = _int;
+    newVar->value._int = 0;
+    //If we have more than 2 children, compute the start value
+    if(node->childrenCount > 2){
+        newVar->value._int = computeNode(node->children[0],stack,err)->value.value.value._int;
+    }
+    hm_set(stack->stack[stack->length-1],node->value.variable,newVar);
+    int hmIndex = stack->length-1;
+    
+    //If we have 4 children, means we have a different increment value
+    if(node->childrenCount == 4){
+        incrementValue = computeNode(node->children[node->childrenCount-2],stack,err)->value.value.value._int;
+    }
+    //Ternary to know which child to select
+    astNode conditionNode = node->childrenCount == 4 ? *node->children[node->childrenCount-3] : *node->children[node->childrenCount-2];
+    int conditionValue = computeNode(&conditionNode,stack,err)->value.value.value._int;
+     
+    
+    int loopIndexValue = newVar->value._int;
+
+    if(loopIndexValue > conditionValue){
+        while (loopIndexValue > conditionValue) {
+            runInstructionBlock(&instructions, stack, err);
+            newVar->value._int += incrementValue;
+            hm_set(stack->stack[hmIndex], node->value.variable, newVar);
+            loopIndexValue =  newVar->value._int;
+        }
+    } else {
+        while (loopIndexValue < conditionValue) {
+            runInstructionBlock(&instructions, stack, err);
+            newVar->value._int += incrementValue;
+            hm_set(stack->stack[hmIndex], node->value.variable, newVar);
+            loopIndexValue =  newVar->value._int;
+        }
+    }
+
+    return 0;
+}
+
+
 
 
 
@@ -362,7 +421,6 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
     astNode** values = malloc(sizeof(astNode*) * node->childrenCount + 1);
     int valuesAmount = 0;
     for(int i = 0; i < node->childrenCount; i++){
-        
         if(node->children[i] == NULL)continue;
         valuesAmount++;
 
@@ -373,7 +431,6 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
                 printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block, stack, err));
             }
             i+=1;
-            
         } else if(i == 2 && node->type == CONDITION && values[0]->value.value.value._int == 0 && node->children[i]->type != CONDITION){
             
             if(node->children[i]->type == BLOCK){
@@ -386,6 +443,10 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
         } else if(node->type == WHILE_LOOP){
             printf("__RUN WHILE LOOP__\n");
             runWhileLoop(node,stack,err);
+            break;
+        } else if(node->type == FOR_LOOP){
+            printf("__RUN FOR LOOP__\n");
+            runForLoop(node,stack,err);
             break;
         } else{
             values[i] = computeNode(node->children[i], stack, err);
@@ -425,10 +486,9 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     }
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
-    
 
-    char debugArr[3][255] = {"a","b","c"};
-    //debug(&debugArr,3,stack,err);
+    char debugArr[3][255] = {"a","b","i"};
+    debug(&debugArr,3,stack,err);
 
     printf("Stopping block\n\n");
     hmStackPop(stack);
