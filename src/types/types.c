@@ -140,6 +140,7 @@ void var2var(var* v, var* v2, error *err){
                     */
                 case _string:{
                     assignString(v,v2->value._string);
+                    break;
                 }
                 default:{
                     err->value = ERR_TYPE;
