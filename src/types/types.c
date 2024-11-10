@@ -19,13 +19,13 @@ int assignString(var *v, char *value) {
     if (len < 0) {
         return 1;
     }
+    
     if (v->value._string == NULL || len != strlen(v->value._string)) {
         v->value._string = (char *) realloc(v->value._string, sizeof(char) * (len + 1));
     }
     if (v->value._string == NULL) {
         return 1;
     }
-
     if (strcpy(v->value._string, value) == NULL) {
         return 1;
     }
@@ -249,13 +249,14 @@ var* newArrayVar(int size, varType type) {
                 break;
             }
             case _string:{
+                res->value._array->values[i].value._string = malloc(sizeof(char));
                 assignString(&res->value._array->values[i], "");
+
                 break;
             }
             
         }
     }
-
     res->type = _array;
     return res;
 }

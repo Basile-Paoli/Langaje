@@ -110,11 +110,10 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         case SUBSCRIPT:{
             //If it has substituted means value is in &var1 else it's in values[0].value.referencedValue 
             //We work with pointer because we go edit directly the memory of the array.
-            
             if(hasSubsituted == 1){
-                node->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int,err);
+                tmpNode->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int,err);
             } else {
-                node->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
+                tmpNode->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
             }
             
     
