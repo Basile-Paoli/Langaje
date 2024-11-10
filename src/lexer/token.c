@@ -136,103 +136,68 @@ TokenType str_to_token_type(char *input) {
 }
 
 char *token_type_to_str(TokenType type) {
-    switch (type) {
+    char *TokenType[] = {
+        [TOKEN_IDENTIFIER           ] = "IDENTIFIER",
 
-        case TOKEN_IDENTIFIER:
-            return "IDENTIFIER";
+        [TOKEN_DEF                  ] = "DEF",
+        [TOKEN_INT                  ] = "INT",
+        [TOKEN_FLOAT                ] = "FLOAT",
+        [TOKEN_STRING               ] = "STRING",
 
-        case TOKEN_DEF:
-            return "DEF";
-        case TOKEN_INT:
-            return "INT";
-        case TOKEN_FLOAT:
-            return "FLOAT";
-        case TOKEN_STRING:
-            return "STRING";
+        [TOKEN_IF                   ] = "IF",
+        [TOKEN_ELSE                 ] = "ELSE",
+        [TOKEN_WHILE                ] = "WHILE",
+        [TOKEN_FOR                  ] = "FOR",
+        [TOKEN_FOREACH              ] = "FOREACH",
 
-        case TOKEN_IF:
-            return "IF";
-        case TOKEN_ELSE:
-            return "ELSE";
-        case TOKEN_WHILE:
-            return "WHILE";
-        case TOKEN_FOR:
-            return "FOR";
-        case TOKEN_IN:
-            return "IN";
-        case TOKEN_FOREACH:
-            return "FOREACH";
+        [TOKEN_PREPROCESSEUR_LANG   ] = "PREPOCESSEUR_LANG",
+        [TOKEN_PREPROCESSEUR_INCLUDE] = "PREPOCESSEUR_INCLUDE",
 
-        case TOKEN_PREPROCESSEUR_LANG:
-            return "PREPOCESSEUR_LANG";
-        case TOKEN_PREPROCESSEUR_INCLUDE:
-            return "PREPROCESSEUR_INCLUDE";
+        [TOKEN_FUNCTION_DECLARATION ] = "FUNCTION_DECLARATION",
+        [TOKEN_FUNCTION_RETURN      ] = "FUNCTION_RETURN",
 
-        case TOKEN_FUNCTION_DECLARATION:
-            return "FUNCTION_DECLARATION";
-        case TOKEN_FUNCTION_RETURN:
-            return "FUNCTION_RETURN";
+        [TOKEN_TYPE_INT             ] = "TYPE_INT",
+        [TOKEN_TYPE_FLOAT           ] = "TYPE_FLOAT",
+        [TOKEN_TYPE_STRING          ] = "TYPE_STRING",
 
-        case TOKEN_TYPE_INT:
-            return "TYPE_INT";
-        case TOKEN_TYPE_FLOAT:
-            return "TYPE_FLOAT";
-        case TOKEN_TYPE_STRING:
-            return "TYPE_STRING";
+        [TOKEN_EQUAL_EQUAL          ] = "EQUAL_EQUAL",
+        [TOKEN_NOT_EQUAL            ] = "NOT_EQUAL",
+        [TOKEN_GREATER              ] = "GREATER",
+        [TOKEN_GREATER_EQUAL        ] = "GREATER_EQUAL",
+        [TOKEN_LESS                 ] = "LESS",
+        [TOKEN_LESS_EQUAL           ] = "LESS_EQUAL",
 
-        case TOKEN_EQUAL_EQUAL:
-            return "EQUAL_EQUAL";
-        case TOKEN_NOT_EQUAL:
-            return "NOT_EQUAL";
-        case TOKEN_GREATER:
-            return "GREATER";
-        case TOKEN_GREATER_EQUAL:
-            return "GREATER_EQUAL";
-        case TOKEN_LESS:
-            return "LESS";
-        case TOKEN_LESS_EQUAL:
-            return "LESS_EQUAL";
+        [TOKEN_AND                  ] = "AND",
+        [TOKEN_OR                   ] = "OR",
+        [TOKEN_NOT                  ] = "NOT",
 
-        case TOKEN_AND:
-            return "AND";
-        case TOKEN_OR:
-            return "OR";
-        case TOKEN_NOT:
-            return "NOT";
+        [TOKEN_EQUAL                ] = "EQUAL",
 
-        case TOKEN_EQUAL:
-            return "EQUAL";
+        [TOKEN_ADDITION             ] = "ADDITION",
+        [TOKEN_SUBSTRACTION         ] = "SUBSTRACTION",
+        [TOKEN_MULTIPLICATION       ] = "MULTIPLICATION",
+        [TOKEN_DIVISION             ] = "DIVISION",
 
-        case TOKEN_ADDITION:
-            return "ADDITION";
-        case TOKEN_SUBSTRACTION:
-            return "SUBSTRACTION";
-        case TOKEN_MULTIPLICATION:
-            return "MULTIPLICATION";
-        case TOKEN_DIVISION:
-            return "DIVISION";
+        [TOKEN_LPAREN               ] = "LPAREN",
+        [TOKEN_RPAREN               ] = "RPAREN",
 
-        case TOKEN_LPAREN:
-            return "LPAREN";
-        case TOKEN_RPAREN:
-            return "RPAREN";
+        [TOKEN_LBRACE               ] = "LBRACE",
+        [TOKEN_RBRACE               ] = "RBRACE",
 
-        case TOKEN_LBRACE:
-            return "LBRACE";
-        case TOKEN_RBRACE:
-            return "RBRACE";
+        [TOKEN_LBRACKET             ] = "LBRACKET",
+        [TOKEN_RBRACKET             ] = "RBRACKET",
 
-        case TOKEN_LBRACKET:
-            return "LBRACKET";
-        case TOKEN_RBRACKET:
-            return "RBRACKET";
+        [TOKEN_COMMA                ] = "COMMA",
+        [TOKEN_SEMICOLON            ] = "SEMICOLON",
 
-        case TOKEN_COMMA:
-            return "COMMA";
-        case TOKEN_SEMICOLON:
-            return "SEMICOLON";
+        [TOKEN_MEMORY_DUMP          ] = "MEMORY_DUMP",
+        [TOKEN_CLI_MODE             ] = "CLI_MODE",
+        [TOKEN_BREAKPOINT           ] = "BREAKPOINT",
 
-        case TOKEN_UNKNOWN:
-            return "UNKNOWN";
-    }
+        [TOKEN_UNKNOWN              ] = "UNKNOWN",
+        [TOKEN_COMMENT              ] = "COMMENT"
+
+    };
+
+    return TokenType[type];
 }

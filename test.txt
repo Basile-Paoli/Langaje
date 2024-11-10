@@ -1,4 +1,11 @@
-def int a = 0;
-while(a  < 3){
-    a = a + 1;
-}
+def int a = 1; // Définition de la variable a
+
+/* this
+is
+a
+long
+comment
+on
+multiple
+lines
+*/

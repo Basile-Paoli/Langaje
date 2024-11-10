@@ -56,7 +56,12 @@ typedef enum {
     TOKEN_COMMA,
     TOKEN_SEMICOLON,
 
-    TOKEN_UNKNOWN
+    TOKEN_MEMORY_DUMP,
+    TOKEN_CLI_MODE,
+    TOKEN_BREAKPOINT,
+
+    TOKEN_UNKNOWN,
+    TOKEN_COMMENT
 
 } TokenType;
 

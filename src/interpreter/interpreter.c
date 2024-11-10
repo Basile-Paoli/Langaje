@@ -484,6 +484,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
 
     displayHashmap(stack,err);
 
+
     printf("Stopping block\n\n");
     hmStackPop(stack);
     // printf("Popped hm \n");
