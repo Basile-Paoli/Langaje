@@ -8,6 +8,8 @@
 
 #include "interpreter/interpreter.h"
 
+#include "cli/cli.h"
+
 
 #include <time.h>
 
@@ -16,7 +18,16 @@
 
 int main(int argc, char **argv) {
 
-    if (argc != 2) {
+    /*---------- LEXER ----------*/
+    Lexer *l = new_lexer();
+    if (l == NULL) {printf("[ERROR][LEXER]: Error while creating lexer"); return 1;}
+
+    if (argc == 1) {
+
+        return cliMode(l);
+    }
+
+    if (argc > 2) {
         printf("Usage: %s <file>\n", argv[0]);
         return 1;
     }
@@ -27,10 +38,6 @@ int main(int argc, char **argv) {
     // Reading the input file
     char *input = read_file(argv[1]);
     
-    /*---------- LEXER ----------*/
-    Lexer *l = new_lexer();
-    if (l == NULL) {printf("[ERROR][LEXER]: Error while creating lexer"); return 1;}
-
     char *lang = get_lang(input); // Get the #LANG_
     if (lang == NULL) lang = "CLASSIC"; // If none is found, we use the default one
 

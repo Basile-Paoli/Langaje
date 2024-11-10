@@ -25,7 +25,6 @@ Lexer *new_lexer() {
     add_lexer_rule(l, new_lexer_rule("[0-9]+", TOKEN_INT)) +
     add_lexer_rule(l, new_lexer_rule("\"[^\"]*\"", TOKEN_STRING)) + 
     add_lexer_rule(l, new_lexer_rule("@memoryDump", TOKEN_MEMORY_DUMP)) +
-    add_lexer_rule(l, new_lexer_rule("@cli", TOKEN_CLI_MODE)) + 
     add_lexer_rule(l, new_lexer_rule("@breakPoint", TOKEN_BREAKPOINT)) +
     add_lexer_rule(l, new_lexer_rule("//[^\n]*", TOKEN_COMMENT)) + 
     add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/", TOKEN_COMMENT))

@@ -191,7 +191,6 @@ char *token_type_to_str(TokenType type) {
         [TOKEN_SEMICOLON            ] = "SEMICOLON",
 
         [TOKEN_MEMORY_DUMP          ] = "MEMORY_DUMP",
-        [TOKEN_CLI_MODE             ] = "CLI_MODE",
         [TOKEN_BREAKPOINT           ] = "BREAKPOINT",
 
         [TOKEN_UNKNOWN              ] = "UNKNOWN",
