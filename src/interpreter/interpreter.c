@@ -11,7 +11,7 @@ var subsituteValue(astNode* value, hmStack* stack, error *err){
     if(hmIndex == -1){
         err->value = ERR_NOT_FOUND;
 
-        char *msg = malloc(strlen("Value not found : %s") + 1);
+        char *msg = malloc(strlen("Value not found : %s") + 50);
         sprintf(msg, "Value not found : %s", value->value.variable);
 
         assignErrorMessage(err, msg);
@@ -152,10 +152,11 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
     if(type->type !=  _array){
         return &node->value.value;
     } else {
+        
         if(node->childrenCount > type->arraySize){
             err->value = ERR_OUT_OF_BOUNDS;
-
-            char *msg = malloc(strlen("Array size too large. Expected maximum size: %d, but received: %d") + 1);
+        
+            char *msg = malloc(strlen("Array size too large. Expected maximum size: %d, but received: %d") + 40);
             sprintf(msg, "The number of elements in the array exceeds the specified size limit. Expected maximum size: %d, but received: %d", type->arraySize, node->childrenCount);
 
             assignErrorMessage(err, msg);
@@ -173,7 +174,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
             if(subVar->type != arr->value._array->type){
                 err->value = ERR_TYPE;
 
-                char *msg = malloc(strlen("Wrong type specified in array, expected %d, got %d") + 1);
+                char *msg = malloc(strlen("Wrong type specified in array, expected %d, got %d") + 50);
                 sprintf(msg, "Wrong type specified in array, expected %s, got %s", getVarTypeName(arr->value._array->type), getVarTypeName(subVar->type));
 
                 assignErrorMessage(err, msg);
@@ -256,7 +257,6 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
 
         if(valueToAssign->type == ARRAY){
-            
             var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack, err);
             if(newArr == NULL){
                 //RAISE ERROR MAYBE?
@@ -306,7 +306,6 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
         return 0;
     }
-    printf("__ERROR__");
     return 0;
 }
 
@@ -441,11 +440,9 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
 
             i+=1;
         } else if(node->type == WHILE_LOOP){
-            printf("__RUN WHILE LOOP__\n");
             runWhileLoop(node,stack,err);
             break;
         } else if(node->type == FOR_LOOP){
-            printf("__RUN FOR LOOP__\n");
             runForLoop(node,stack,err);
             break;
         } else{
