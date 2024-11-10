@@ -1,4 +1,9 @@
-def int a = 0;
-while(a < 1000000){
-    a++;
+def int a = 1;
+def float zz = 3.0;
+def string texte = "string not formated {a}.";
+
+if(a == 1){
+    if(a == 1){
+    def string texteForm = f"string formated {a} + {zz}.";
+    }
 }

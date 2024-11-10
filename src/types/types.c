@@ -209,7 +209,7 @@ void display(var* v, error *err, int indentLevel) {
             printf("%c\n", v->value._char);
             break;
         case _string:
-            printf("%s\n", v->value._string);
+            printf("\"%s\"\n", v->value._string);
             break;
         case _array:
             for (int i = 0; i < v->value._array->length; i++) {

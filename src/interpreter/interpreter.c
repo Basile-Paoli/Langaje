@@ -495,13 +495,17 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
-    // displayHashmap(stack,err);
+    displayHashmap(stack,err);
     return 0;
 }
 
 void displayHashmap(hmStack* stack, error* err){
     printf("----------------------MEMORY DUMP-----------------------\n");
     for(int i = 0; i < stack->length; i++){
+        for(int j = 0; j < i; j++){
+                printf("\t");
+            }
+        printf("--START OF HM LEVEL %d--\n\n",i);
         hmi iterator = hm_iterator(stack->stack[i]);
         while(hm_next(&iterator) == 1){
             for(int j = 0; j < i; j++){
@@ -517,6 +521,11 @@ void displayHashmap(hmStack* stack, error* err){
             }
             display((var*)iterator.value,err,0);
         }
+        printf("\n");
+        for(int j = 0; j < i; j++){
+                printf("\t");
+            }
+        printf("--END OF HM LEVEL %d--\n",i);
 
     }
     printf("-------------------END OF MEMORY DUMP-------------------\n");
