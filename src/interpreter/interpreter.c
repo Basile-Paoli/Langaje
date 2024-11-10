@@ -153,7 +153,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
         return &node->value.value;
     } else {
         
-        if(node->childrenCount > type->arraySize){
+        if(node->childrenCount > type->arraySize && type->arraySize != 0){
             err->value = ERR_OUT_OF_BOUNDS;
         
             char *msg = malloc(strlen("Array size too large. Expected maximum size: %d, but received: %d") + 40);
