@@ -8,6 +8,8 @@
 
 #include "interpreter/interpreter.h"
 
+#include "cli/cli.h"
+
 
 #include <time.h>
 
@@ -16,7 +18,16 @@
 
 int main(int argc, char **argv) {
 
-    if (argc != 2) {
+    /*---------- LEXER ----------*/
+    Lexer *l = new_lexer();
+    if (l == NULL) {printf("[ERROR][LEXER]: Error while creating lexer"); return 1;}
+
+    if (argc == 1) {
+
+        return cliMode(l);
+    }
+
+    if (argc > 2) {
         printf("Usage: %s <file>\n", argv[0]);
         return 1;
     }
@@ -78,6 +89,7 @@ int main(int argc, char **argv) {
     hm* hashmap = hm_create();
     hmStackPush(stack,hashmap);
     int runInstructionResult = runInstructionBlock(pr, stack, &err_run);
+    displayHashmap(stack, &err);
     hmStackPop(stack);
     end = clock();
 
@@ -89,6 +101,7 @@ int main(int argc, char **argv) {
         printf("%s\n", err_run.message);
         return 1;
     }
+
 
     hmStackDestroy(stack);
     free_tokenList(tl);
