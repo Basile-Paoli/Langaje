@@ -1,4 +1,4 @@
 def int a = 0;
-while(a < 1000000){
+if (a == 0){
     a++;
 }

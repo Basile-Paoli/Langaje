@@ -36,29 +36,15 @@ int cliMode(Lexer *l) {
     int nbBracket = 0;
     int nbCurlyBracket = 0;
 
+    char *curLine = (char *)calloc(1, sizeof(char));
+
     while ((read = getline(&line, &len, stdin)) != -1) {
+
         if (strcmp(line, "@exit\n") == 0) break; // Break the loop
 
-        // Tokenize the input
-        TokenList *tl = tokenizer(line, l);
-        if (tl == NULL) return 1;
-
-        error err;
-        err.value = ERR_SUCCESS;
-        InstructionBlock *pr = parse(tl, &err);
-        if (err.value != ERR_SUCCESS) {
-            printf("[PARSER][ERROR]: %s\n", err.message);
-            return 1;
-        }
-
-        if (runInstructionBlock(pr, stack, &err)) {
-            printf("[RUNTIME][ERROR]: %s\n", err.message);
-            return 1;
-        }
-
-        printInstructionBlock(pr, 0);
-
-        free_tokenList(tl);
+        curLine = (char *)realloc(curLine, (strlen(curLine) + strlen(line) + 1) * sizeof(char));
+        if (curLine == NULL) {printf("[ERROR][MAIN]: Error while reallocating curLine"); return 1;}
+        strcat(curLine, line);
 
         // If the user types a line with a parenthesis, a bracket or a curly bracket, we increment the corresponding variable
         for (int i = 0; i < strlen(line); i++) {
@@ -70,21 +56,45 @@ int cliMode(Lexer *l) {
             if (line[i] == '}') nbCurlyBracket--;
         }
 
-        if (nbParenthesis < 0 || nbBracket < 0 || nbCurlyBracket < 0) {
-            printf("[LEXER][ERROR]: Parenthesis, brackets or curly brackets are not correctly formed\n");
-            return 1;
-        }
-
         if (nbParenthesis != 0 || nbBracket != 0 || nbCurlyBracket != 0) {
             printf("...");
             for (int i = 0; i < nbParenthesis + nbBracket + nbCurlyBracket; i++) printf("\t");
             continue;
         }
 
-        displayHashmap(stack, &err);
+        if (nbParenthesis == 0 && nbBracket == 0 && nbCurlyBracket == 0) {
 
-        printf(">>>");
+            // Tokenize the input
+            TokenList *tl = tokenizer(curLine, l);
+            if (tl == NULL) return 1;
+
+            tl = replaceSugar(tl, l);
+            if (tl == NULL) return 1;
+
+            error err;
+            err.value = ERR_SUCCESS;
+            InstructionBlock *pr = parse(tl, &err);
+            if (err.value != ERR_SUCCESS) {
+                printf("[PARSER][ERROR]: %s\n", err.message);
+                return 1;
+            }
+
+
+            if (runInstructionBlock(pr, stack, &err)) {
+                printf("[RUNTIME][ERROR]: %s\n", err.message);
+                return 1;
+            }
+
+            free_tokenList(tl);
+
+            curLine = (char *)calloc(1, sizeof(char));
+            printf(">>>");
+        }
     }
+
+    error err;
+    err.value = ERR_SUCCESS;
+    displayHashmap(stack, &err);
 
     hmStackPop(stack);
     hmStackDestroy(stack);
