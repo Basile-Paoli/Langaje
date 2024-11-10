@@ -1,3 +1,9 @@
-#include "test2.txt";
+def int a = 1;
+def float zz = 3.0;
+def string texte = "string not formated {a}.";
 
-def string text = f"Value imported from other file {a}.";
+if(a == 1){
+    if(a == 1){
+    def string texteForm = f"string formated {a} + {zz}.";
+    }
+}
