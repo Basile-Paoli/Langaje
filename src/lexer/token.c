@@ -102,7 +102,7 @@ TokenList *new_TokenListFromTokens(Token *tokens, int nb_tokens) {
 }
 
 TokenList *new_TokenList() {
-    TokenList *tl = (TokenList *)malloc(sizeof(TokenList));
+    TokenList *tl = malloc(sizeof(TokenList));
     if (tl == NULL) {
         printf("[ERROR][TOKEN]: Cannot allocate memory for TokenList\n");
         return NULL;
@@ -126,7 +126,7 @@ void print_token(Token *t) {
 }
 
 Token *new_Token(TokenType type, char *value, int line, int column) {
-    Token *t = (Token *)malloc(sizeof(Token));
+    Token *t = malloc(sizeof(Token));
     if (t == NULL) {
         printf("[ERROR][TOKEN]: Cannot allocate memory for Token\n");
         return NULL;
