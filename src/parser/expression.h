@@ -37,6 +37,8 @@ astNode *parseArray(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parseIdentifier(TokenList *tokenList, int *currentToken, error *err);
 
+astNode *parseFunctionCall(TokenList *tokenList, int *currentToken, error *err);
+
 astNode **parseExpressionsSeparatedByCommas(TokenList *tokenList, int *currentToken, int *nbExpressions, error *err);
 
 #endif //LANGAJE_EXPRESSION_H

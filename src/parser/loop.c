@@ -153,3 +153,42 @@ astNode *parseForInstruction(TokenList *tokenList, int *currentToken, error *err
     return newForNode(identifier, children, childrenCount + 1);
 }
 
+
+astNode *parseBreakInstruction(TokenList *tokenList, int *currentToken, error *err) {
+    assert(*currentToken < tokenList->nb_tokens);
+    assert(tokenList->tokens[*currentToken].type == TOKEN_BREAK);
+
+    ++*currentToken;
+    if (*currentToken >= tokenList->nb_tokens) {
+        return endOfInputError(err);
+    }
+
+    if (tokenList->tokens[*currentToken].type != TOKEN_SEMICOLON) {
+        err->value = ERR_SYNTAX;
+        err->message = strdup("Expected ';'");
+        return NULL;
+    }
+
+    ++*currentToken;
+    return newBreakNode();
+}
+
+astNode *parseContinueInstruction(TokenList *tokenList, int *currentToken, error *err) {
+    assert(*currentToken < tokenList->nb_tokens);
+    assert(tokenList->tokens[*currentToken].type == TOKEN_CONTINUE);
+
+    ++*currentToken;
+    if (*currentToken >= tokenList->nb_tokens) {
+        return endOfInputError(err);
+    }
+
+    if (tokenList->tokens[*currentToken].type != TOKEN_SEMICOLON) {
+        err->value = ERR_SYNTAX;
+        err->message = strdup("Expected ';'");
+        return NULL;
+    }
+
+    ++*currentToken;
+    return newContinueNode();
+}
+
