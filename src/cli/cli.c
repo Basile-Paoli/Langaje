@@ -29,6 +29,8 @@ int cliMode(Lexer *l) {
     ssize_t read;
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
+    hm* hashmap = hm_create();
+    hmStackPush(stack, hashmap);
 
     int nbParenthesis = 0;
     int nbBracket = 0;
@@ -79,9 +81,12 @@ int cliMode(Lexer *l) {
             continue;
         }
 
+        displayHashmap(stack, &err);
+
         printf(">>>");
     }
 
+    hmStackPop(stack);
     hmStackDestroy(stack);
 
     return 0;
