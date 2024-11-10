@@ -19,13 +19,13 @@ int assignString(var *v, char *value) {
     if (len < 0) {
         return 1;
     }
+    
     if (v->value._string == NULL || len != strlen(v->value._string)) {
         v->value._string = (char *) realloc(v->value._string, sizeof(char) * (len + 1));
     }
     if (v->value._string == NULL) {
         return 1;
     }
-
     if (strcpy(v->value._string, value) == NULL) {
         return 1;
     }
@@ -140,6 +140,7 @@ void var2var(var* v, var* v2, error *err){
                     */
                 case _string:{
                     assignString(v,v2->value._string);
+                    break;
                 }
                 default:{
                     err->value = ERR_TYPE;
@@ -188,13 +189,15 @@ void destroyVar(var* v){
  */
 
 
-void display(var* v, error *err) {
+void display(var* v, error *err, int indentLevel) {
     if (v == NULL) {
         err->value = ERR_NOT_FOUND;
         assignErrorMessage(err, "Null variable error");
         return;
     }
-
+    for(int i = 0; i < indentLevel; i++){
+        printf("\t");
+    }
     switch (v->type) {
         case _int:
             printf("%d\n", v->value._int);
@@ -211,9 +214,12 @@ void display(var* v, error *err) {
         case _array:
             for (int i = 0; i < v->value._array->length; i++) {
                 if(v->value._array->values[i].type == _array){
-                    printf("\nSubarray :%d\n",i);
+                    for(int tab = 0; tab < indentLevel+1; tab++){
+                        printf("\t");
+                    }
+                    printf("Subarray %s\n",getVarTypeName(v->value._array->values[i].value._array->type));
                 }
-                display(&v->value._array->values[i], err);
+                display(&v->value._array->values[i], err, indentLevel);
                 
             }
             break;
@@ -248,13 +254,14 @@ var* newArrayVar(int size, varType type) {
                 break;
             }
             case _string:{
+                res->value._array->values[i].value._string = malloc(sizeof(char));
                 assignString(&res->value._array->values[i], "");
+
                 break;
             }
             
         }
     }
-
     res->type = _array;
     return res;
 }
