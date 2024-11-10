@@ -64,6 +64,10 @@ int cliMode(Lexer *l) {
 
         if (nbParenthesis == 0 && nbBracket == 0 && nbCurlyBracket == 0) {
 
+            do {
+                curLine = include_files(curLine);
+            } while (strstr(curLine, "#include") != NULL);
+
             // Tokenize the input
             TokenList *tl = tokenizer(curLine, l);
             if (tl == NULL) return 1;
@@ -74,7 +78,13 @@ int cliMode(Lexer *l) {
             error err;
             err.value = ERR_SUCCESS;
             InstructionBlock *pr = parse(tl, &err);
+            if (err.value == ERR_END_OF_INPUT) {
+                printf("...");
+                continue;
+            }
+
             if (err.value != ERR_SUCCESS) {
+                printf("[PARSER][ERROR]: %s\n", getNameTypeError(err.value));
                 printf("[PARSER][ERROR]: %s\n", err.message);
                 return 1;
             }
