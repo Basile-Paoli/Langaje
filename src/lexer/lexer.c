@@ -496,15 +496,38 @@ char *include_files(char *input) {
     }
     strcpy(temp, input);
 
-    char *line = strtok(temp, token_type_to_str(TOKEN_SEMICOLON));
+    char *line = strtok(temp, "\n");
     while (line != NULL) {
-        if (strstr(line, token_type_to_str(TOKEN_PREPROCESSEUR_INCLUDE)) != NULL) {
-            printf("%s\n", line);
+        if (strstr(line, "#include") != NULL) {
+            char *filename = (char *)calloc(strlen(line) - 8, sizeof(char));
+            if (filename == NULL) {
+                printf("[ERROR][LEXER]: Cannot allocate memory for filename\n");
+                return NULL;
+            }
+            size_t k = 0;
+            char *tempLine = (char *)malloc(strlen(line) + 1);
+            if (tempLine == NULL) {
+                printf("[ERROR][LEXER]: Cannot allocate memory for tempLine\n");
+                return NULL;
+            }
+            strcpy(tempLine, line);
+            while (*tempLine != '"') tempLine++;
+            tempLine++;
+            while (*tempLine != '"') filename[k++] = *tempLine++;
+            char *fileContent = read_file(filename);
+            if (fileContent == NULL) {
+                printf("[ERROR][LEXER]: Cannot read file <%s>\n", filename);
+                return NULL;
+            }
+            strcat(fileContent, "\n");
+            strcat(final, fileContent);
+            free(fileContent);
+            free(filename);
         } else {
             strcat(final, line);
+            strcat(final, "\n");
         }
-
-        line = strtok(NULL, token_type_to_str(TOKEN_SEMICOLON));
+        line = strtok(NULL, "\n");
     }
 
     return final;

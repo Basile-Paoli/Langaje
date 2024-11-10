@@ -1,1 +1,5 @@
 def int a = 1;
+a--;
+
+if (a <= (12*8/1)) {
+    def int b = 10;

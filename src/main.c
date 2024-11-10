@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 
     print_tokenList(tl); // Print the token list
 
-    return 0;
+    //return 0;
 
     /*---------- PARSER ----------*/
     error err;
