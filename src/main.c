@@ -54,8 +54,13 @@ int main(int argc, char **argv) {
     TokenList *tl = tokenizer(input, l);
     if (tl == NULL) return 1;
 
+    // Replace sugar syntax
+    tl = replaceSugar(tl, l);
+    if (tl == NULL) return 1;
+
     print_tokenList(tl); // Print the token list
 
+    /*---------- PARSER ----------*/
     error err;
     err.value = ERR_SUCCESS;
     InstructionBlock *pr = parse(tl, &err);
@@ -72,7 +77,11 @@ int main(int argc, char **argv) {
     clock_t start, end;
     double cpu_time_used;
     start = clock();
+    //Push base hm
+    hm* hashmap = hm_create();
+    hmStackPush(stack,hashmap);
     int runInstructionResult = runInstructionBlock(pr, stack, &err_run);
+    hmStackPop(stack);
     end = clock();
 
     cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
@@ -83,7 +92,6 @@ int main(int argc, char **argv) {
         printf("%s\n", err_run.message);
         return 1;
     }
-    printf("RESULT INSRCUTION BLOCK : %d", runInstructionResult);
 
     hmStackDestroy(stack);
     free_tokenList(tl);

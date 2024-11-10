@@ -58,5 +58,4 @@ cmake-build-debug
 CMakeCache.txt
 langaje
 
-test.txt
-
+.vscode/

@@ -19,16 +19,17 @@ Lexer *new_lexer() {
 
     // Default rules
     if (
-    add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+", TOKEN_PREPROCESSEUR_LANG)) +
-    add_lexer_rule(l, new_lexer_rule("#include", TOKEN_PREPROCESSEUR_INCLUDE)) +
-    add_lexer_rule(l, new_lexer_rule("[0-9]+\\.[0-9]+", TOKEN_FLOAT)) +
-    add_lexer_rule(l, new_lexer_rule("[0-9]+", TOKEN_INT)) +
-    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\"", TOKEN_STRING)) + 
-    add_lexer_rule(l, new_lexer_rule("@memoryDump", TOKEN_MEMORY_DUMP)) +
-    add_lexer_rule(l, new_lexer_rule("@breakPoint", TOKEN_BREAKPOINT)) +
-    add_lexer_rule(l, new_lexer_rule("@exit", TOKEN_EXIT)) +
-    add_lexer_rule(l, new_lexer_rule("//[^\n]*", TOKEN_COMMENT)) + 
-    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/", TOKEN_COMMENT))
+    add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+"               , TOKEN_PREPROCESSEUR_LANG)) +
+    add_lexer_rule(l, new_lexer_rule("#include"                     , TOKEN_PREPROCESSEUR_INCLUDE)) +
+    add_lexer_rule(l, new_lexer_rule("[0-9]+\\.[0-9]+"              , TOKEN_FLOAT)) +
+    add_lexer_rule(l, new_lexer_rule("[0-9]+"                       , TOKEN_INT)) +
+    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\""                   , TOKEN_STRING)) + 
+    add_lexer_rule(l, new_lexer_rule("f\"[^\"]*\""                  , TOKEN_FORMATTED_STRING)) +
+    add_lexer_rule(l, new_lexer_rule("@memoryDump"                  , TOKEN_MEMORY_DUMP)) +
+    add_lexer_rule(l, new_lexer_rule("@cli"                         , TOKEN_CLI_MODE)) + 
+    add_lexer_rule(l, new_lexer_rule("@breakPoint"                  , TOKEN_BREAKPOINT)) +
+    add_lexer_rule(l, new_lexer_rule("//[^\n]*"                     , TOKEN_COMMENT)) + 
+    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/"   , TOKEN_COMMENT))
     != 0) {
         printf("[ERROR][LEXER]: Cannot add default rules\n");
         return NULL;
@@ -186,6 +187,185 @@ int is_token_in_lexer(Lexer *l, TokenType token) {
         if (l->rules[i].type == token) return 1;
     }
     return 0;
+}
+
+TokenList *replaceSugar(TokenList *tl, Lexer *l) {
+    // We replace the sugar syntax by the real syntax
+    // For example: a++ => a = a + 1
+    //              a-- => a = a - 1
+    //              a += 2 => a = a + 2
+    //              a -= 2 => a = a - 2
+    //              f"Hello {name}" => "Hello " + name
+    //              ...
+
+    for (int i = 0; i < tl->nb_tokens; i++) {
+        if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_ADDITION, TOKEN_ADDITION})) {
+
+            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
+            Token *addition = new_Token(TOKEN_ADDITION, "+", tl->tokens[i].line, tl->tokens[i].column);
+            Token *one = new_Token(TOKEN_INT, "1", tl->tokens[i].line, tl->tokens[i].column);
+
+            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
+                tl->tokens[i],
+                *equal,
+                tl->tokens[i],
+                *addition,
+                *one
+                
+            }, 5);
+
+            tl = insertTokenListIntoTokenList(
+                tl,
+                tempTokenList,
+                i
+            );
+            tl = removeNTokenFromTokenList(tl, i + 5, 3);
+
+        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_SUBSTRACTION, TOKEN_SUBSTRACTION})) {
+
+            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
+            Token *sub = new_Token(TOKEN_SUBSTRACTION, "-", tl->tokens[i].line, tl->tokens[i].column);
+            Token *one = new_Token(TOKEN_INT, "1", tl->tokens[i].line, tl->tokens[i].column);
+
+            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
+                tl->tokens[i],
+                *equal,
+                tl->tokens[i],
+                *sub,
+                *one
+                
+            }, 5);
+
+            tl = insertTokenListIntoTokenList(
+                tl,
+                tempTokenList,
+                i
+            );
+            tl = removeNTokenFromTokenList(tl, i + 5, 3);
+        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_ADDITION, TOKEN_EQUAL})) {
+
+            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
+            Token *addition = new_Token(TOKEN_ADDITION, "+", tl->tokens[i].line, tl->tokens[i].column);
+
+            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
+                tl->tokens[i],
+                *equal,
+                tl->tokens[i],
+                *addition
+            }, 4);
+
+            tl = insertTokenListIntoTokenList(
+                tl,
+                tempTokenList,
+                i
+            );
+
+            tl = removeNTokenFromTokenList(tl, i + 4, 3);
+
+        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_SUBSTRACTION, TOKEN_EQUAL})) {
+
+            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
+            Token *sub = new_Token(TOKEN_SUBSTRACTION, "-", tl->tokens[i].line, tl->tokens[i].column);
+
+            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
+                tl->tokens[i],
+                *equal,
+                tl->tokens[i],
+                *sub
+            }, 4);
+
+            tl = insertTokenListIntoTokenList(
+                tl,
+                tempTokenList,
+                i
+            );
+
+            tl = removeNTokenFromTokenList(tl, i + 4, 3);
+
+        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_MULTIPLICATION, TOKEN_EQUAL})) {
+                
+                Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
+                Token *mul = new_Token(TOKEN_MULTIPLICATION, "*", tl->tokens[i].line, tl->tokens[i].column);
+    
+                TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
+                    tl->tokens[i],
+                    *equal,
+                    tl->tokens[i],
+                    *mul
+                }, 4);
+    
+                tl = insertTokenListIntoTokenList(
+                    tl,
+                    tempTokenList,
+                    i
+                );
+    
+                tl = removeNTokenFromTokenList(tl, i + 4, 3);
+
+        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_DIVISION, TOKEN_EQUAL})) {
+    
+            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
+            Token *div = new_Token(TOKEN_DIVISION, "/", tl->tokens[i].line, tl->tokens[i].column);
+
+            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
+                tl->tokens[i],
+                *equal,
+                tl->tokens[i],
+                *div
+            }, 4);
+
+            tl = insertTokenListIntoTokenList(
+                tl,
+                tempTokenList,
+                i
+            );
+
+            tl = removeNTokenFromTokenList(tl, i + 4, 3);
+        } else if (tl->tokens[i].type == TOKEN_FORMATTED_STRING) {
+            // replace '{' by '"+' and '}' by '+"'
+            char *buffer = (char *)calloc(strlen(tl->tokens[i].value) + 1, sizeof(char));
+            if (buffer == NULL) {
+                printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+                return NULL;
+            }
+            strcpy(buffer, tl->tokens[i].value + 1);
+
+            for (int j = 0; j < strlen(buffer); j++) {
+                if (buffer[j] == '{') {
+                    buffer[j] = '"';
+                    buffer = (char *)realloc(buffer, strlen(buffer) + 2);
+                    if (buffer == NULL) {
+                        printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+                        return NULL;
+                    }
+                    memmove(buffer + j + 2, buffer + j + 1, strlen(buffer) - j);
+                    buffer[j + 1] = '+';
+                } else if (buffer[j] == '}') {
+                    buffer[j] = '+';
+                    buffer = (char *)realloc(buffer, strlen(buffer) + 2);
+                    if (buffer == NULL) {
+                        printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+                        return NULL;
+                    }
+                    memmove(buffer + j + 2, buffer + j + 1, strlen(buffer) - j);
+                    buffer[j + 1] = '"';
+                }
+            }
+            TokenList *tempTokenList = tokenizer(buffer, l);
+            if (tempTokenList == NULL) return NULL;
+
+            tl = insertTokenListIntoTokenList(
+                tl,
+                tempTokenList,
+                i
+            );
+
+            tl = removeNTokenFromTokenList(tl, i + tempTokenList->nb_tokens, 1);
+        }
+    }
+
+    return tl;
+
 }
 
 TokenList *tokenizer(char *input, Lexer *l) {
