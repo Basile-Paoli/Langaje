@@ -15,5 +15,6 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 astNode* computeNode(astNode* node, hmStack* stack, error *err);
 int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err);
 void debug(char key[][255], int arrSize, hmStack* stack, error *err);
+void displayHashmap(hmStack* stack, error* err);
 var* declareArray(astNode* node, initType* type, hmStack* stack, error *err);
 #endif

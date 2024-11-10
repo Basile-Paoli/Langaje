@@ -487,8 +487,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
-    char debugArr[3][255] = {"a","b","i"};
-    debug(&debugArr,3,stack,err);
+    displayHashmap(stack,err);
 
     printf("Stopping block\n\n");
     hmStackPop(stack);
@@ -496,6 +495,20 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     return 0;
 }
 
+void displayHashmap(hmStack* stack, error* err){
+    for(int i = 0; i < stack->length; i++){
+        hmi iterator = hm_iterator(stack->stack[i]);
+        while(hm_next(&iterator) == 1){
+            for(int j = 0; j < i; j++){
+                printf("\t");
+            }
+            printf("%s : ",iterator.key);
+            display((var*)iterator.value,err);
+        }
+
+    }
+    
+}
 
 
 void debug(char key[][255], int arrSize, hmStack* stack, error *err){
