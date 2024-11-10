@@ -11,7 +11,7 @@ var subsituteValue(astNode* value, hmStack* stack, error *err){
     if(hmIndex == -1){
         err->value = ERR_NOT_FOUND;
 
-        char *msg = malloc(strlen("Value not found : %s") + 1);
+        char *msg = malloc(strlen("Value not found : %s") + 50);
         sprintf(msg, "Value not found : %s", value->value.variable);
 
         assignErrorMessage(err, msg);
@@ -110,11 +110,10 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         case SUBSCRIPT:{
             //If it has substituted means value is in &var1 else it's in values[0].value.referencedValue 
             //We work with pointer because we go edit directly the memory of the array.
-            
             if(hasSubsituted == 1){
-                node->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int,err);
+                tmpNode->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int,err);
             } else {
-                node->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
+                tmpNode->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
             }
             
     
@@ -152,10 +151,11 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
     if(type->type !=  _array){
         return &node->value.value;
     } else {
-        if(node->childrenCount > type->arraySize){
+        
+        if(node->childrenCount > type->arraySize && type->arraySize != 0){
             err->value = ERR_OUT_OF_BOUNDS;
-
-            char *msg = malloc(strlen("Array size too large. Expected maximum size: %d, but received: %d") + 1);
+        
+            char *msg = malloc(strlen("Array size too large. Expected maximum size: %d, but received: %d") + 40);
             sprintf(msg, "The number of elements in the array exceeds the specified size limit. Expected maximum size: %d, but received: %d", type->arraySize, node->childrenCount);
 
             assignErrorMessage(err, msg);
@@ -173,18 +173,17 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
             if(subVar->type != arr->value._array->type){
                 err->value = ERR_TYPE;
 
-                char *msg = malloc(strlen("Wrong type specified in array, expected %d, got %d") + 1);
+                char *msg = malloc(strlen("Wrong type specified in array, expected %d, got %d") + 50);
                 sprintf(msg, "Wrong type specified in array, expected %s, got %s", getVarTypeName(arr->value._array->type), getVarTypeName(subVar->type));
 
                 assignErrorMessage(err, msg);
                 free(msg);
                 return NULL;
             }
-
             //Assign the subvar to the array slot  (either NODE so value OR Subarray)
             var2var(&arr->value._array->values[i],subVar, err);
         }
-            arr->type = type->type;
+        arr->type = type->type;
         return arr;
     }
 }
@@ -206,7 +205,7 @@ var* declareEmptyArray(astNode* node, error *err){
         var* newArr;
         for(int i = 0; i < oldCurr.arraySize; i++){
             newArr = newArrayVar(curr->arraySize,curr->elementsType->type);
-            newArr->type = curr->elementsType->type;
+            newArr->type = oldCurr.type;
             var2var(&currArray->value._array->values[i],newArr, err);
         }
 
@@ -256,7 +255,6 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
 
         if(valueToAssign->type == ARRAY){
-            
             var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack, err);
             if(newArr == NULL){
                 //RAISE ERROR MAYBE?
@@ -306,7 +304,6 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
         return 0;
     }
-    printf("__ERROR__");
     return 0;
 }
 
@@ -441,11 +438,9 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
 
             i+=1;
         } else if(node->type == WHILE_LOOP){
-            printf("__RUN WHILE LOOP__\n");
             runWhileLoop(node,stack,err);
             break;
         } else if(node->type == FOR_LOOP){
-            printf("__RUN FOR LOOP__\n");
             runForLoop(node,stack,err);
             break;
         } else{
@@ -487,8 +482,8 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
-    char debugArr[3][255] = {"a","b","i"};
-    //debug(&debugArr,3,stack,err);
+    displayHashmap(stack,err);
+
 
     printf("Stopping block\n\n");
     hmStackPop(stack);
@@ -496,13 +491,35 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     return 0;
 }
 
+void displayHashmap(hmStack* stack, error* err){
+    printf("----------------------MEMORY DUMP-----------------------\n");
+    for(int i = 0; i < stack->length; i++){
+        hmi iterator = hm_iterator(stack->stack[i]);
+        while(hm_next(&iterator) == 1){
+            for(int j = 0; j < i; j++){
+                printf("\t");
+            }
+            // printf("%s %s : ",getVarTypeName(((var*)iterator.value)->type),iterator.key);
+            char* type = getVarTypeName(((var*)iterator.value)->type);
+            if(((var*)iterator.value)->type == _array){
+                char* subType = getVarTypeName(((var*)iterator.value)->value._array->type);
+                printf("(%s %s) %s : \n",type,subType,iterator.key);
+            } else {
+                printf("(%s) %s : ",type,iterator.key);
+            }
+            display((var*)iterator.value,err,0);
+        }
+
+    }
+    printf("-------------------END OF MEMORY DUMP-------------------\n");
+}
 
 
 void debug(char key[][255], int arrSize, hmStack* stack, error *err){
     for(int i = 0; i < arrSize; i++){
         if(isInStackDownwards(stack,key[i]) > -1){
             printf("VALUE OF %s : ",key[i]);
-            display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]), err);
+            display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]), err,0);
             
         }   
     }
