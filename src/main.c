@@ -70,7 +70,11 @@ int main(int argc, char **argv) {
     clock_t start, end;
     double cpu_time_used;
     start = clock();
+    //Push base hm
+    hm* hashmap = hm_create();
+    hmStackPush(stack,hashmap);
     int runInstructionResult = runInstructionBlock(pr, stack, &err_run);
+    hmStackPop(stack);
     end = clock();
 
     cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;

@@ -17,12 +17,15 @@ var subsituteValue(astNode* value, hmStack* stack, error *err){
         assignErrorMessage(err, msg);
         free(msg);
 
-        //printf("Value not found : %s\n",value->value.variable);
+        printf("Value not found : %s\n",value->value.variable);
+        
+    } else {
+        var tmp = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
+    
+        return tmp;
     }
 
-    var tmp = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
     
-    return tmp;
 }
 
 /**
@@ -336,12 +339,14 @@ int runWhileLoop(astNode* node,hmStack* stack,error* err){
     result = computeNode(&condition,stack,err);
     int shouldContinue = result->value.value.value._int;
     while(shouldContinue == 1){
-        
+        hm* hashmap = hm_create();
+        hmStackPush(stack,hashmap);
         if(runInstructionBlock(&instructions,stack,err) == 1){
             printf("%s\n", err->message);
+            hmStackPop(stack);
             return 1;
         }
-
+        hmStackPop(stack);
         condition = *(node->children[0]);
         result = computeNode(&condition,stack,err);
         shouldContinue = result->value.value.value._int;
@@ -380,9 +385,12 @@ int runForLoop(astNode *node, hmStack *stack, error *err) {
      
     
     int loopIndexValue = newVar->value._int;
-
+    //MAYBE PUT IT IN THE WHILE, TESTING !!
+    hm* hashmap = hm_create();
+    hmStackPush(stack,hashmap);
     if(loopIndexValue > conditionValue){
         while (loopIndexValue > conditionValue) {
+            
             runInstructionBlock(&instructions, stack, err);
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
@@ -396,6 +404,7 @@ int runForLoop(astNode *node, hmStack *stack, error *err) {
             loopIndexValue =  newVar->value._int;
         }
     }
+    hmStackPop(stack);
 
     return 0;
 }
@@ -425,15 +434,22 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
         //IF WE ARE ON THEN
         if(i == 1 && node->type == CONDITION && values[0]->value.value.value._int == 1 && node->children[i]->type != CONDITION){
             if(node->children[i]->type == BLOCK){
-                printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block, stack, err));
+                hm* hashmap = hm_create();
+                hmStackPush(stack,hashmap);
+                runInstructionBlock(node->children[i]->value.block, stack, err);
+                hmStackPop(stack);
+
             }
             i+=1;
         } else if(i == 2 && node->type == CONDITION && values[0]->value.value.value._int == 0 && node->children[i]->type != CONDITION){
             
             if(node->children[i]->type == BLOCK){
                 
+                hm* hashmap = hm_create();
+                hmStackPush(stack,hashmap);
+                runInstructionBlock(node->children[i]->value.block, stack, err);
+                hmStackPop(stack);
 
-                printf("Run exit code : %d\n",runInstructionBlock(node->children[i]->value.block, stack, err));
             }
 
             i+=1;
@@ -469,10 +485,7 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
 */
 
 int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
-    //Withotu stack memory management
-    hm* hashmap = hm_create();
-    hmStackPush(stack,hashmap);
-    printf("\nRunning block\n");
+    
     for(int i = 0; i < program->instructionsCount; i++){
         computeNode(program->instructions[i], stack, err);
         // Stop computing if there's an error
@@ -482,12 +495,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
-    displayHashmap(stack,err);
-
-
-    printf("Stopping block\n\n");
-    hmStackPop(stack);
-    // printf("Popped hm \n");
+    // displayHashmap(stack,err);
     return 0;
 }
 
