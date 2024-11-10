@@ -180,11 +180,10 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
                 free(msg);
                 return NULL;
             }
-
             //Assign the subvar to the array slot  (either NODE so value OR Subarray)
             var2var(&arr->value._array->values[i],subVar, err);
         }
-            arr->type = type->type;
+        arr->type = type->type;
         return arr;
     }
 }
@@ -206,7 +205,7 @@ var* declareEmptyArray(astNode* node, error *err){
         var* newArr;
         for(int i = 0; i < oldCurr.arraySize; i++){
             newArr = newArrayVar(curr->arraySize,curr->elementsType->type);
-            newArr->type = curr->elementsType->type;
+            newArr->type = oldCurr.type;
             var2var(&currArray->value._array->values[i],newArr, err);
         }
 
@@ -492,18 +491,26 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
 }
 
 void displayHashmap(hmStack* stack, error* err){
+    printf("----------------------MEMORY DUMP-----------------------\n");
     for(int i = 0; i < stack->length; i++){
         hmi iterator = hm_iterator(stack->stack[i]);
         while(hm_next(&iterator) == 1){
             for(int j = 0; j < i; j++){
                 printf("\t");
             }
-            printf("%s : ",iterator.key);
+            // printf("%s %s : ",getVarTypeName(((var*)iterator.value)->type),iterator.key);
+            char* type = getVarTypeName(((var*)iterator.value)->type);
+            if(((var*)iterator.value)->type == _array){
+                char* subType = getVarTypeName(((var*)iterator.value)->value._array->type);
+                printf("(%s %s) %s : \n",type,subType,iterator.key);
+            } else {
+                printf("(%s) %s : ",type,iterator.key);
+            }
             display((var*)iterator.value,err,0);
         }
 
     }
-    
+    printf("-------------------END OF MEMORY DUMP-------------------\n");
 }
 
 

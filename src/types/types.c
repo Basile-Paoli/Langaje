@@ -214,9 +214,12 @@ void display(var* v, error *err, int indentLevel) {
         case _array:
             for (int i = 0; i < v->value._array->length; i++) {
                 if(v->value._array->values[i].type == _array){
-                    printf("\nSubarray :%d\n",i);
+                    for(int tab = 0; tab < indentLevel+1; tab++){
+                        printf("\t");
+                    }
+                    printf("Subarray %s\n",getVarTypeName(v->value._array->values[i].value._array->type));
                 }
-                display(&v->value._array->values[i], err, 1);
+                display(&v->value._array->values[i], err, indentLevel);
                 
             }
             break;
