@@ -48,12 +48,10 @@ int main(int argc, char **argv) {
     if (tl == NULL) return 1;
 
     // Replace sugar syntax
-    tl = replaceSugar(tl);
+    tl = replaceSugar(tl, l);
     if (tl == NULL) return 1;
 
     print_tokenList(tl); // Print the token list
-
-    //return 0;
 
     /*---------- PARSER ----------*/
     error err;

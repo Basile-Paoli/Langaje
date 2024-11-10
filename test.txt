@@ -1,8 +1,4 @@
-def int a = 0;
+def int a = 1;
 
-a++;
-a--;
-a+=1;
-a-=2;
-a*=3;
-a/=4;
+def string texte = "string not formated {a}.";
+def string texteForm = f"string formated {a}.";

@@ -19,17 +19,17 @@ Lexer *new_lexer() {
 
     // Default rules
     if (
-    add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+", TOKEN_PREPROCESSEUR_LANG)) +
-    add_lexer_rule(l, new_lexer_rule("#include", TOKEN_PREPROCESSEUR_INCLUDE)) +
-    add_lexer_rule(l, new_lexer_rule("[0-9]+\\.[0-9]+", TOKEN_FLOAT)) +
-    add_lexer_rule(l, new_lexer_rule("[0-9]+", TOKEN_INT)) +
-    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\"", TOKEN_STRING)) + 
-    add_lexer_rule(l, new_lexer_rule("f\"[^\"]*\"", TOKEN_FORMATTED_STRING)) +
-    add_lexer_rule(l, new_lexer_rule("@memoryDump", TOKEN_MEMORY_DUMP)) +
-    add_lexer_rule(l, new_lexer_rule("@cli", TOKEN_CLI_MODE)) + 
-    add_lexer_rule(l, new_lexer_rule("@breakPoint", TOKEN_BREAKPOINT)) +
-    add_lexer_rule(l, new_lexer_rule("//[^\n]*", TOKEN_COMMENT)) + 
-    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/", TOKEN_COMMENT))
+    add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+"               , TOKEN_PREPROCESSEUR_LANG)) +
+    add_lexer_rule(l, new_lexer_rule("#include"                     , TOKEN_PREPROCESSEUR_INCLUDE)) +
+    add_lexer_rule(l, new_lexer_rule("[0-9]+\\.[0-9]+"              , TOKEN_FLOAT)) +
+    add_lexer_rule(l, new_lexer_rule("[0-9]+"                       , TOKEN_INT)) +
+    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\""                   , TOKEN_STRING)) + 
+    add_lexer_rule(l, new_lexer_rule("f\"[^\"]*\""                  , TOKEN_FORMATTED_STRING)) +
+    add_lexer_rule(l, new_lexer_rule("@memoryDump"                  , TOKEN_MEMORY_DUMP)) +
+    add_lexer_rule(l, new_lexer_rule("@cli"                         , TOKEN_CLI_MODE)) + 
+    add_lexer_rule(l, new_lexer_rule("@breakPoint"                  , TOKEN_BREAKPOINT)) +
+    add_lexer_rule(l, new_lexer_rule("//[^\n]*"                     , TOKEN_COMMENT)) + 
+    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/"   , TOKEN_COMMENT))
     != 0) {
         printf("[ERROR][LEXER]: Cannot add default rules\n");
         return NULL;
@@ -189,7 +189,7 @@ int is_token_in_lexer(Lexer *l, TokenType token) {
     return 0;
 }
 
-TokenList *replaceSugar(TokenList *tl) {
+TokenList *replaceSugar(TokenList *tl, Lexer *l) {
     // We replace the sugar syntax by the real syntax
     // For example: a++ => a = a + 1
     //              a-- => a = a - 1
@@ -321,6 +321,46 @@ TokenList *replaceSugar(TokenList *tl) {
             );
 
             tl = removeNTokenFromTokenList(tl, i + 4, 3);
+        } else if (tl->tokens[i].type == TOKEN_FORMATTED_STRING) {
+            // replace '{' by '"+' and '}' by '+"'
+            char *buffer = (char *)calloc(strlen(tl->tokens[i].value) + 1, sizeof(char));
+            if (buffer == NULL) {
+                printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+                return NULL;
+            }
+            strcpy(buffer, tl->tokens[i].value + 1);
+
+            for (int j = 0; j < strlen(buffer); j++) {
+                if (buffer[j] == '{') {
+                    buffer[j] = '"';
+                    buffer = (char *)realloc(buffer, strlen(buffer) + 2);
+                    if (buffer == NULL) {
+                        printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+                        return NULL;
+                    }
+                    memmove(buffer + j + 2, buffer + j + 1, strlen(buffer) - j);
+                    buffer[j + 1] = '+';
+                } else if (buffer[j] == '}') {
+                    buffer[j] = '+';
+                    buffer = (char *)realloc(buffer, strlen(buffer) + 2);
+                    if (buffer == NULL) {
+                        printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+                        return NULL;
+                    }
+                    memmove(buffer + j + 2, buffer + j + 1, strlen(buffer) - j);
+                    buffer[j + 1] = '"';
+                }
+            }
+            TokenList *tempTokenList = tokenizer(buffer, l);
+            if (tempTokenList == NULL) return NULL;
+
+            tl = insertTokenListIntoTokenList(
+                tl,
+                tempTokenList,
+                i
+            );
+
+            tl = removeNTokenFromTokenList(tl, i + tempTokenList->nb_tokens, 1);
         }
     }
 
