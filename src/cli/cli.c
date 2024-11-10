@@ -18,7 +18,7 @@ int cliMode(Lexer *l) {
 
     // In cli mode
     printf("Welcome to the CLI mode of the language\n");
-    printf("Type 'exit();' to stop the program\n");
+    printf("Type '@exit' to stop the program\n");
     printf(">>>");
 
     char *input = (char *)calloc(1, sizeof(char));
@@ -35,26 +35,26 @@ int cliMode(Lexer *l) {
     int nbCurlyBracket = 0;
 
     while ((read = getline(&line, &len, stdin)) != -1) {
-        if (strcmp(line, "exit();\n") == 0) break; // Break the loop if the user types @breakPoint
+        if (strcmp(line, "@exit\n") == 0) break; // Break the loop
 
         // Tokenize the input
         TokenList *tl = tokenizer(line, l);
         if (tl == NULL) return 1;
 
-        /*error err;
+        error err;
         err.value = ERR_SUCCESS;
         InstructionBlock *pr = parse(tl, &err);
         if (err.value != ERR_SUCCESS) {
-            printf("Error: %s\n", err.message);
+            printf("[PARSER][ERROR]: %s\n", err.message);
             return 1;
         }
 
         if (runInstructionBlock(pr, stack, &err)) {
-            printf("Error: %s\n", err.message);
+            printf("[RUNTIME][ERROR]: %s\n", err.message);
             return 1;
-        }*/
+        }
 
-        //printInstructionBlock(pr, 0);
+        printInstructionBlock(pr, 0);
 
         free_tokenList(tl);
 
@@ -69,7 +69,7 @@ int cliMode(Lexer *l) {
         }
 
         if (nbParenthesis < 0 || nbBracket < 0 || nbCurlyBracket < 0) {
-            printf("Error: Parenthesis, brackets or curly brackets are not correctly formed\n");
+            printf("[LEXER][ERROR]: Parenthesis, brackets or curly brackets are not correctly formed\n");
             return 1;
         }
 

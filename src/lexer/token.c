@@ -192,6 +192,7 @@ char *token_type_to_str(TokenType type) {
 
         [TOKEN_MEMORY_DUMP          ] = "MEMORY_DUMP",
         [TOKEN_BREAKPOINT           ] = "BREAKPOINT",
+        [TOKEN_EXIT                 ] = "EXIT",
 
         [TOKEN_UNKNOWN              ] = "UNKNOWN",
         [TOKEN_COMMENT              ] = "COMMENT"

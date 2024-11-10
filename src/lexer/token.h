@@ -58,6 +58,7 @@ typedef enum {
 
     TOKEN_MEMORY_DUMP,
     TOKEN_BREAKPOINT,
+    TOKEN_EXIT,
 
     TOKEN_UNKNOWN,
     TOKEN_COMMENT
