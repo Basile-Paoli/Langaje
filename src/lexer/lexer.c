@@ -480,6 +480,36 @@ TokenList *tokenizer(char *input, Lexer *l) {
     return list;
 }
 
+char *include_files(char *input) {
+
+    // if the input contains #include, we include the file
+    char *final = (char *)calloc(strlen(input) + 1, sizeof(char));
+    if (final == NULL) {
+        printf("[ERROR][LEXER]: Cannot allocate memory for final\n");
+        return NULL;
+    }
+
+    char *temp = (char *)calloc(strlen(input) + 1, sizeof(char));
+    if (temp == NULL) {
+        printf("[ERROR][LEXER]: Cannot allocate memory for temp\n");
+        return NULL;
+    }
+    strcpy(temp, input);
+
+    char *line = strtok(temp, token_type_to_str(TOKEN_SEMICOLON));
+    while (line != NULL) {
+        if (strstr(line, token_type_to_str(TOKEN_PREPROCESSEUR_INCLUDE)) != NULL) {
+            printf("%s\n", line);
+        } else {
+            strcat(final, line);
+        }
+
+        line = strtok(NULL, token_type_to_str(TOKEN_SEMICOLON));
+    }
+
+    return final;
+}
+
 char *read_file(char *filename) {
     // We read the file and output a single char *
     FILE *file = fopen(filename, "r");

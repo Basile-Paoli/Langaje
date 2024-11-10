@@ -1,4 +1,3 @@
-def int a = 1;
+#include "test2.txt";
 
-def string texte = "string not formated {a}.";
-def string texteForm = f"string formated {a}.";
+def string text = f"Value imported from other file {a}.";
