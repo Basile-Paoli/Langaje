@@ -1,4 +1,4 @@
-def int a = 1;
-
-def string texte = "string not formated {a}.";
-def string texteForm = f"string formated {a}.";
+def int a = 0;
+while(a < 1000000){
+    a++;
+}
