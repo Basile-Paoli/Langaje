@@ -23,7 +23,12 @@ Lexer *new_lexer() {
     add_lexer_rule(l, new_lexer_rule("#include", TOKEN_PREPROCESSEUR_INCLUDE)) +
     add_lexer_rule(l, new_lexer_rule("[0-9]+\\.[0-9]+", TOKEN_FLOAT)) +
     add_lexer_rule(l, new_lexer_rule("[0-9]+", TOKEN_INT)) +
-    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\"", TOKEN_STRING))
+    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\"", TOKEN_STRING)) + 
+    add_lexer_rule(l, new_lexer_rule("@memoryDump", TOKEN_MEMORY_DUMP)) +
+    add_lexer_rule(l, new_lexer_rule("@cli", TOKEN_CLI_MODE)) + 
+    add_lexer_rule(l, new_lexer_rule("@breakPoint", TOKEN_BREAKPOINT)) +
+    add_lexer_rule(l, new_lexer_rule("//[^\n]*", TOKEN_COMMENT)) + 
+    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/", TOKEN_COMMENT))
     != 0) {
         printf("[ERROR][LEXER]: Cannot add default rules\n");
         return NULL;
@@ -240,6 +245,12 @@ TokenList *tokenizer(char *input, Lexer *l) {
         }
 
         if (matchFound) {
+
+            // If the match is a comment, we skip it
+            if (l->rules[ruleIndex].type == TOKEN_COMMENT) {
+                i += matchEndIndex;
+                continue;
+            }
                 
             // We copy the matched string
             char *buffer = (char *)calloc(matchEndIndex, sizeof(char));

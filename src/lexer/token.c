@@ -190,7 +190,12 @@ char *token_type_to_str(TokenType type) {
         [TOKEN_COMMA                ] = "COMMA",
         [TOKEN_SEMICOLON            ] = "SEMICOLON",
 
-        [TOKEN_UNKNOWN              ] = "UNKNOWN"
+        [TOKEN_MEMORY_DUMP          ] = "MEMORY_DUMP",
+        [TOKEN_CLI_MODE             ] = "CLI_MODE",
+        [TOKEN_BREAKPOINT           ] = "BREAKPOINT",
+
+        [TOKEN_UNKNOWN              ] = "UNKNOWN",
+        [TOKEN_COMMENT              ] = "COMMENT"
 
     };
 
