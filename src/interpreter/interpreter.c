@@ -499,7 +499,7 @@ void displayHashmap(hmStack* stack, error* err){
                 printf("\t");
             }
             printf("%s : ",iterator.key);
-            display((var*)iterator.value,err);
+            display((var*)iterator.value,err,0);
         }
 
     }
@@ -511,7 +511,7 @@ void debug(char key[][255], int arrSize, hmStack* stack, error *err){
     for(int i = 0; i < arrSize; i++){
         if(isInStackDownwards(stack,key[i]) > -1){
             printf("VALUE OF %s : ",key[i]);
-            display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]), err);
+            display((var*)hm_get(stack->stack[isInStackDownwards(stack,key[i])],key[i]), err,0);
             
         }   
     }

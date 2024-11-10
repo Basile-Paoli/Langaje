@@ -189,13 +189,15 @@ void destroyVar(var* v){
  */
 
 
-void display(var* v, error *err) {
+void display(var* v, error *err, int indentLevel) {
     if (v == NULL) {
         err->value = ERR_NOT_FOUND;
         assignErrorMessage(err, "Null variable error");
         return;
     }
-
+    for(int i = 0; i < indentLevel; i++){
+        printf("\t");
+    }
     switch (v->type) {
         case _int:
             printf("%d\n", v->value._int);
@@ -214,7 +216,7 @@ void display(var* v, error *err) {
                 if(v->value._array->values[i].type == _array){
                     printf("\nSubarray :%d\n",i);
                 }
-                display(&v->value._array->values[i], err);
+                display(&v->value._array->values[i], err, 1);
                 
             }
             break;
