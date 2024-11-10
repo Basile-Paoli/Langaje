@@ -10,6 +10,8 @@
 #include "../lexer/token.h"
 #include "../errors/errors.h"
 
+initType parseType(TokenList *tokenList, int *currentToken, error *err);
+
 astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentTokrn, error *err);
 
 astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err);

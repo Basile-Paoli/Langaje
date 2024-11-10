@@ -5,11 +5,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 #include "parser.h"
 #include "var_declaration.h"
 #include "expression.h"
 #include "condition.h"
 #include "loop.h"
+#include "function_declaration.h"
 
 
 InstructionBlock *parse(TokenList *tokenList, error *err) {
@@ -68,20 +70,33 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
 
     Token first = tokenList->tokens[*currentToken];
 
-    if (first.type == TOKEN_DEF) {
-        return parseVarDeclarationInstruction(tokenList, currentToken, err);
-    }
-    if (first.type == TOKEN_IF) {
-        return parseIfInstruction(tokenList, currentToken, err);
-    }
-    if (first.type == TOKEN_WHILE) {
-        return parseWhileInstruction(tokenList, currentToken, err);
-    }
-    if (first.type == TOKEN_FOR) {
-        return parseForInstruction(tokenList, currentToken, err);
-    }
+    switch (first.type) {
+        case TOKEN_DEF:
+            return parseVarDeclarationInstruction(tokenList, currentToken, err);
+        case TOKEN_IF:
+            return parseIfInstruction(tokenList, currentToken, err);
+        case TOKEN_WHILE:
+            return parseWhileInstruction(tokenList, currentToken, err);
+        case TOKEN_FOR:
+            return parseForInstruction(tokenList, currentToken, err);
+        case TOKEN_BREAK:
+            return parseBreakInstruction(tokenList, currentToken, err);
+        case TOKEN_CONTINUE:
+            return parseContinueInstruction(tokenList, currentToken, err);
+        case TOKEN_FUNCTION_DECLARATION:
+            return parseFunctionDeclaration(tokenList, currentToken, err);
+        case TOKEN_FUNCTION_RETURN:
+            return parseReturnInstruction(tokenList, currentToken, err);
+        case TOKEN_BREAKPOINT:
+            ++*currentToken;
+            return newBreakpointNode();
+        case TOKEN_MEMORY_DUMP:
+            ++*currentToken;
+            return newMemoryDumpNode();
 
-    return parseExpressionInstruction(tokenList, currentToken, err);
+        default:
+            return parseExpressionInstruction(tokenList, currentToken, err);
+    }
 }
 
 

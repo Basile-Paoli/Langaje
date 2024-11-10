@@ -19,7 +19,7 @@ void *endOfInputError(error *err) {
  * assignErrorMessage(err, "enter message");
  *
  * */
-int assignErrorMessage(error *err, char *msg){
+int assignErrorMessage(error *err, char *msg) {
     err->message = malloc(strlen(getNameTypeError(err->value)) + strlen(msg) + 1);
     strcpy(err->message, getNameTypeError(err->value));
     strcat(err->message, msg);
@@ -30,7 +30,7 @@ int assignErrorMessage(error *err, char *msg){
 /*
  * Get the name of the error with the index of enum
  */
-char* getNameTypeError(errorValue error){
+char *getNameTypeError(errorValue error) {
     switch (error) {
         case ERR_SYNTAX:
             return "Syntax error: ";

@@ -95,6 +95,24 @@ astNode *newForNode(char *variable, astNode **children, int childrenCount) {
     return node;
 }
 
+
+astNode *newBreakNode() {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = BREAK;
+    node->children = NULL;
+    node->childrenCount = 0;
+    return node;
+}
+
+astNode *newContinueNode() {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = CONTINUE;
+    node->children = NULL;
+    node->childrenCount = 0;
+    return node;
+}
+
+
 astNode *newArrayNode(int size, astNode **values) {
     astNode *node = malloc(sizeof(astNode));
     node->type = ARRAY;
@@ -103,6 +121,70 @@ astNode *newArrayNode(int size, astNode **values) {
     return node;
 }
 
+astNode *newFunctionCallNode(char *name, astNode **arguments, int argumentsCount) {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = FUNCTION_CALL;
+    node->value.functionCall.name = strdup(name);
+    node->children = arguments;
+    node->childrenCount = argumentsCount;
+    return node;
+}
+
+
+astNode *newFunctionDeclarationNode(
+        char *name,
+        functionParameter *parameters,
+        int parameterCount,
+        int voidReturn,
+        initType returnType,
+        astNode *block
+) {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = FUNCTION_DECLARATION;
+    node->value.functionDeclaration.name = strdup(name);
+    node->value.functionDeclaration.parameters = parameters;
+    node->value.functionDeclaration.parametersCount = parameterCount;
+    node->value.functionDeclaration.voidReturn = voidReturn;
+    node->value.functionDeclaration.returnType = returnType;
+    node->children = malloc(sizeof(astNode *));
+    node->children[0] = block;
+    node->childrenCount = 1;
+    return node;
+}
+
+astNode *newEmptyReturnNode() {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = RETURN;
+    node->children = NULL;
+    node->childrenCount = 0;
+    return node;
+}
+
+astNode *newReturnValueNode(astNode *value) {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = RETURN;
+    node->children = malloc(sizeof(astNode *));
+    node->children[0] = value;
+    node->childrenCount = 1;
+    return node;
+}
+
+
+astNode *newMemoryDumpNode() {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = MEMORY_DUMP;
+    node->children = NULL;
+    node->childrenCount = 0;
+    return node;
+}
+
+astNode *newBreakpointNode() {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = BREAKPOINT;
+    node->children = NULL;
+    node->childrenCount = 0;
+    return node;
+}
 
 void freeAstNode(astNode *node) {
     if (node == NULL) return;
@@ -182,6 +264,28 @@ void printType(initType type) {
     }
 }
 
+void printFunctionDeclaration(astNode *node) {
+    printf("Function declaration: %s\n", node->value.functionDeclaration.name);
+    for (int i = 0; i < node->value.functionDeclaration.parametersCount; i++) {
+        for (int j = 0; j < PRINT_SPACE; j++) {
+            printf(" ");
+        }
+        printf("Parameter %d: %s ", i, node->value.functionDeclaration.parameters[i].name);
+        printType(node->value.functionDeclaration.parameters[i].type);
+        printf("\n");
+    }
+    for (int i = 0; i < PRINT_SPACE; i++) {
+        printf(" ");
+    }
+    if (node->value.functionDeclaration.voidReturn) {
+        printf("Return type: void\n");
+    } else {
+        printf("Return type: ");
+        printType(node->value.functionDeclaration.returnType);
+        printf("\n");
+    }
+}
+
 void printAstNode(astNode *node, int depth) {
     for (int i = 0; i < depth * PRINT_SPACE; i++) {
         printf(" ");
@@ -219,10 +323,31 @@ void printAstNode(astNode *node, int depth) {
         case FOREACH_LOOP:
             printf("Foreach %s\n", node->value.variable);
             break;
+        case BREAK:
+            printf("Break\n");
+            break;
+        case CONTINUE:
+            printf("Continue\n");
+            break;
         case ARRAY:
             printf("Array\n");
             break;
-
+        case FUNCTION_CALL:
+            printf("Function call: %s\n", node->value.functionCall.name);
+            break;
+        case FUNCTION_DECLARATION: {
+            printFunctionDeclaration(node);
+            break;
+        }
+        case RETURN:
+            printf("Return\n");
+            break;
+        case BREAKPOINT:
+            printf("Breakpoint\n");
+            break;
+        case MEMORY_DUMP:
+            printf("Memory dump\n");
+            break;
     }
 }
 

@@ -149,12 +149,12 @@ Token *new_Token(TokenType type, char *value, int line, int column) {
 }
 
 int add_Token(TokenList *tl, Token *t) {
-    tl->tokens = (Token *)realloc(tl->tokens, (tl->nb_tokens + 1) * sizeof(Token));
+    tl->tokens = (Token *) realloc(tl->tokens, (tl->nb_tokens + 1) * sizeof(Token));
     if (tl->tokens == NULL) {
         printf("[ERROR][TOKEN]: Cannot allocate memory for token\n");
         return 1;
     }
-    
+
     tl->tokens[tl->nb_tokens++] = *t;
 
     return 0;
@@ -186,6 +186,8 @@ TokenType str_to_token_type(char *input) {
     else if (strcmp(input, "TOKEN_FOR") == 0) return TOKEN_FOR;
     else if (strcmp(input, "TOKEN_FOREACH") == 0) return TOKEN_FOREACH;
     else if (strcmp(input, "TOKEN_IN") == 0) return TOKEN_IN;
+    else if (strcmp(input, "TOKEN_BREAK") == 0) return TOKEN_BREAK;
+    else if (strcmp(input, "TOKEN_CONTINUE") == 0) return TOKEN_CONTINUE;
 
     else if (strcmp(input, "TOKEN_PREPROCESSEUR_LANG") == 0) return TOKEN_PREPROCESSEUR_LANG;
     else if (strcmp(input, "TOKEN_PREPROCESSEUR_INCLUDE") == 0) return TOKEN_PREPROCESSEUR_INCLUDE;

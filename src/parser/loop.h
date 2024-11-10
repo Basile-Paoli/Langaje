@@ -9,4 +9,8 @@ astNode *parseWhileInstruction(TokenList *tokenList, int *currentToken, error *e
 
 astNode *parseForInstruction(TokenList *tokenList, int *currentToken, error *err);
 
+astNode *parseBreakInstruction(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parseContinueInstruction(TokenList *tokenList, int *currentToken, error *err);
+
 #endif //LANGAJE_LOOP_H
