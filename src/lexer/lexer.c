@@ -21,8 +21,8 @@ Lexer *new_lexer() {
     if (
     add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+"               , TOKEN_PREPROCESSEUR_LANG)) +
     add_lexer_rule(l, new_lexer_rule("#include"                     , TOKEN_PREPROCESSEUR_INCLUDE)) +
-    add_lexer_rule(l, new_lexer_rule("[0-9]+\\.[0-9]+"              , TOKEN_FLOAT)) +
-    add_lexer_rule(l, new_lexer_rule("[0-9]+"                       , TOKEN_INT)) +
+    add_lexer_rule(l, new_lexer_rule("[0-9_]+\\.[0-9_]+"              , TOKEN_FLOAT)) +
+    add_lexer_rule(l, new_lexer_rule("[0-9_]+"                       , TOKEN_INT)) +
     add_lexer_rule(l, new_lexer_rule("\"[^\"]*\""                   , TOKEN_STRING)) + 
     add_lexer_rule(l, new_lexer_rule("f\"[^\"]*\""                  , TOKEN_FORMATTED_STRING)) +
     add_lexer_rule(l, new_lexer_rule("@memoryDump"                  , TOKEN_MEMORY_DUMP)) +
@@ -349,6 +349,26 @@ TokenList *replaceSugar(TokenList *tl, Lexer *l) {
                     memmove(buffer + j + 2, buffer + j + 1, strlen(buffer) - j);
                     buffer[j + 1] = '"';
                 }
+            }
+            TokenList *tempTokenList = tokenizer(buffer, l);
+            if (tempTokenList == NULL) return NULL;
+
+            tl = insertTokenListIntoTokenList(
+                tl,
+                tempTokenList,
+                i
+            );
+
+            tl = removeNTokenFromTokenList(tl, i + tempTokenList->nb_tokens, 1);
+        } else if (tl->tokens[i].type == TOKEN_INT || tl->tokens[i].type == TOKEN_FLOAT) {
+            char *buffer = calloc(strlen(tl->tokens[i].value) + 1, sizeof(char));
+            if (buffer == NULL) {
+                printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+                return NULL;
+            }
+            size_t k = 0;
+            for (int j = 0; j < strlen(tl->tokens[i].value); j++) {
+                if (tl->tokens[i].value[j] != '_') buffer[k++] = tl->tokens[i].value[j];
             }
             TokenList *tempTokenList = tokenizer(buffer, l);
             if (tempTokenList == NULL) return NULL;
