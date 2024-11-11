@@ -330,25 +330,25 @@ int initializeValueInHM(astNode* node,hmStack* stack, error *err){
 
 }
 
-int runWhileLoop(astNode* node,hmStack* stack,error* err){
+int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,error* err){
     astNode condition = *node->children[0];
 
     InstructionBlock instructions = *(node->children[1]->value.block);
     astNode* result;
 
-    result = computeNode(&condition,stack,err);
+    result = computeNode(&condition,stack,functionMap, err);
     int shouldContinue = result->value.value.value._int;
     while(shouldContinue == 1){
         hm* hashmap = hm_create();
         hmStackPush(stack,hashmap);
-        if(runInstructionBlock(&instructions,stack,err) == 1){
+        if(runInstructionBlock(&instructions,stack,functionMap,err) == 1){
             printf("%s\n", err->message);
             hmStackPop(stack);
             return 1;
         }
         hmStackPop(stack);
         condition = *(node->children[0]);
-        result = computeNode(&condition,stack,err);
+        result = computeNode(&condition,stack,functionMap,err);
         shouldContinue = result->value.value.value._int;
     }
 }
@@ -357,7 +357,7 @@ int runWhileLoop(astNode* node,hmStack* stack,error* err){
 /**
  * Run for loop condition
  */
-int runForLoop(astNode *node, hmStack *stack, error *err) {
+int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
     //Copy instruction block to run 
     InstructionBlock instructions = *(node->children[node->childrenCount-1]->value.block);
 
@@ -370,18 +370,18 @@ int runForLoop(astNode *node, hmStack *stack, error *err) {
     newVar->value._int = 0;
     //If we have more than 2 children, compute the start value
     if(node->childrenCount > 2){
-        newVar->value._int = computeNode(node->children[0],stack,err)->value.value.value._int;
+        newVar->value._int = computeNode(node->children[0],stack,functionMap,err)->value.value.value._int;
     }
     hm_set(stack->stack[stack->length-1],node->value.variable,newVar);
     int hmIndex = stack->length-1;
     
     //If we have 4 children, means we have a different increment value
     if(node->childrenCount == 4){
-        incrementValue = computeNode(node->children[node->childrenCount-2],stack,err)->value.value.value._int;
+        incrementValue = computeNode(node->children[node->childrenCount-2],stack,functionMap,err)->value.value.value._int;
     }
     //Ternary to know which child to select
     astNode conditionNode = node->childrenCount == 4 ? *node->children[node->childrenCount-3] : *node->children[node->childrenCount-2];
-    int conditionValue = computeNode(&conditionNode,stack,err)->value.value.value._int;
+    int conditionValue = computeNode(&conditionNode,stack,functionMap,err)->value.value.value._int;
      
     
     int loopIndexValue = newVar->value._int;
@@ -391,14 +391,14 @@ int runForLoop(astNode *node, hmStack *stack, error *err) {
     if(loopIndexValue > conditionValue){
         while (loopIndexValue > conditionValue) {
             
-            runInstructionBlock(&instructions, stack, err);
+            runInstructionBlock(&instructions, stack, functionMap,err);
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
         }
     } else {
         while (loopIndexValue < conditionValue) {
-            runInstructionBlock(&instructions, stack, err);
+            runInstructionBlock(&instructions, stack, functionMap,err);
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
@@ -411,6 +411,27 @@ int runForLoop(astNode *node, hmStack *stack, error *err) {
 
 
 
+int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
+    functionDeclarationNode fun = node->value.functionDeclaration;
+    if((struct function*)hm_get(functionMap,fun.name) != NULL){
+        err->value = ERR_ALREADY_EXISTS;
+        assignErrorMessage(err,sprintf("Function redefinition : %s", fun.name));
+        return 0;
+    }
+    function* funTmp = malloc(sizeof(function));
+    funTmp->name = malloc((strlen(fun.name) + 1) * sizeof(char));
+    strcpy(funTmp->name,strdup(fun.name));
+    funTmp->parameters = fun.parameters;
+    funTmp->parametersCount = fun.parametersCount;
+
+    funTmp->type = fun.returnType.type;
+    funTmp->voidReturn = fun.voidReturn;
+    funTmp->instructions = node->children[0]->value.block;
+
+    hm_set(functionMap, fun.name, funTmp);
+
+    return 1;
+}
 
 
 /**
@@ -419,7 +440,7 @@ int runForLoop(astNode *node, hmStack *stack, error *err) {
 * Call a new runInstructionBlock if a block of code is found in the AST.
 */
 
-astNode* computeNode(astNode* node, hmStack* stack, error *err){
+astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err){
     if(node->childrenCount == 0 && node->type != INITIALIZATION){
         return node; //Send the whole node back
     }   
@@ -436,7 +457,7 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
             if(node->children[i]->type == BLOCK){
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
-                runInstructionBlock(node->children[i]->value.block, stack, err);
+                runInstructionBlock(node->children[i]->value.block, stack, functionMap,err);
                 hmStackPop(stack);
 
             }
@@ -447,20 +468,20 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
                 
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
-                runInstructionBlock(node->children[i]->value.block, stack, err);
+                runInstructionBlock(node->children[i]->value.block, stack, functionMap,err);
                 hmStackPop(stack);
 
             }
 
             i+=1;
         } else if(node->type == WHILE_LOOP){
-            runWhileLoop(node,stack,err);
+            runWhileLoop(node,stack,functionMap,err);
             break;
         } else if(node->type == FOR_LOOP){
-            runForLoop(node,stack,err);
+            runForLoop(node,stack,functionMap,err);
             break;
         } else{
-            values[i] = computeNode(node->children[i], stack, err);
+            values[i] = computeNode(node->children[i], stack,functionMap, err);
         }
     }
     if(node->type == INITIALIZATION){
@@ -472,6 +493,10 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
         return calculateNode(values, node, stack, valuesAmount, err);
         free(values);
        return node;
+    } else if (node->type == FUNCTION_DECLARATION){
+        declareFunction(node,stack,functionMap,err);
+    } else if (node->type == FUNCTION_CALL) {
+        return node;
     } else {
         return node;
     }
@@ -484,10 +509,10 @@ astNode* computeNode(astNode* node, hmStack* stack, error *err){
 * After the run, pop the hashmap on top of the stack.
 */
 
-int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
+int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionMap, error *err){
     
     for(int i = 0; i < program->instructionsCount; i++){
-        computeNode(program->instructions[i], stack, err);
+        computeNode(program->instructions[i], stack, functionMap,err);
         // Stop computing if there's an error
         if(err->value != ERR_SUCCESS)
             return 1;
@@ -495,7 +520,8 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, error *err){
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
-    displayHashmap(stack,err);
+    //displayHashmap(stack,err);
+    displayFunctionMap(functionMap,err);
     return 0;
 }
 
@@ -531,6 +557,19 @@ void displayHashmap(hmStack* stack, error* err){
     printf("-------------------END OF MEMORY DUMP-------------------\n");
 }
 
+void displayFunctionMap(hm* functionMap, error* err){
+    hmi iterator = hm_iterator(functionMap);
+    printf("----------------------FUNCTION MAP DUMP-----------------------\n");
+    while(hm_next(&iterator) == 1){
+        printf("%s : %s\n",((function*)iterator.value)->name, getVarTypeName(((function*)iterator.value)->type));
+        for(int i = 0; i < ((function*)iterator.value)->parametersCount; i++){
+            printf("Parameter %d: %s %s\n",i,((function*)iterator.value)->parameters[i].name, getVarTypeName(((function*)iterator.value)->parameters[i].type.type));
+        }
+        printInstructionBlock(((function*)iterator.value)->instructions,0);
+        printf("\n");
+    }
+    printf("-------------------END OF FUNCTION MAP DUMP-------------------\n");
+}
 
 void debug(char key[][255], int arrSize, hmStack* stack, error *err){
     for(int i = 0; i < arrSize; i++){

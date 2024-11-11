@@ -45,6 +45,20 @@ void hm_free(hm* hashtable){
     free(hashtable);
 }
 
+/**
+ * Function to destroy HM FOR FUNCTIONS NOT VARS
+ */
+void hm_functions_free(hm* functionMap){
+    for(int i = 0; i < functionMap->capacity; i++){
+        if (functionMap->entries[i].value != NULL) {
+            destroyFunction((struct function*)functionMap->entries[i].value);
+        }
+        free((void*)functionMap->entries[i].key);
+    }
+
+    free(functionMap->entries);
+    free(functionMap);
+}
 
 /**
 * Function that hases the value and returns it on a 64bit unsigned integer
