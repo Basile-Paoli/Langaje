@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
         return 1;
     }
     printInstructionBlock(pr, 0);
-
+    
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
     error err_run;
@@ -86,9 +86,13 @@ int main(int argc, char **argv) {
     //Push base hm
     hm* hashmap = hm_create();
     hmStackPush(stack,hashmap);
-    int runInstructionResult = runInstructionBlock(pr, stack, &err_run);
-    displayHashmap(stack, &err);
+
+    hm* functionMap = hm_create();
+
+    int runInstructionResult = runInstructionBlock(pr, stack, functionMap, &err_run);
+    //displayHashmap(stack, &err);
     hmStackPop(stack);
+    hm_functions_free(functionMap);
     end = clock();
 
     cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;

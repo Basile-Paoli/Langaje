@@ -31,6 +31,7 @@ int cliMode(Lexer *l) {
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
     hm* hashmap = hm_create();
     hmStackPush(stack, hashmap);
+    hm* functionMap = hm_create();
 
     int nbParenthesis = 0;
     int nbBracket = 0;
@@ -90,7 +91,7 @@ int cliMode(Lexer *l) {
             }
 
 
-            if (runInstructionBlock(pr, stack, &err)) {
+            if (runInstructionBlock(pr, stack, functionMap, &err)) {
                 printf("[RUNTIME][ERROR]: %s\n", err.message);
                 return 1;
             }
@@ -106,6 +107,8 @@ int cliMode(Lexer *l) {
 
     hmStackPop(stack);
     hmStackDestroy(stack);
+    hm_functions_free(functionMap);
+
 
     return 0;
 
