@@ -183,6 +183,13 @@ void destroyVar(var* v){
     }
 }
 
+void destroyFunction(function* f){
+    if(f != NULL){
+        free(f->name);
+        free(f);
+    }
+}
+
 /**
  * @brief Display the value based on the type
  * @param v Pointer to a `var` structure.
@@ -314,6 +321,6 @@ char* getVarTypeName(varType type){
         case _array:
             return "array";
         default:
-            return "error";
+            return "void";
     }
 }
