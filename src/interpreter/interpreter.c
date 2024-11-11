@@ -487,7 +487,6 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     if(node->childrenCount == 0 && node->type != INITIALIZATION){
         return node; //Send the whole node back
     }   
-    if(node == NULL) return NULL;
 
     astNode** values = malloc(sizeof(astNode*) * node->childrenCount + 1);
     int valuesAmount = 0;
@@ -528,6 +527,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
             values[i] = computeNode(node->children[i], stack,functionMap, err);
         }
     }
+    
     if(node->type == INITIALIZATION){
         initializeValueInHM(node, stack, err);
         return node;
@@ -546,6 +546,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     } else if (node->type == FUNCTION_CALL) {
         return runFunction(node, stack, functionMap, err);
     } else if(node->type == RETURN){
+        printf("__RETURNING__\n");
         //IF VOID RETURN DONT DO THAT WHEN BASILE HAVE FIXED TODO
         var* returnValue = malloc(sizeof(var));
         if(values[0]->type == VARIABLE){
@@ -573,7 +574,9 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
 int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionMap, error *err){
     
     for(int i = 0; i < program->instructionsCount; i++){
-        computeNode(program->instructions[i], stack, functionMap,err);
+        if(computeNode(program->instructions[i], stack, functionMap,err) == NULL){
+            return 0;
+        };
         // Stop computing if there's an error
         if(err->value != ERR_SUCCESS)
             return 1;

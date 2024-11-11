@@ -1,4 +1,18 @@
 #include "test2.txt";
 a=a+b;
 }
+<<<<<<< HEAD
 a=a+a;
+=======
+
+func test(int a, int b) {
+    def int mm = a+b;
+    return 1;
+    return mm;
+}
+
+def int z = 3;
+def int c = 32;
+
+def int m = test(z,c);
+>>>>>>> 023e2a5 (Early return)
