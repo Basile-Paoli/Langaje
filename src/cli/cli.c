@@ -199,6 +199,8 @@ int cliMode(Lexer *l) {
 
     hmStackPop(stack);
     hmStackDestroy(stack);
+    hm_functions_free(functionMap);
+
 
     return 0;
 

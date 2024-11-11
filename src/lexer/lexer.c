@@ -460,7 +460,7 @@ TokenList *tokenizer(char *input, Lexer *l) {
             strncpy(buffer, input + matchStartIndex, matchEndIndex);
 
             // Create the token
-            Token *t = new_Token(l->rules[ruleIndex].type, buffer, nbLine, matchStartIndex);
+            Token *t = new_Token(l->rules[ruleIndex].type, buffer, nbLine, nbColon);
             if (t == NULL) {
                 printf("[ERROR][LEXER]: Cannot allocate memory for token\n");
                 return NULL;

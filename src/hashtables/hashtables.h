@@ -60,6 +60,7 @@ int hmStackPush(hmStack* stack, hm* map);
 int hmStackPop(hmStack* stack);
 int hmStackExpand(hmStack* stack);
 int hmStackDestroy(hmStack* stack);
+void hm_functions_free(hm* functionMap);
 int isInStackUpwards(hmStack* stack, char* key);
 int isInStackDownwards(hmStack* stack, char* key);
 
