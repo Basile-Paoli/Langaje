@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <termios.h>
 #include <unistd.h>
@@ -13,6 +14,12 @@
 
 #define MAX_INPUT 1024
 #define BASE_MEMORY_STACK_SIZE 16
+
+typedef enum {
+    PARENTHESES,
+    BRACKETS,
+    CURLY_BRACKETS
+} BracketType;
 
 void enableRawMode(struct termios *orig_termios) {
     struct termios raw = *orig_termios;
@@ -75,6 +82,7 @@ int cliMode(Lexer *l) {
     enableRawMode(&orig_termios);
 
     char input[MAX_INPUT] = {0};
+    char final_input[MAX_INPUT] = {0};
     int cursor_pos = 0;
     int len = 0;
     
@@ -83,6 +91,8 @@ int cliMode(Lexer *l) {
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
     hm* hashmap = hm_create();
     hmStackPush(stack, hashmap);
+
+    int nb_brackets[3] = {0};
 
     while (1) {
         char c = getchar();
@@ -95,12 +105,51 @@ int cliMode(Lexer *l) {
                 case 'D': // Left arrow
                     if (cursor_pos > 0) cursor_pos--;
                     break;
+                case 'A': // Up arrow
+                case 'B': // Down arrow
+                    break;
             }
         } else if (c == 10) { // Enter key
             if (len == 0) {
                 printf("\n>>> ");
                 continue;
             }
+
+            // foreach char, we count the number of brackets
+            for (int i = 0; i < len; i++) {
+                if (input[i] == '(') nb_brackets[PARENTHESES]++;
+                if (input[i] == ')') nb_brackets[PARENTHESES]--;
+                if (input[i] == '[') nb_brackets[BRACKETS]++;
+                if (input[i] == ']') nb_brackets[BRACKETS]--;
+                if (input[i] == '{') nb_brackets[CURLY_BRACKETS]++;
+                if (input[i] == '}') nb_brackets[CURLY_BRACKETS]--;
+            }
+
+            // Check if there are any unclosed brackets
+            int unclosed_brackets = 0;
+            for (int i = 0; i < 3; i++) {
+                unclosed_brackets += nb_brackets[i];
+            }
+
+            if (unclosed_brackets > 0) {
+                strcat(final_input, input);
+                strcat(final_input, "\n");
+                input[0] = 0;
+                len = 0;
+                cursor_pos = 0;
+                for (int i = 0; i < MAX_INPUT; i++) {
+                    input[i] = 0;
+                }
+                printf("\n>>> ");
+                continue;
+            } else {
+                strcat(final_input, input);
+                strcpy(input, final_input);
+                memset(final_input, 0, sizeof(final_input));
+                len = strlen(input);
+            }
+
+
             input[len] = '\0';
             if (strcmp(input, "@exit") == 0) break;
             if (runCode(input, l, stack)) { // If an error occurred
