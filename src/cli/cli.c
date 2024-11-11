@@ -1,3 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <termios.h>
+#include <unistd.h>
+
 #include "../lexer/token.h"
 #include "../lexer/lexer.h"
 
@@ -6,8 +11,57 @@
 
 #include "../interpreter/interpreter.h"
 
-
+#define MAX_INPUT 1024
 #define BASE_MEMORY_STACK_SIZE 16
+
+void enableRawMode(struct termios *orig_termios) {
+    struct termios raw = *orig_termios;
+    raw.c_lflag &= ~(ECHO | ICANON);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+}
+
+void disableRawMode(struct termios *orig_termios) {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, orig_termios);
+}
+
+void printPrompt(const char *input, int cursor_pos) {
+    printf("\r\033[K>>> %s", input); // Clear the line before printing
+    printf("\033[%dG", cursor_pos + 5); // Move cursor to the correct position
+    fflush(stdout);
+}
+
+int runCode(char *input, Lexer *l, hmStack *stack) {
+    // Tokenize the input
+    TokenList *tl = tokenizer(input, l);
+    if (tl == NULL) return 1;
+
+    tl = replaceSugar(tl, l);
+    if (tl == NULL) return 1;
+
+    error err;
+    err.value = ERR_SUCCESS;
+    InstructionBlock *pr = parse(tl, &err);
+    if (err.value == ERR_END_OF_INPUT) {
+        printf("...");
+        return 0;
+    }
+
+    if (err.value != ERR_SUCCESS) {
+        printf("[PARSER][ERROR]: %s\n", getNameTypeError(err.value));
+        printf("[PARSER][ERROR]: %s\n", err.message);
+        return 1;
+    }
+
+
+    if (runInstructionBlock(pr, stack, &err)) {
+        printf("[RUNTIME][ERROR]: %s\n", err.message);
+        return 1;
+    }
+
+    //free_tokenList(tl);
+
+    return 0;
+}
 
 int cliMode(Lexer *l) {
 
@@ -16,89 +70,79 @@ int cliMode(Lexer *l) {
     // We read the lang file
     if (readLexerFile(l, langFile) != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
 
-    // In cli mode
-    printf("Welcome to the CLI mode of the language\n");
-    printf("Type '@exit' to stop the program\n");
-    printf(">>>");
+    struct termios orig_termios;
+    tcgetattr(STDIN_FILENO, &orig_termios);
+    enableRawMode(&orig_termios);
 
-    char *input = (char *)calloc(1, sizeof(char));
-    if (input == NULL) {printf("[ERROR][MAIN]: Error while creating input"); return 1;}
-
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
+    char input[MAX_INPUT] = {0};
+    int cursor_pos = 0;
+    int len = 0;
+    
+    printf(">>> ");
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
     hm* hashmap = hm_create();
     hmStackPush(stack, hashmap);
 
-    int nbParenthesis = 0;
-    int nbBracket = 0;
-    int nbCurlyBracket = 0;
-
-    char *curLine = (char *)calloc(1, sizeof(char));
-
-    while ((read = getline(&line, &len, stdin)) != -1) {
-
-        if (strcmp(line, "@exit\n") == 0) break; // Break the loop
-
-        curLine = (char *)realloc(curLine, (strlen(curLine) + strlen(line) + 1) * sizeof(char));
-        if (curLine == NULL) {printf("[ERROR][MAIN]: Error while reallocating curLine"); return 1;}
-        strcat(curLine, line);
-
-        // If the user types a line with a parenthesis, a bracket or a curly bracket, we increment the corresponding variable
-        for (int i = 0; i < strlen(line); i++) {
-            if (line[i] == '(') nbParenthesis++;
-            if (line[i] == ')') nbParenthesis--;
-            if (line[i] == '[') nbBracket++;
-            if (line[i] == ']') nbBracket--;
-            if (line[i] == '{') nbCurlyBracket++;
-            if (line[i] == '}') nbCurlyBracket--;
-        }
-
-        if (nbParenthesis != 0 || nbBracket != 0 || nbCurlyBracket != 0) {
-            printf("...");
-            for (int i = 0; i < nbParenthesis + nbBracket + nbCurlyBracket; i++) printf("\t");
-            continue;
-        }
-
-        if (nbParenthesis == 0 && nbBracket == 0 && nbCurlyBracket == 0) {
-
-            do {
-                curLine = include_files(curLine);
-            } while (strstr(curLine, "#include") != NULL);
-
-            // Tokenize the input
-            TokenList *tl = tokenizer(curLine, l);
-            if (tl == NULL) return 1;
-
-            tl = replaceSugar(tl, l);
-            if (tl == NULL) return 1;
-
-            error err;
-            err.value = ERR_SUCCESS;
-            InstructionBlock *pr = parse(tl, &err);
-            if (err.value == ERR_END_OF_INPUT) {
-                printf("...");
+    while (1) {
+        char c = getchar();
+        if (c == 27) { // Escape sequence
+            getchar(); // Skip the '['
+            switch (getchar()) {
+                case 'C': // Right arrow
+                    if (cursor_pos < len) cursor_pos++;
+                    break;
+                case 'D': // Left arrow
+                    if (cursor_pos > 0) cursor_pos--;
+                    break;
+            }
+        } else if (c == 10) { // Enter key
+            if (len == 0) {
+                printf("\n>>> ");
                 continue;
             }
-
-            if (err.value != ERR_SUCCESS) {
-                printf("[PARSER][ERROR]: %s\n", getNameTypeError(err.value));
-                printf("[PARSER][ERROR]: %s\n", err.message);
-                return 1;
+            input[len] = '\0';
+            if (strcmp(input, "@exit") == 0) break;
+            if (runCode(input, l, stack)) { // If an error occurred
+                printf(">>> ");
+                continue;
             }
-
-
-            if (runInstructionBlock(pr, stack, &err)) {
-                printf("[RUNTIME][ERROR]: %s\n", err.message);
-                return 1;
+            len = 0;
+            cursor_pos = 0;
+            for (int i = 0; i < MAX_INPUT; i++) {
+                input[i] = 0;
             }
-
-            curLine = (char *)calloc(1, sizeof(char));
-            printf(">>>");
+            printf(">>> ");
+        } else if (c == 127) { // Backspace key
+            if (cursor_pos > 0) {
+                for (int i = cursor_pos - 1; i < len - 1; i++) {
+                    input[i] = input[i + 1];
+                }
+                input[--len] = '\0';
+                cursor_pos--;
+                printPrompt(input, cursor_pos);
+                continue;
+            }
+        } else if (c == 126) { // Delete key
+            if (cursor_pos < len) {
+                for (int i = cursor_pos; i < len - 1; i++) {
+                    input[i] = input[i + 1];
+                }
+                input[--len] = '\0';
+                printPrompt(input, cursor_pos);
+                continue;
+            }
+        } else {
+            for (int i = len; i > cursor_pos; i--) {
+                input[i] = input[i - 1];
+            }
+            input[cursor_pos++] = c;
+            len++;
         }
+        printPrompt(input, cursor_pos);
     }
+
+    disableRawMode(&orig_termios);
 
     error err;
     err.value = ERR_SUCCESS;
