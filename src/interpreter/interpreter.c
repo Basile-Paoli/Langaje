@@ -5,7 +5,7 @@
 * Raise error if the value doesn't exist
 */
 
-var subsituteValue(astNode* value, hmStack* stack, error *err){
+var* subsituteValue(astNode* value, hmStack* stack, error *err){
     int hmIndex = isInStackDownwards(stack,value->value.variable);
     
     if(hmIndex == -1){
@@ -20,8 +20,10 @@ var subsituteValue(astNode* value, hmStack* stack, error *err){
         printf("Value not found : %s\n",value->value.variable);
         
     } else {
-        var tmp = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
-    
+        var* tmp = malloc(sizeof(var));
+        var tmp2 = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
+        tmp->type = tmp2.type;
+        tmp->value = tmp2.value;
         return tmp;
     }
 
@@ -40,7 +42,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     int hasSubsituted = 0;
     var var1;
     if(values[0]->type == VARIABLE){   
-        var1 = subsituteValue(values[0],stack, err);
+        var1 = *subsituteValue(values[0],stack, err);
         hasSubsituted = 1;
     } else {
         var1 = values[0]->value.value;
@@ -48,7 +50,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     var var2;
     if(valuesAmount > 1){
         if(values[1]->type == VARIABLE){
-            var2 = subsituteValue(values[1],stack,err);
+            var2 = *subsituteValue(values[1],stack,err);
         } else {
             var2 = values[1]->value.value;
         }
@@ -283,7 +285,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
                 if(valueToAssign->type == VALUE){
                     var2var(tmp, &(valueToAssign->value.value), err);
                 } else {
-                    var tmpVar = subsituteValue(valueToAssign, stack, err);
+                    var tmpVar = *subsituteValue(valueToAssign, stack, err);
                     var2var(tmp, &(tmpVar), err);
                 }
                 
@@ -433,7 +435,48 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
     return 1;
 }
 
+astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
+    function* fun = (struct function*)hm_get(functionMap,node->value.functionCall.name);
+    if(fun == NULL){
+        printf("FUN NOT FOUND\n");
+        //Error binding doesnt work. need to fix ?
+        return NULL;
+    }
+    if(node->childrenCount < fun->parametersCount){
+        printf("__TOO FEW ARGS__\n");
+        //Too few args 
+        return NULL;
+    } else if (node->childrenCount > fun->parametersCount){
+        //Too many args
+        printf("__TOO MANY ARGS__\n");
+        return NULL;
+    }
 
+    hm* hashmap = hm_create();
+    hmStack* functionStack = hmStackCreate(1);
+    for(int i = 0; i < node->childrenCount; i++){
+        if(node->children[i]->type == VARIABLE){
+            var* tmp = malloc(sizeof(var));
+            tmp = subsituteValue(node->children[i], stack, err);
+            hm_set(hashmap, fun->parameters[i].name, tmp);        
+        } else {
+            hm_set(hashmap, fun->parameters[i].name , &node->children[i]->value.value);
+        }
+    }
+    
+    hmStackPush(functionStack,hashmap);
+    runInstructionBlock(fun->instructions, functionStack, functionMap, err);
+
+    var* returnValue = (var*)hm_get(hashmap, "!!$RETURNVALUE$!!");
+    astNode* tmpNode = malloc(sizeof(astNode));
+    tmpNode->value.value.type = returnValue->type;
+    tmpNode->value.value.value = returnValue->value;
+
+    hmStackPop(functionStack);
+    tmpNode->type = VALUE;
+    return tmpNode;
+
+}
 /**
 * Function that compute a node of the AST. 
 * Recursively call on each child of the node.
@@ -444,6 +487,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     if(node->childrenCount == 0 && node->type != INITIALIZATION){
         return node; //Send the whole node back
     }   
+    if(node == NULL) return NULL;
 
     astNode** values = malloc(sizeof(astNode*) * node->childrenCount + 1);
     int valuesAmount = 0;
@@ -488,6 +532,10 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
         initializeValueInHM(node, stack, err);
         return node;
     } else if((node->type == OPERATOR && node->value.operator == ASSIGNMENT)){
+        if(values[0] == NULL || values[1] == NULL){
+            //ERROR
+            return NULL;
+        }
         assignValueToHashmap(values[0], values[1], stack, err);
     } else if(node->type == OPERATOR && valuesAmount > 0){
         return calculateNode(values, node, stack, valuesAmount, err);
@@ -496,7 +544,20 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     } else if (node->type == FUNCTION_DECLARATION){
         declareFunction(node,stack,functionMap,err);
     } else if (node->type == FUNCTION_CALL) {
-        return node;
+        return runFunction(node, stack, functionMap, err);
+    } else if(node->type == RETURN){
+        //IF VOID RETURN DONT DO THAT WHEN BASILE HAVE FIXED TODO
+        var* returnValue = malloc(sizeof(var));
+        if(values[0]->type == VARIABLE){
+            returnValue = subsituteValue(values[0],stack,err);
+        } else {
+            returnValue->type = values[0]->value.value.type;
+            returnValue->value = values[0]->value.value.value;
+        }
+        
+
+        hm_set(stack->stack[stack->length-1], "!!$RETURNVALUE$!!", returnValue);
+        return NULL;
     } else {
         return node;
     }
@@ -520,8 +581,13 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionM
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
+<<<<<<< HEAD
     //displayHashmap(stack,err);
     //displayFunctionMap(functionMap,err);
+=======
+    displayHashmap(stack,err);
+    // displayFunctionMap(functionMap,err);
+>>>>>>> d85b359 (Added function run git add src/interpreter/. WIP git add src/interpreter/.)
     return 0;
 }
 

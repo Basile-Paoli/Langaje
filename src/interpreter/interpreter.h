@@ -10,7 +10,7 @@
 
 #define MAX_UNCHANGED_LOOP_DEPTH 4096
 
-var subsituteValue(astNode* value, hmStack* stack, error *err);
+var* subsituteValue(astNode* value, hmStack* stack, error *err);
 astNode* calculateNode(astNode** values, astNode* node,hmStack* stack,int valuesAmount, error *err);
 int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, error *err);
 astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err);
@@ -22,4 +22,6 @@ int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,error* err);
 int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err);
 var* declareArray(astNode* node, initType* type, hmStack* stack, error *err);
 void displayFunctionMap(hm* functionMap, error* err);
+astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err);
+
 #endif
