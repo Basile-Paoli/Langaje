@@ -415,7 +415,7 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
     functionDeclarationNode fun = node->value.functionDeclaration;
     if((struct function*)hm_get(functionMap,fun.name) != NULL){
         err->value = ERR_ALREADY_EXISTS;
-        assignErrorMessage(err,sprintf("Function redefinition : %s", fun.name));
+        assignErrorMessage(err,strcat("Function redefinition : ", fun.name));
         return 0;
     }
     function* funTmp = malloc(sizeof(function));

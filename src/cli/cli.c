@@ -37,7 +37,7 @@ void printPrompt(const char *input, int cursor_pos) {
     fflush(stdout);
 }
 
-int runCode(char *input, Lexer *l, hmStack *stack) {
+int runCode(char *input, Lexer *l, hm* functionMap, hmStack* stack) {
     // Tokenize the input
     TokenList *tl = tokenizer(input, l);
     if (tl == NULL) return 1;
@@ -48,11 +48,6 @@ int runCode(char *input, Lexer *l, hmStack *stack) {
     error err;
     err.value = ERR_SUCCESS;
     InstructionBlock *pr = parse(tl, &err);
-    if (err.value == ERR_END_OF_INPUT) {
-        printf("...");
-        return 0;
-    }
-
     if (err.value != ERR_SUCCESS) {
         printf("[PARSER][ERROR]: %s\n", getNameTypeError(err.value));
         printf("[PARSER][ERROR]: %s\n", err.message);
@@ -60,7 +55,7 @@ int runCode(char *input, Lexer *l, hmStack *stack) {
     }
 
 
-    if (runInstructionBlock(pr, stack, &err)) {
+    if (runInstructionBlock(pr, stack, functionMap, &err)) {
         printf("[RUNTIME][ERROR]: %s\n", err.message);
         return 1;
     }
@@ -90,6 +85,7 @@ int cliMode(Lexer *l) {
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
     hm* hashmap = hm_create();
+    hm* functionMap = hm_create();
     hmStackPush(stack, hashmap);
 
     int nb_brackets[3] = {0};
@@ -152,7 +148,7 @@ int cliMode(Lexer *l) {
 
             input[len] = '\0';
             if (strcmp(input, "@exit") == 0) break;
-            if (runCode(input, l, stack)) { // If an error occurred
+            if (runCode(input, l, functionMap, stack)) { // If an error occured
                 printf(">>> ");
                 continue;
             }
@@ -198,6 +194,7 @@ int cliMode(Lexer *l) {
     displayHashmap(stack, &err);
 
     hmStackPop(stack);
+    hm_functions_free(functionMap);
     hmStackDestroy(stack);
     hm_functions_free(functionMap);
 

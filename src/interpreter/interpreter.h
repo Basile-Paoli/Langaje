@@ -21,4 +21,5 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err);
 int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,error* err);
 int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err);
 var* declareArray(astNode* node, initType* type, hmStack* stack, error *err);
+void displayFunctionMap(hm* functionMap, error* err);
 #endif
