@@ -23,7 +23,12 @@ var* subsituteValue(astNode* value, hmStack* stack, error *err){
         var* tmp = malloc(sizeof(var));
         var tmp2 = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
         tmp->type = tmp2.type;
-        tmp->value = tmp2.value;
+        if(tmp->type != _string){
+            tmp->value = tmp2.value;
+        } else {
+            assignString(tmp, tmp2.value._string);
+        }
+        
         return tmp;
     }
 
@@ -452,22 +457,32 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
         return NULL;
     }
 
-    hm* hashmap = hm_create();
+    hm* Fhashmap = hm_create();
     hmStack* functionStack = hmStackCreate(1);
     for(int i = 0; i < node->childrenCount; i++){
-        if(node->children[i]->type == VARIABLE){
-            var* tmp = malloc(sizeof(var));
-            tmp = subsituteValue(node->children[i], stack, err);
-            hm_set(hashmap, fun->parameters[i].name, tmp);        
+        astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
+        var* tmp = malloc(sizeof(var));
+        if(subNode->type == VARIABLE){
+            tmp = subsituteValue(subNode, stack, err);
+            hm_set(Fhashmap, fun->parameters[i].name, tmp);        
+        
         } else {
-            hm_set(hashmap, fun->parameters[i].name , &node->children[i]->value.value);
+            tmp->type = subNode->value.value.type;
+            if(tmp->type != _string){
+                tmp->value = subNode->value.value.value;
+            } else {
+                assignString(tmp,subNode->value.value.value._string);
+            }
+            
+            hm_set(Fhashmap, fun->parameters[i].name , tmp);
         }
     }
-    
-    hmStackPush(functionStack,hashmap);
+
+    hmStackPush(functionStack,Fhashmap);
     runInstructionBlock(fun->instructions, functionStack, functionMap, err);
 
-    var* returnValue = (var*)hm_get(hashmap, "!!$RETURNVALUE$!!");
+    //GO DOWNWARDS TO CHECK IF THERES RETURN VALUE
+    var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
     astNode* tmpNode = malloc(sizeof(astNode));
     tmpNode->value.value.type = returnValue->type;
     tmpNode->value.value.value = returnValue->value;
@@ -484,7 +499,8 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
 */
 
 astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err){
-    if(node->childrenCount == 0 && node->type != INITIALIZATION){
+
+    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT)){
         return node; //Send the whole node back
     }   
 
@@ -546,19 +562,25 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     } else if (node->type == FUNCTION_CALL) {
         return runFunction(node, stack, functionMap, err);
     } else if(node->type == RETURN){
-        printf("__RETURNING__\n");
         //IF VOID RETURN DONT DO THAT WHEN BASILE HAVE FIXED TODO
         var* returnValue = malloc(sizeof(var));
         if(values[0]->type == VARIABLE){
             returnValue = subsituteValue(values[0],stack,err);
         } else {
             returnValue->type = values[0]->value.value.type;
-            returnValue->value = values[0]->value.value.value;
+            if(returnValue->type != _string){
+                returnValue->value = values[0]->value.value.value;
+            } else {
+                assignString(returnValue, values[0]->value.value.value._string);
+            }
+            
         }
         
 
-        hm_set(stack->stack[stack->length-1], "!!$RETURNVALUE$!!", returnValue);
+        hm_set(stack->stack[0], "!!$RETURNVALUE$!!", returnValue);
         return NULL;
+    } else if (node->type == MEMORY_DUMP){
+        displayHashmap(stack,err);
     } else {
         return node;
     }
@@ -584,13 +606,8 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionM
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
-<<<<<<< HEAD
-    //displayHashmap(stack,err);
-    //displayFunctionMap(functionMap,err);
-=======
-    displayHashmap(stack,err);
+    // displayHashmap(stack,err);
     // displayFunctionMap(functionMap,err);
->>>>>>> d85b359 (Added function run git add src/interpreter/. WIP git add src/interpreter/.)
     return 0;
 }
 

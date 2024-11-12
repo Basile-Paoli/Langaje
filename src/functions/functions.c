@@ -279,7 +279,6 @@ var multiply(var *var1, var *var2, error *err){
             assignErrorMessage(err, "Variables must be of type int or float");
             break;
     }
-
     return result;
 }
 
