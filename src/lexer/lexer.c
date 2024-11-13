@@ -43,8 +43,9 @@ char *get_lang(char *input) {
     // We get the lang preprocessor
     char *lang = NULL;
 
-    char *temp = calloc(strlen(input), sizeof(char));
+    char *temp = calloc(strlen(input) + 1, sizeof(char));
     if (temp == NULL) {
+        free(temp);
         printf("[ERROR][LEXER]: Cannot allocate memory for temp\n");
         return NULL;
     }
@@ -68,17 +69,21 @@ char *get_lang(char *input) {
         }
     }
 
+    free(temp);
+
     return lang;
 }
 
 int readLexerFile(Lexer *l, char* filename) {
     char *buffer = read_file(filename);
     if (buffer == NULL){
+        free(buffer);
         printf("[ERROR][LEXER]: Cannot read file <%s>\n", filename);
         return 1;
     }
 
     if (strlen(buffer) == 0) {
+        free(buffer);
         printf("[ERROR][LEXER]: Empty file\n");
         return 1;
     }
@@ -87,13 +92,22 @@ int readLexerFile(Lexer *l, char* filename) {
     for (char *line = strtok(buffer, "\n"); line != NULL; line = strtok(NULL, "\n")) {
 
         // We get the token name
-        char *tokenName = calloc(strlen(line), sizeof(char));
-        if (tokenName == NULL) {printf("[ERROR][LEXER]: Cannot allocate memory for tokenName\n"); return 1;}
+        char *tokenName = (char *)calloc(strlen(line), sizeof(char));
+        if (tokenName == NULL) {
+            free(buffer); free(tokenName);
+            printf("[ERROR][LEXER]: Cannot allocate memory for tokenName\n");
+            return 1;
+        }
         size_t k = 0;
-        char *tempLine = malloc(strlen(line) + 1);
-        if (tempLine == NULL) {printf("[ERROR][LEXER]: Cannot allocate memory for tempLine\n"); return 1;}
+        char *tempLine = (char *)malloc(strlen(line) + 1);
+        if (tempLine == NULL) {
+            free(buffer); free(tokenName); free(tempLine);
+            printf("[ERROR][LEXER]: Cannot allocate memory for tempLine\n");
+            return 1;
+        }
         strcpy(tempLine, line);
         while (*tempLine != '=') *(tokenName+k++) = *tempLine++;
+        free(tempLine - k);
 
         if (verifyLexerLine(line, tokenName, l) != 0) {
             printf("[ERROR][LEXER]: Invalid line <%s>\n", line);
@@ -154,14 +168,18 @@ int verifyLexerLine(char *line, char *tokenName, Lexer *l) {
 
     regex_t reg;
     if (regcomp(&reg, strstr(line, "=") + 1, REG_EXTENDED) != 0) {
+        regfree(&reg);
         printf("[ERROR][LEXER]: Invalid regex at line <%s>\n", line);
         return 1;
     }
 
     if (is_token_reserved_by_system(str_to_token_type(tokenName))) {
+        regfree(&reg);
         printf("[ERROR][LEXER]: Token reserved by the system at line <%s>\n", line);
         return 1;
     }
+
+    regfree(&reg);
 
     return 0;
 }
@@ -188,209 +206,11 @@ int is_token_in_lexer(Lexer *l, TokenType token) {
     return 0;
 }
 
-TokenList *replaceSugar(TokenList *tl, Lexer *l) {
-    // We replace the sugar syntax by the real syntax
-    // For example: a++ => a = a + 1
-    //              a-- => a = a - 1
-    //              a += 2 => a = a + 2
-    //              a -= 2 => a = a - 2
-    //              f"Hello {name}" => "Hello " + name
-    //              ...
-
-    for (int i = 0; i < tl->nb_tokens; i++) {
-        if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_ADDITION, TOKEN_ADDITION})) {
-
-            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
-            Token *addition = new_Token(TOKEN_ADDITION, "+", tl->tokens[i].line, tl->tokens[i].column);
-            Token *one = new_Token(TOKEN_INT, "1", tl->tokens[i].line, tl->tokens[i].column);
-
-            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
-                tl->tokens[i],
-                *equal,
-                tl->tokens[i],
-                *addition,
-                *one
-                
-            }, 5);
-
-            tl = insertTokenListIntoTokenList(
-                tl,
-                tempTokenList,
-                i
-            );
-            tl = removeNTokenFromTokenList(tl, i + 5, 3);
-
-        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_SUBSTRACTION, TOKEN_SUBSTRACTION})) {
-
-            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
-            Token *sub = new_Token(TOKEN_SUBSTRACTION, "-", tl->tokens[i].line, tl->tokens[i].column);
-            Token *one = new_Token(TOKEN_INT, "1", tl->tokens[i].line, tl->tokens[i].column);
-
-            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
-                tl->tokens[i],
-                *equal,
-                tl->tokens[i],
-                *sub,
-                *one
-                
-            }, 5);
-
-            tl = insertTokenListIntoTokenList(
-                tl,
-                tempTokenList,
-                i
-            );
-            tl = removeNTokenFromTokenList(tl, i + 5, 3);
-        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_ADDITION, TOKEN_EQUAL})) {
-
-            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
-            Token *addition = new_Token(TOKEN_ADDITION, "+", tl->tokens[i].line, tl->tokens[i].column);
-
-            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
-                tl->tokens[i],
-                *equal,
-                tl->tokens[i],
-                *addition
-            }, 4);
-
-            tl = insertTokenListIntoTokenList(
-                tl,
-                tempTokenList,
-                i
-            );
-
-            tl = removeNTokenFromTokenList(tl, i + 4, 3);
-
-        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_SUBSTRACTION, TOKEN_EQUAL})) {
-
-            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
-            Token *sub = new_Token(TOKEN_SUBSTRACTION, "-", tl->tokens[i].line, tl->tokens[i].column);
-
-            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
-                tl->tokens[i],
-                *equal,
-                tl->tokens[i],
-                *sub
-            }, 4);
-
-            tl = insertTokenListIntoTokenList(
-                tl,
-                tempTokenList,
-                i
-            );
-
-            tl = removeNTokenFromTokenList(tl, i + 4, 3);
-
-        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_MULTIPLICATION, TOKEN_EQUAL})) {
-                
-                Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
-                Token *mul = new_Token(TOKEN_MULTIPLICATION, "*", tl->tokens[i].line, tl->tokens[i].column);
-    
-                TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
-                    tl->tokens[i],
-                    *equal,
-                    tl->tokens[i],
-                    *mul
-                }, 4);
-    
-                tl = insertTokenListIntoTokenList(
-                    tl,
-                    tempTokenList,
-                    i
-                );
-    
-                tl = removeNTokenFromTokenList(tl, i + 4, 3);
-
-        } else if (next_n_token_equal_to(tl, i, 3, (TokenType[]){TOKEN_IDENTIFIER, TOKEN_DIVISION, TOKEN_EQUAL})) {
-    
-            Token *equal = new_Token(TOKEN_EQUAL, "=", tl->tokens[i].line, tl->tokens[i].column);
-            Token *div = new_Token(TOKEN_DIVISION, "/", tl->tokens[i].line, tl->tokens[i].column);
-
-            TokenList *tempTokenList = new_TokenListFromTokens((Token[]){
-                tl->tokens[i],
-                *equal,
-                tl->tokens[i],
-                *div
-            }, 4);
-
-            tl = insertTokenListIntoTokenList(
-                tl,
-                tempTokenList,
-                i
-            );
-
-            tl = removeNTokenFromTokenList(tl, i + 4, 3);
-        } else if (tl->tokens[i].type == TOKEN_FORMATTED_STRING) {
-            // replace '{' by '"+' and '}' by '+"'
-            char *buffer = calloc(strlen(tl->tokens[i].value) + 1, sizeof(char));
-            if (buffer == NULL) {
-                printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
-                return NULL;
-            }
-            strcpy(buffer, tl->tokens[i].value + 1);
-
-            for (int j = 0; j < strlen(buffer); j++) {
-                if (buffer[j] == '{') {
-                    buffer[j] = '"';
-                    buffer = (char *)realloc(buffer, strlen(buffer) + 2);
-                    if (buffer == NULL) {
-                        printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
-                        return NULL;
-                    }
-                    memmove(buffer + j + 2, buffer + j + 1, strlen(buffer) - j);
-                    buffer[j + 1] = '+';
-                } else if (buffer[j] == '}') {
-                    buffer[j] = '+';
-                    buffer = (char *)realloc(buffer, strlen(buffer) + 2);
-                    if (buffer == NULL) {
-                        printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
-                        return NULL;
-                    }
-                    memmove(buffer + j + 2, buffer + j + 1, strlen(buffer) - j);
-                    buffer[j + 1] = '"';
-                }
-            }
-            TokenList *tempTokenList = tokenizer(buffer, l);
-            if (tempTokenList == NULL) return NULL;
-
-            tl = insertTokenListIntoTokenList(
-                tl,
-                tempTokenList,
-                i
-            );
-
-            tl = removeNTokenFromTokenList(tl, i + tempTokenList->nb_tokens, 1);
-        } else if (tl->tokens[i].type == TOKEN_INT || tl->tokens[i].type == TOKEN_FLOAT) {
-            char *buffer = calloc(strlen(tl->tokens[i].value) + 1, sizeof(char));
-            if (buffer == NULL) {
-                printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
-                return NULL;
-            }
-            size_t k = 0;
-            for (int j = 0; j < strlen(tl->tokens[i].value); j++) {
-                if (tl->tokens[i].value[j] != '_') buffer[k++] = tl->tokens[i].value[j];
-            }
-            TokenList *tempTokenList = tokenizer(buffer, l);
-            if (tempTokenList == NULL) return NULL;
-
-            tl = insertTokenListIntoTokenList(
-                tl,
-                tempTokenList,
-                i
-            );
-
-            tl = removeNTokenFromTokenList(tl, i + tempTokenList->nb_tokens, 1);
-        }
-    }
-
-    return tl;
-
-}
-
 TokenList *tokenizer(char *input, Lexer *l) {
 
     TokenList *list = new_TokenList();
     if (list == NULL) {
+        free_tokenList(list);
         printf("[ERROR][LEXER]: Cannot allocate memory for TokenList\n");
         return NULL;
     }
@@ -452,8 +272,9 @@ TokenList *tokenizer(char *input, Lexer *l) {
             }
                 
             // We copy the matched string
-            char *buffer = calloc(matchEndIndex, sizeof(char));
+            char *buffer = (char *)calloc(matchEndIndex + 1, sizeof(char));
             if (buffer == NULL) {
+                free(buffer); free_tokenList(list);
                 printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
                 return NULL;
             }
@@ -462,16 +283,18 @@ TokenList *tokenizer(char *input, Lexer *l) {
             // Create the token
             Token *t = new_Token(l->rules[ruleIndex].type, buffer, nbLine, nbColon);
             if (t == NULL) {
+                free(buffer); free_tokenList(list);
                 printf("[ERROR][LEXER]: Cannot allocate memory for token\n");
                 return NULL;
             }
 
             // Add the token to the list
             if (add_Token(list, t) != 0) {
+                free(buffer); free_tokenList(list);
                 printf("[ERROR][LEXER]: Cannot add token to list\n");
                 return NULL;
             }
-            
+
             free(buffer);
 
             i+=matchEndIndex-1; // We move i to the end of the match
@@ -505,12 +328,14 @@ char *include_files(char *input) {
     char *final = (char *)calloc(strlen(input) + 1, sizeof(char));
     if (final == NULL) {
         printf("[ERROR][LEXER]: Cannot allocate memory for final\n");
+        free(final);
         return NULL;
     }
 
     char *temp = (char *)calloc(strlen(input) + 1, sizeof(char));
     if (temp == NULL) {
         printf("[ERROR][LEXER]: Cannot allocate memory for temp\n");
+        free(final); free(temp);
         return NULL;
     }
     strcpy(temp, input);
@@ -523,6 +348,7 @@ char *include_files(char *input) {
                 char *filename = (char *)calloc(strlen(line) + 1, sizeof(char));
                 if (filename == NULL) {
                     printf("[ERROR][LEXER]: Cannot allocate memory for filename\n");
+                    free(final); free(temp); free(filename);
                     return NULL;
                 }
                 size_t j = 0;
@@ -532,12 +358,27 @@ char *include_files(char *input) {
                 char *buffer = read_file(filename);
                 if (buffer == NULL) {
                     printf("[ERROR][LEXER]: Cannot read file <%s>\n", filename);
+                    free(final); free(temp); free(filename); free(buffer);
                     return NULL;
                 }
+
+                final = (char *)realloc(final, strlen(final) + strlen(buffer) + 1);
+                if (final == NULL) {
+                    printf("[ERROR][LEXER]: Cannot allocate memory for final\n");
+                    free(final); free(temp); free(filename); free(buffer);
+                    return NULL;
+                }
+
                 strcat(final, buffer);
                 free(buffer);
                 free(filename);
             } else {
+                final = (char *)realloc(final, strlen(final) + strlen(line) + 2);
+                if (final == NULL) {
+                    printf("[ERROR][LEXER]: Cannot allocate memory for final\n");
+                    free(final); free(temp);
+                    return NULL;
+                }
                 strcat(final, line);
                 strcat(final, "\n");
             }
@@ -546,6 +387,7 @@ char *include_files(char *input) {
         strcpy(final, input);
     }
 
+    free(temp);
 
     return final;
 }
@@ -555,6 +397,7 @@ char *read_file(char *filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         printf("[ERROR][LEXER]: Cannot open file <%s>\n", filename);
+        fclose(file);
         return NULL;
     }
 
@@ -562,9 +405,10 @@ char *read_file(char *filename) {
     long length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char *buffer = malloc(length + 1);
+    char *buffer = (char *)malloc(length + 1);
     if (buffer == NULL) {
         printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+        free(buffer); fclose(file);
         return NULL;
     }
     fread(buffer, 1, length, file);
@@ -612,12 +456,15 @@ int add_lexer_rule(Lexer *l, lexer_rule *rule){
     l->rules[l->nb_rules] = *rule;
     l->nb_rules++;
 
+    free(rule);
+
     return 0;
 }
 
 void free_lexer(Lexer *l) {
     for (int i = 0; i < l->nb_rules; i++) {
         free(l->rules[i].regex);
+        regfree(&l->rules[i].reg);
     }
     free(l->rules);
     free(l);

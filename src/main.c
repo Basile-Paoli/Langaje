@@ -20,7 +20,11 @@ int main(int argc, char **argv) {
 
     /*---------- LEXER ----------*/
     Lexer *l = new_lexer();
-    if (l == NULL) {printf("[ERROR][LEXER]: Error while creating lexer"); return 1;}
+    if (l == NULL) {
+        free_lexer(l);
+        printf("[ERROR][LEXER]: Error while creating lexer");
+        return 1;
+    }
 
     if (argc == 1) {
 
@@ -36,35 +40,56 @@ int main(int argc, char **argv) {
     printf("\n");
 
     // Reading the input file
-    char *input = read_file(argv[1]);
+    char *mainFile = read_file(argv[1]);
+    if (mainFile == NULL) {
+        printf("[ERROR][LEXER]: Error while reading file");
+        free_lexer(l); free(mainFile);
+        return 1;
+    }
 
-    input = include_files(input);
+    char* input = include_files(mainFile);
+    if (input == NULL) {
+        free_lexer(l); free(input); free(mainFile);
+        printf("[ERROR][LEXER]: Error while including files");
+        return 1;
+    }
+    free(mainFile);
+
     
     /*---------- LEXER ----------*/
 
     char *lang = get_lang(input); // Get the #LANG_
     if (lang == NULL) lang = "CLASSIC"; // If none is found, we use the default one
+    
 
-    char *langFile = (char *)calloc(strlen(lang) + 6, sizeof(char));
-    if (langFile == NULL) {printf("[ERROR][LEXER]: Error while creating langFile"); return 1;}
+    char *langFile = (char *)calloc(strlen(lang) + 11, sizeof(char));
+    if (langFile == NULL) {
+        free_lexer(l); free(input); free(langFile);
+        printf("[ERROR][LEXER]: Error while creating langFile");
+        return 1;
+    }
     sprintf(langFile, "lang/%s.lang", lang);
 
     // We read the lang file
-    if (readLexerFile(l, langFile) != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
+    if (readLexerFile(l, langFile) != 0) {
+        free_lexer(l); free(input); free(langFile);
+        printf("[ERROR][LEXER]: Error while lexing");
+        return 1;
+    }
 
     //print_lexer(l);
 
     // Tokenization
     TokenList *tl = tokenizer(input, l);
-    if (tl == NULL) return 1;
-
-    // Replace sugar syntax
-    tl = replaceSugar(tl, l);
-    if (tl == NULL) return 1;
+    if (tl == NULL) {
+        free_lexer(l); free(input); free(langFile);
+        printf("[ERROR][LEXER]: Error while tokenizing");
+        return 1;
+    }
+    free(input); free(langFile); free_lexer(l);
 
     print_tokenList(tl); // Print the token list
 
-    //return 0;
 
     /*---------- PARSER ----------*/
     error err;
@@ -107,8 +132,6 @@ int main(int argc, char **argv) {
 
     hmStackDestroy(stack);
     free_tokenList(tl);
-    free_lexer(l);
-    free(input);
 
     return 0;
 }

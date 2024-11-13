@@ -31,7 +31,6 @@ int verifyLexerLine(char *line, char *tokenName, Lexer *l);
 int is_token_reserved_by_system(TokenType type);
 int is_token_in_lexer(Lexer *l, TokenType tokenName);
 
-TokenList *replaceSugar(TokenList *tl, Lexer *l);
 TokenList *tokenizer(char *input, Lexer *l);
 char *include_files(char *input);
 char *read_file(char *filename);

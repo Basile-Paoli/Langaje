@@ -42,9 +42,6 @@ int runCode(char *input, Lexer *l, hm* functionMap, hmStack* stack) {
     TokenList *tl = tokenizer(input, l);
     if (tl == NULL) return 1;
 
-    tl = replaceSugar(tl, l);
-    if (tl == NULL) return 1;
-
     error err;
     err.value = ERR_SUCCESS;
     InstructionBlock *pr = parse(tl, &err);

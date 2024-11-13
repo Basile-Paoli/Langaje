@@ -83,21 +83,11 @@ typedef struct {
     int nb_tokens;
 } TokenList;
 
-int next_n_token_equal_to(TokenList *tl, int startIndex, int nTokens, TokenType *types);
-
-TokenList *mergeTokenLists(TokenList *tl1, TokenList *tl2);
-
-TokenList *removeNTokenFromTokenList(TokenList *tl, int position, int n);
-
-TokenList *insertTokenListIntoTokenList(TokenList *tl, TokenList *tl2, int position);
-
-TokenList *new_TokenListFromTokens(Token *tokens, int nb_tokens);
-
 Token *new_Token(TokenType type, char *value, int line, int column);
 
 void print_token(Token *t);
 
-void free_token(Token *t);
+void free_Token(Token *t);
 
 TokenList *new_TokenList();
 

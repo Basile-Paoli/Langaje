@@ -1,4 +1,4 @@
 #include "test2.txt";
-a+=b;
+a=a+b;
 }
-a++;
+a=a+a;
