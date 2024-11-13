@@ -36,6 +36,7 @@ int concat(var *result, char *var1, char *var2, char** resultValue){
     return 0;
 }
 
+
 /*
  *
  * ADD FUNCTION
@@ -43,6 +44,7 @@ int concat(var *result, char *var1, char *var2, char** resultValue){
  * float = int = float / float + float = float / float + char = float / float + str = str
  * char + char = str / char + int = char / char + float = float / char + str = str
  * str + int/char/float = str
+ * array => concat function
  *
  */
 var add(var *var1, var *var2, error *err){
@@ -152,6 +154,30 @@ var add(var *var1, var *var2, error *err){
                 free(resultValue);
             }
             break;
+        case _array: {
+            // If var2 is not an array
+            if(var2->type != _array) {
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Both variables must be arrays");
+                break;
+            }
+            // If values type !=
+            if(var1->value._array->values[0].type != var2->value._array->values[0].type){
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Array elements must be of same type");
+                break;
+            }
+
+            int newArraySize = var1->value._array->length + var2->value._array->length;
+
+            var *tmp = newArrayVar(newArraySize, _int);
+
+            concatArray(var1, var2, err, newArraySize, tmp);
+
+            result = *tmp;
+            break;
+        }
+
         default:
             err->value = ERR_TYPE;
             assignErrorMessage(err, "Variables must be of type int, float, char or string.");
@@ -387,6 +413,26 @@ var power(var *var1, var *var2, error *err){
     }
 
     return result;
+}
+
+/*
+ *
+ * ARRAY CONCATENATION
+ *
+ */
+int concatArray(var *var1, var *var2, error *err, int arraySize, var *tmp){
+    int var1Length = var1->value._array->length;
+    int var2Length = var2->value._array->length;
+
+    for(int i = 0; i < arraySize; i++){
+        if(var1Length > i)
+            tmp->value._array->values[i] = var1->value._array->values[i];
+        else {
+            tmp->value._array->values[i] = var2->value._array->values[i - var1Length];
+        }
+    }
+
+    return 0;
 }
 
 /*
