@@ -48,6 +48,7 @@ typedef struct function{
     int voidReturn;
     varType type;
     InstructionBlock* instructions;
+    char isBuiltin;
 }function;
 
 int assignString(var* v, char* value);

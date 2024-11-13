@@ -434,6 +434,7 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
     funTmp->type = fun.returnType.type;
     funTmp->voidReturn = fun.voidReturn;
     funTmp->instructions = node->children[0]->value.block;
+    funTmp->isBuiltin = 0;
 
     hm_set(functionMap, fun.name, funTmp);
 
@@ -602,7 +603,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionM
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
     // displayHashmap(stack,err);
-    // displayFunctionMap(functionMap,err);
+    displayFunctionMap(functionMap,err);
     return 0;
 }
 
