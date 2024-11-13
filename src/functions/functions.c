@@ -157,7 +157,7 @@ var add(var *var1, var *var2, error *err){
         case _array: {
             int newArraySize = var1->value._array->length + var2->value._array->length;
 
-            var *tmp = newArrayVar(newArraySize, _int);
+            var *tmp = newArrayVar(newArraySize, var1->value._array->values[0].type);
             result = *tmp;
 
             // If var2 is not an array
@@ -419,7 +419,6 @@ var power(var *var1, var *var2, error *err){
  */
 int concatArray(var *var1, var *var2, error *err, int arraySize, var *tmp){
     int var1Length = var1->value._array->length;
-    int var2Length = var2->value._array->length;
 
     for(int i = 0; i < arraySize; i++){
         if(var1Length > i)
@@ -428,6 +427,31 @@ int concatArray(var *var1, var *var2, error *err, int arraySize, var *tmp){
             tmp->value._array->values[i] = var2->value._array->values[i - var1Length];
         }
     }
+
+    return 0;
+}
+
+/*
+ *
+ * APPEND
+ *
+ */
+int appendArray(var *var1, var *var2, error *err){
+    if(var1->value._array->values[0].type != var2->type){
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Array elements type and element to append must be of same type");
+        return 1;
+    }
+
+    int var1Length = var1->value._array->length;
+    var *tmp = newArrayVar(var1Length + 1, var1->value._array->values[0].type);
+
+    for(int i = 0; i < var1Length; i++){
+        tmp->value._array->values[i] = var1->value._array->values[i];
+    };
+    tmp->value._array->values[var1Length].value = var2->value;
+
+    *var1 = *tmp;
 
     return 0;
 }
@@ -663,7 +687,6 @@ var valueReverse(var* v, error* err){
     return result;
 }
 
-
 var unaryMinus(var* v, error* err){
     var result;
     result.type = v->type;
@@ -688,7 +711,6 @@ var unaryMinus(var* v, error* err){
 }
 
 /*
-
     BUFFER MAX LEN IS ONLY FOR STRINGS, IF SET TO 1 OR UNDER, USES THE MAX BUFFER SIZE
 */
 var* userInput(varType inputType, char* inputMessage, int bufferMaxLen, error* err){
