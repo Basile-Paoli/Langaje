@@ -468,12 +468,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
         
         } else {
             tmp->type = subNode->value.value.type;
-            if(tmp->type != _string){
-                tmp->value = subNode->value.value.value;
-            } else {
-                assignString(tmp,subNode->value.value.value._string);
-            }
-            
+            var2var(tmp,&subNode->value.value,err);
             hm_set(Fhashmap, fun->parameters[i].name , tmp);
         }
     }
