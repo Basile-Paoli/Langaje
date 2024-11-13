@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "../ast/ast.h"
 #include "types.h"
 
 /**
@@ -271,6 +272,25 @@ var* newArrayVar(int size, varType type) {
     }
     res->type = _array;
     return res;
+}
+
+function* newFunctionPrototype(char* name, varType type, fakeFunctionParam* parameters, __builtinFunction__ __builtinId__, int parametersCount, error* err){
+    function* f = malloc(sizeof(function));
+    f->isBuiltin = 1;
+    f->instructions = NULL;
+    f->type = type;
+    f->parametersCount = parametersCount;
+    functionParameter* p = malloc(sizeof(functionParameter) * parametersCount);
+    for(int i = 0; i < parametersCount; i++){
+        p[i].name = malloc(sizeof(char) * (strlen(parameters[i].name) + 1) );
+        strcpy(p[i].name,parameters[i].name);
+        p[i].type.type = parameters[i].type;
+    }
+    f->parameters = p;
+    f->name = malloc(sizeof(char) * (strlen(name) + 1));
+    f->__builtinIdentifier__ = __builtinId__;
+    strcpy(f->name,name);
+    return f;
 }
 
 /**

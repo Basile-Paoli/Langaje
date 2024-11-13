@@ -441,22 +441,7 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
     return 1;
 }
 
-astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
-    function* fun = (struct function*)hm_get(functionMap,node->value.functionCall.name);
-    if(fun == NULL){
-        printf("FUN NOT FOUND\n");
-        //Error binding doesnt work. need to fix ?
-        return NULL;
-    }
-    if(node->childrenCount < fun->parametersCount){
-        printf("__TOO FEW ARGS__\n");
-        //Too few args 
-        return NULL;
-    } else if (node->childrenCount > fun->parametersCount){
-        //Too many args
-        printf("__TOO MANY ARGS__\n");
-        return NULL;
-    }
+astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, function* fun, error* err){
 
     hm* Fhashmap = hm_create();
     hmStack* functionStack = hmStackCreate(1);
@@ -475,17 +460,83 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
     }
 
     hmStackPush(functionStack,Fhashmap);
-    runInstructionBlock(fun->instructions, functionStack, functionMap, err);
 
-    //GO DOWNWARDS TO CHECK IF THERES RETURN VALUE
+    //ABOVE CREATES A HASHMAP TO BIND PARAMETERS GIVEN BY THE USER, WITH THE KEYS DEFINED IN THE FAKE FUNCTION PROTOTYPE.
+    //PASS THE FUNCTIONSTACK TO YOUR PROGRAM TO RETRIEVE THE VALUES
+    //RETURN THE VALUE IN !!$RETURNVALUE$!!
+    //hm_set(stack->stack[0], "!!$RETURNVALUE$!!", returnValue);
+    //RETURN VALUE MUST BE A MALLOC VAR 
+
+    switch(fun->__builtinIdentifier__){
+        case __print__:{
+            break;
+        }
+        default:{
+            printf("__UNKNOWN FUNCTION__");
+        }
+    }
+
     var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
     astNode* tmpNode = malloc(sizeof(astNode));
     tmpNode->value.value.type = returnValue->type;
     tmpNode->value.value.value = returnValue->value;
 
     hmStackPop(functionStack);
+
     tmpNode->type = VALUE;
     return tmpNode;
+}
+
+astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
+    function* fun = (struct function*)hm_get(functionMap,node->value.functionCall.name);
+    if(fun->isBuiltin == 1){
+        //Run builtin function generate its own tmp node
+        return runBuiltinFunction(node,stack,functionMap,fun,err);
+    } else {
+        if(fun == NULL){
+            printf("FUN NOT FOUND\n");
+            //Error binding doesnt work. need to fix ?
+            return NULL;
+        }
+        if(node->childrenCount < fun->parametersCount){
+            printf("__TOO FEW ARGS__\n");
+            //Too few args 
+            return NULL;
+        } else if (node->childrenCount > fun->parametersCount){
+            //Too many args
+            printf("__TOO MANY ARGS__\n");
+            return NULL;
+        }
+
+        hm* Fhashmap = hm_create();
+        hmStack* functionStack = hmStackCreate(1);
+        for(int i = 0; i < node->childrenCount; i++){
+            astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
+            var* tmp = malloc(sizeof(var));
+            if(subNode->type == VARIABLE){
+                tmp = subsituteValue(subNode, stack, err);
+                hm_set(Fhashmap, fun->parameters[i].name, tmp);        
+            
+            } else {
+                tmp->type = subNode->value.value.type;
+                var2var(tmp,&subNode->value.value,err);
+                hm_set(Fhashmap, fun->parameters[i].name , tmp);
+            }
+        }
+
+        hmStackPush(functionStack,Fhashmap);
+        runInstructionBlock(fun->instructions, functionStack, functionMap, err);
+
+        var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
+        astNode* tmpNode = malloc(sizeof(astNode));
+        tmpNode->value.value.type = returnValue->type;
+        tmpNode->value.value.value = returnValue->value;
+
+        hmStackPop(functionStack);
+        tmpNode->type = VALUE;
+        return tmpNode;
+    }
+    
 
 }
 /**
@@ -643,11 +694,17 @@ void displayFunctionMap(hm* functionMap, error* err){
     hmi iterator = hm_iterator(functionMap);
     printf("----------------------FUNCTION MAP DUMP-----------------------\n");
     while(hm_next(&iterator) == 1){
+        if(((function*)iterator.value)->isBuiltin == 1){
+            printf("__builtin__ ");
+        }
         printf("%s : %s\n",((function*)iterator.value)->name, getVarTypeName(((function*)iterator.value)->type));
         for(int i = 0; i < ((function*)iterator.value)->parametersCount; i++){
             printf("Parameter %d: %s %s\n",i,((function*)iterator.value)->parameters[i].name, getVarTypeName(((function*)iterator.value)->parameters[i].type.type));
         }
-        printInstructionBlock(((function*)iterator.value)->instructions,0);
+        if(((function*)iterator.value)->instructions != NULL){
+            printInstructionBlock(((function*)iterator.value)->instructions,0);
+        }
+        
         printf("\n");
     }
     printf("-------------------END OF FUNCTION MAP DUMP-------------------\n");

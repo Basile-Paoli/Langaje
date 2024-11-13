@@ -23,5 +23,6 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err);
 var* declareArray(astNode* node, initType* type, hmStack* stack, error *err);
 void displayFunctionMap(hm* functionMap, error* err);
 astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err);
+astNode* runBuiltinFunction(astNode*, hmStack* stack, hm* functionMap, function* fun, error* err);
 
 #endif

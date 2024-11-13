@@ -7,9 +7,9 @@
 #include "functions/functions.h"
 
 #include "interpreter/interpreter.h"
+#include "interpreter/__builtins__.h"
 
 #include "cli/cli.h"
-
 
 #include <time.h>
 
@@ -99,8 +99,10 @@ int main(int argc, char **argv) {
         printf("Error: %s\n", err.message);
         return 1;
     }
-    printInstructionBlock(pr, 0);
+    //printInstructionBlock(pr, 0);
     
+    
+
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
     error err_run;
@@ -113,6 +115,9 @@ int main(int argc, char **argv) {
     hmStackPush(stack,hashmap);
 
     hm* functionMap = hm_create();
+    
+    //declare builtins : 
+    __builtinToMap__(functionMap,&err);
 
     int runInstructionResult = runInstructionBlock(pr, stack, functionMap, &err_run);
     //displayHashmap(stack, &err);
