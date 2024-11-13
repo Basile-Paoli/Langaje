@@ -521,7 +521,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionM
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
     //displayHashmap(stack,err);
-    displayFunctionMap(functionMap,err);
+    //displayFunctionMap(functionMap,err);
     return 0;
 }
 

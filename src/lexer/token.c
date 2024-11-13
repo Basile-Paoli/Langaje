@@ -216,6 +216,8 @@ TokenType str_to_token_type(char *input) {
     else if (strcmp(input, "TOKEN_SUBSTRACTION") == 0) return TOKEN_SUBSTRACTION;
     else if (strcmp(input, "TOKEN_MULTIPLICATION") == 0) return TOKEN_MULTIPLICATION;
     else if (strcmp(input, "TOKEN_DIVISION") == 0) return TOKEN_DIVISION;
+    else if (strcmp(input, "TOKEN_MODULO") == 0) return TOKEN_MODULO;
+    else if (strcmp(input, "TOKEN_POWER") == 0) return TOKEN_POWER;
 
     else if (strcmp(input, "TOKEN_LPAREN") == 0) return TOKEN_LPAREN;
     else if (strcmp(input, "TOKEN_RPAREN") == 0) return TOKEN_RPAREN;
@@ -277,6 +279,8 @@ char *token_type_to_str(TokenType type) {
         [TOKEN_SUBSTRACTION         ] = "SUBSTRACTION",
         [TOKEN_MULTIPLICATION       ] = "MULTIPLICATION",
         [TOKEN_DIVISION             ] = "DIVISION",
+        [TOKEN_MODULO               ] = "MODULO",
+        [TOKEN_POWER                ] = "POWER",
 
         [TOKEN_LPAREN               ] = "LPAREN",
         [TOKEN_RPAREN               ] = "RPAREN",
