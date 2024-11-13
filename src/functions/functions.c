@@ -155,26 +155,23 @@ var add(var *var1, var *var2, error *err){
             }
             break;
         case _array: {
+            int newArraySize = var1->value._array->length + var2->value._array->length;
+
+            var *tmp = newArrayVar(newArraySize, _int);
+            result = *tmp;
+
             // If var2 is not an array
             if(var2->type != _array) {
                 err->value = ERR_TYPE;
                 assignErrorMessage(err, "Both variables must be arrays");
                 break;
             }
-            // If values type !=
-            if(var1->value._array->values[0].type != var2->value._array->values[0].type){
-                err->value = ERR_TYPE;
-                assignErrorMessage(err, "Array elements must be of same type");
-                break;
-            }
 
-            int newArraySize = var1->value._array->length + var2->value._array->length;
+            int concatSuccess = concatArray(var1, var2, err, newArraySize, tmp);
 
-            var *tmp = newArrayVar(newArraySize, _int);
+            if(concatSuccess == 0)
+                result = *tmp;
 
-            concatArray(var1, var2, err, newArraySize, tmp);
-
-            result = *tmp;
             break;
         }
 
