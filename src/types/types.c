@@ -23,7 +23,7 @@ int assignString(var *v, char *value) {
     }
     
     if (v->value._string == NULL || len != strlen(v->value._string)) {
-        v->value._string = (char *) realloc(v->value._string, sizeof(char) * (len + 1));
+        v->value._string = calloc(sizeof(char), len + 1);
     }
     if (v->value._string == NULL) {
         return 1;
