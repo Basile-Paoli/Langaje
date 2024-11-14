@@ -405,26 +405,29 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
      
     
     int loopIndexValue = newVar->value._int;
-    //MAYBE PUT IT IN THE WHILE, TESTING !!
-    hm* hashmap = hm_create();
-    hmStackPush(stack,hashmap);
+    
     if(loopIndexValue > conditionValue){
         while (loopIndexValue > conditionValue) {
-            
+            hm* hashmap = hm_create();
+            hmStackPush(stack,hashmap);        
             runInstructionBlock(&instructions, stack, functionMap,err);
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
+            hmStackPop(stack);
         }
     } else {
         while (loopIndexValue < conditionValue) {
+            hm* hashmap = hm_create();
+            hmStackPush(stack,hashmap);
             runInstructionBlock(&instructions, stack, functionMap,err);
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
+            hmStackPop(stack);
         }
     }
-    hmStackPop(stack);
+    
 
     return 0;
 }
