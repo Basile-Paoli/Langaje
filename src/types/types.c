@@ -155,9 +155,12 @@ void var2var(var* v, var* v2, error *err){
                 break;
             case (_array): {
                 switch (v2->type) {
-                    case _array:
-                        v->value._array = v2->value._array;
-                        break;
+                    case _array:{
+                        var* vvv = copyArray(v2,err);
+                        v->type = vvv->type;
+                        v->value = vvv->value;
+                        break;  
+                    }
                     default:
                         err->value = ERR_TYPE;
                         assignErrorMessage(err, "Expected array, other given");
@@ -172,6 +175,22 @@ void var2var(var* v, var* v2, error *err){
                 break;
         }
     }
+}
+
+var* copyArray(var* originalArray, error* err){
+    var* tmp = newArrayVar(originalArray->value._array->capacity, originalArray->value._array->type);
+    
+    if(originalArray->value._array->type == _array){
+        for(int i = 0; i < originalArray->value._array->capacity; i++){
+            tmp->value._array->values[i] = *copyArray(&originalArray->value._array->values[i], err);
+        }
+    } else {
+        for(int i = 0; i < originalArray->value._array->capacity; i++){
+            tmp->value._array->values[i] = originalArray->value._array->values[i];
+        }
+    }
+
+    return tmp;
 }
 
 /* 
