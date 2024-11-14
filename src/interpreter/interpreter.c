@@ -60,14 +60,13 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
             var2 = values[1]->value.value;
         }
     }
-
     astNode* tmpNode = malloc(sizeof(astNode));
     
 
     switch(op){
         case ADDITION:{
             // Return error msg if array values not of same type
-            if(var1.type == _array) {
+            if(var1.type == _array && var2.type == _array) {
                 if (var1.value._array->values[0].type != var2.value._array->values[0].type) {
                     err_op.value = ERR_TYPE;
                     assignErrorMessage(&err_op, "Elements array must be of same type");
@@ -275,7 +274,6 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
         if(valueToAssign->type == ARRAY){
-
             var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack, err);
 
             if(newArr == NULL){
@@ -296,6 +294,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
 
         } else {
+
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
 
             if(hmIndex > -1){
