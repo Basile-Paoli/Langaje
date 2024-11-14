@@ -660,6 +660,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
         return NULL;
     } else if (node->type == MEMORY_DUMP){
         displayHashmap(stack,err);
+        return node;
     } else {
         return node;
     }
