@@ -10,7 +10,6 @@ var* subsituteValue(astNode* value, hmStack* stack, error *err){
     
     if(hmIndex == -1){
         err->value = ERR_NOT_FOUND;
-
         char *msg = malloc(strlen("Value not found : %s") + 50);
         sprintf(msg, "Value not found : %s", value->value.variable);
 
@@ -46,6 +45,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     err_op.value = ERR_SUCCESS;
     int hasSubsituted = 0;
     var var1;
+    
     if(values[0]->type == VARIABLE){   
         var1 = *subsituteValue(values[0],stack, err);
         hasSubsituted = 1;
@@ -61,6 +61,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         }
     }
     astNode* tmpNode = malloc(sizeof(astNode));
+    tmpNode->type = VALUE;
     
 
     switch(op){
@@ -133,6 +134,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
             } else {
                 tmpNode->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
             }
+        tmpNode->type = POINTER;
             
     
             break;
@@ -157,7 +159,6 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         //return NULL;
     }
 
-    tmpNode->type = VALUE;
     return tmpNode;
 }
 
@@ -299,8 +300,8 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
             if(hmIndex > -1){
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
-                if(valueToAssign->type == VALUE){
-                    if(valueToAssign->value.referencedValue == NULL){
+                if(valueToAssign->type == VALUE || valueToAssign->type == POINTER){
+                    if(valueToAssign->type != POINTER){
                         var2var(tmp, &(valueToAssign->value.value), err);
                     } else{
                         var2var(tmp, valueToAssign->value.referencedValue, err);
@@ -320,8 +321,8 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
         }
     } else {
         //FOR ARRAYS SUBSCRIPT
-        if(nodeToAssign->value.referencedValue != NULL){
-            if(valueToAssign->value.referencedValue != NULL){
+        if(nodeToAssign->type  == POINTER){
+            if(valueToAssign->type == POINTER){
                 var2var(nodeToAssign->value.referencedValue,valueToAssign->value.referencedValue,err);
             } else {
                 var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value,err);
