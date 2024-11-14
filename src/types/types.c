@@ -64,110 +64,113 @@ int assign(var *v, void *value, error *err) {
 }
 
 void var2var(var* v, var* v2, error *err){
-    switch(v->type){
-        case(_int):
-            //assign(v,&v2->value._int);
-            switch(v2->type){
-                case _float:{
-                    v->value._int = (int)v2->value._float;
-                    break;
+    if(err->value == ERR_SUCCESS) {
+        switch (v->type) {
+            case (_int):
+                //assign(v,&v2->value._int);
+                switch (v2->type) {
+                    case _float: {
+                        v->value._int = (int) v2->value._float;
+                        break;
+                    }
+                    case _char: {
+                        v->value._int = (int) v2->value._char;
+                        break;
+                    }
+                    case _string: {
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Can't convert string into integer");
+                        break;
+                    }
+                    default: {
+                        v->value._int = v2->value._int;
+                        break;
+                    }
                 }
-                case _char:{
-                    v->value._int = (int)v2->value._char;
-                    break;
+                break;
+            case (_float):
+                switch (v2->type) {
+                    case _int: {
+                        v->value._float = (float) v2->value._int;
+                        break;
+                    }
+                    case _char: {
+                        v->value._float = (float) v2->value._char;
+                        break;
+                    }
+                    case _string: {
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Can't convert string into float");
+                        break;
+                    }
+                    default: {
+                        v->value._float = v2->value._float;
+                        break;
+                    }
                 }
-                case _string:{
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Can't convert string into integer");
-                    break;
-                }default:{
-                    v->value._int = v2->value._int;
-                    break;
-                }
-            }
-            break;
-        case(_float):
-            switch(v2->type){
-                case _int:{
-                    v->value._float = (float)v2->value._int;
-                    break;
-                }
-                case _char:{
-                    v->value._float = (float)v2->value._char;
-                    break;
-                }
-                case _string:{
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Can't convert string into float");
-                    break;
-                }
-                default:{
-                    v->value._float = v2->value._float;
-                    break;
-                }
-            }
-            break;
+                break;
 
-        case(_char):
-            switch(v2->type){
-                case _int:{
-                    v->value._char = (char)v2->value._int;
-                    break;
+            case (_char):
+                switch (v2->type) {
+                    case _int: {
+                        v->value._char = (char) v2->value._int;
+                        break;
+                    }
+                    case _float: {
+                        v->value._char = (char) v2->value._float;
+                        break;
+                    }
+                    case _string: {
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Can't convert string into char");
+                        break;
+                    }
+                    default: {
+                        v->value._char = v2->value._char;
+                        break;
+                    }
                 }
-                case _float:{
-                    v->value._char = (char)v2->value._float;
-                    break; 
-                }
-                case _string:{
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Can't convert string into char");
-                    break;
-                }
-                default:{
-                    v->value._char = v2->value._char;
-                    break;
-                }
-            }
-            break;
+                break;
 
-        case(_string):
-            switch(v2->type){
-                /*
-                case _float:
-                case _int:
-                case _char:
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Expected string, other given");
-                    break;
-                    */
-                case _string:{
-                    assignString(v,v2->value._string);
-                    break;
+            case (_string):
+                switch (v2->type) {
+                    /*
+                    case _float:
+                    case _int:
+                    case _char:
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Expected string, other given");
+                        break;
+                        */
+                    case _string: {
+                        assignString(v, v2->value._string);
+                        break;
+                    }
+                    default: {
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Expected string, other given");
+                        break;
+                    }
                 }
-                default:{
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Expected string, other given");
-                    break;
+                break;
+            case (_array): {
+                switch (v2->type) {
+                    case _array:
+                        v->value._array = v2->value._array;
+                        break;
+                    default:
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Expected array, other given");
+                        break;
                 }
+                break;
             }
-            break;
-        case(_array):{
-            switch(v2->type){
-                case _array:
-                    v->value._array = v2->value._array;
-                    break;
-                default:
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Expected array, other given");
-                    break;
-            }
-            break;
+
+            default:
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variable must be of type int, float, char, string or array.");
+                break;
         }
-        
-        default:
-            err->value = ERR_TYPE;
-            assignErrorMessage(err, "Variable must be of type int, float, char, string or array.");
-            break;
     }
 }
 
