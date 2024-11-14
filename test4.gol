@@ -1,6 +1,6 @@
 def int a = 3;
 @memoryDump
 
-def int a = 1;
+def int b = 1;
 
 @memoryDump
