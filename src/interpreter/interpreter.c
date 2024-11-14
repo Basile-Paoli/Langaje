@@ -321,7 +321,12 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
     } else {
         //FOR ARRAYS SUBSCRIPT
         if(nodeToAssign->value.referencedValue != NULL){
-            var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value,err);
+            if(valueToAssign->value.referencedValue != NULL){
+                var2var(nodeToAssign->value.referencedValue,valueToAssign->value.referencedValue,err);
+            } else {
+                var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value,err);
+            }
+            
             return 1;
         }
 
