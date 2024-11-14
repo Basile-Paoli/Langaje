@@ -275,20 +275,43 @@ var* newArrayVar(int size, varType type) {
     return res;
 }
 
-function* newFunctionPrototype(char* name, varType type, fakeFunctionParam* parameters, __builtinFunction__ __builtinId__, int parametersCount, error* err){
+function* newFunctionPrototype(char* name, varType type, __builtinFunction__ __builtinId__, int parametersCount, error* err, fakeFunctionParam* parameters){
     function* f = malloc(sizeof(function));
+    if (f == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return NULL;
+    }
     f->isBuiltin = 1;
     f->instructions = NULL;
     f->type = type;
     f->parametersCount = parametersCount;
     functionParameter* p = malloc(sizeof(functionParameter) * parametersCount);
+    if (p == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return NULL;
+    }
+
     for(int i = 0; i < parametersCount; i++){
-        p[i].name = malloc(sizeof(char) * (strlen(parameters[i].name) + 1) );
+        p[i].name = malloc(sizeof(char) * (strlen(parameters[i].name) + 1));
+        if (p[i].name == NULL) {
+            err->value = ERR_MEMORY;
+            assignErrorMessage(err, "Memory allocation error\n");
+            return NULL;
+        }
+
         strcpy(p[i].name,parameters[i].name);
         p[i].type.type = parameters[i].type;
     }
     f->parameters = p;
     f->name = malloc(sizeof(char) * (strlen(name) + 1));
+    if (f->name == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return NULL;
+    }
+
     f->__builtinIdentifier__ = __builtinId__;
     strcpy(f->name,name);
     return f;

@@ -2,18 +2,18 @@
 
 void __builtinToMap__(hm* functionMap, error* err){
     function* functions[] = {
-        declare__print__(err),
-        declare__strlen__(err),
-        declare__arrlen__(err),
-        declare__randint__(err),
-        declare__randfloat__(err),
-        declare__system__(err),
-        declare__input__(err),
-        declare__randchoice__(err),
-        declare__fread__(err),
-        declare__fwrite__(err),
-        declare__split__(err),
-        declare__range__(err)
+        newFunctionPrototype("print",        _void,     __print__,      1, err, (fakeFunctionParam[]){{"message", _string}}),
+        newFunctionPrototype("strlen",       _int,      __strlen__,     1, err, (fakeFunctionParam[]){{"string", _string}}),
+        newFunctionPrototype("arrlen",       _int,      __arrlen__,     1, err, (fakeFunctionParam[]){{"array", _array}}),
+        newFunctionPrototype("randint",      _int,      __randint__,    2, err, (fakeFunctionParam[]){{"min", _int}, {"max", _int}}),
+        newFunctionPrototype("randfloat",    _float,    __randfloat__,  2, err, (fakeFunctionParam[]){{"min", _float}, {"max", _float}}),
+        newFunctionPrototype("system",       _int,      __system__,     1, err, (fakeFunctionParam[]){{"command", _string}}),
+        newFunctionPrototype("input",        _string,   __input__,      1, err, (fakeFunctionParam[]){{"message", _string}}),
+        newFunctionPrototype("randchoice",   _int,      __randchoice__, 1, err, (fakeFunctionParam[]){{"array", _array}}),
+        newFunctionPrototype("fread",        _string,   __fread__,      1, err, (fakeFunctionParam[]){{"filename", _string}}),
+        newFunctionPrototype("fwrite",       _int,      __fwrite__,     3, err, (fakeFunctionParam[]){{"filename", _string}, {"content", _string}, {"method", _string}}),
+        newFunctionPrototype("split",        _array,    __split__,      2, err, (fakeFunctionParam[]){{"string", _string}, {"delimiter", _string}}),
+        newFunctionPrototype("range",        _array,    __range__,      3, err, (fakeFunctionParam[]){{"start", _int}, {"end", _int}, {"step", _int}})
     };
 
 
@@ -27,12 +27,6 @@ void __builtinToMap__(hm* functionMap, error* err){
     
 }
 
-function *declare__print__(error *err){
-    fakeFunctionParam message = {"message", _string};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 1);
-    params[0] = message;
-    return newFunctionPrototype("print", _void, params, __print__, 1, err);
-}
 void call__print__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
     if (newVar == NULL) {
@@ -58,12 +52,6 @@ void call__print__(hmStack* fStack, error* err) {
     newVar->value._int = 0;
 }
 
-function *declare__strlen__(error *err){
-    fakeFunctionParam string = {"string", _string};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 1);
-    params[0] = string;
-    return newFunctionPrototype("strlen", _int, params, __strlen__, 1, err);
-}
 void call__strlen__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
@@ -88,12 +76,6 @@ void call__strlen__(hmStack* fStack, error* err) {
     newVar->value._int = strlen(string->value._string);
 }
 
-function *declare__arrlen__(error *err){
-    fakeFunctionParam array = {"array", _array};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 1);
-    params[0] = array;
-    return newFunctionPrototype("arrlen", _int, params, __arrlen__, 1, err);
-}
 void call__arrlen__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
@@ -118,14 +100,6 @@ void call__arrlen__(hmStack* fStack, error* err) {
     newVar->value._int = array->value._array->length;
 }
 
-function *declare__randint__(error *err){
-    fakeFunctionParam min = {"min", _int};
-    fakeFunctionParam max = {"max", _int};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 2);
-    params[0] = min;
-    params[1] = max;
-    return newFunctionPrototype("randint", _int, params, __randint__, 2, err);
-}
 void call__randint__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
@@ -151,14 +125,6 @@ void call__randint__(hmStack* fStack, error* err) {
     newVar->value._int = rand() % (max->value._int - min->value._int + 1) + min->value._int;
 }
 
-function *declare__randfloat__(error *err){
-    fakeFunctionParam min = {"min", _float};
-    fakeFunctionParam max = {"max", _float};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 2);
-    params[0] = min;
-    params[1] = max;
-    return newFunctionPrototype("randfloat", _float, params, __randfloat__, 2, err);
-}
 void call__randfloat__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
@@ -186,12 +152,6 @@ void call__randfloat__(hmStack* fStack, error* err) {
     newVar->value._float = (float)rand() / (float)RAND_MAX * (max->value._float - min->value._float) + min->value._float;
 }
 
-function *declare__system__(error *err){
-    fakeFunctionParam command = {"command", _string};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 1);
-    params[0] = command;
-    return newFunctionPrototype("system", _int, params, __system__, 1, err);
-}
 void call__system__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
@@ -216,12 +176,6 @@ void call__system__(hmStack* fStack, error* err) {
     newVar->value._int = system(command->value._string);
 }
 
-function* declare__input__(error* err){
-    fakeFunctionParam message = {"message", _string};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 1);
-    params[0] = message;
-    return newFunctionPrototype("input", _string, params, __input__, 1, err);
-}
 void call__input__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
     if (newVar == NULL) {
@@ -259,12 +213,6 @@ void call__input__(hmStack* fStack, error* err) {
     free(input);
 }
 
-function* declare__randchoice__(error* err){
-    fakeFunctionParam array = {"array", _array};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 1);
-    params[0] = array;
-    return newFunctionPrototype("randchoice", _int, params, __randchoice__, 1, err);
-}
 void call__randchoice__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
     if (newVar == NULL) {
@@ -288,12 +236,6 @@ void call__randchoice__(hmStack* fStack, error* err) {
     newVar->value._int = rand() % array->value._array->length;
 }
 
-function* declare__fread__(error* err){
-    fakeFunctionParam filename = {"filename", _string};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 1);
-    params[0] = filename;
-    return newFunctionPrototype("fread", _string, params, __fread__, 1, err);
-}
 void call__fread__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
     if (newVar == NULL) {
@@ -341,16 +283,6 @@ void call__fread__(hmStack* fStack, error* err) {
     fclose(file);
 }
 
-function* declare__fwrite__(error* err){
-    fakeFunctionParam filename = {"filename", _string};
-    fakeFunctionParam content = {"content", _string};
-    fakeFunctionParam method = {"method", _string};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 3);
-    params[0] = filename;
-    params[1] = content;
-    params[2] = method;
-    return newFunctionPrototype("fwrite", _int, params, __fwrite__, 3, err);
-}
 void call__fwrite__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
     if (newVar == NULL) {
@@ -393,14 +325,6 @@ void call__fwrite__(hmStack* fStack, error* err) {
     newVar->value._int = 0;
 }
 
-function* declare__split__(error* err){
-    fakeFunctionParam string = {"string", _string};
-    fakeFunctionParam delimiter = {"delimiter", _string};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 2);
-    params[0] = string;
-    params[1] = delimiter;
-    return newFunctionPrototype("split", _array, params, __split__, 2, err);
-}
 void call__split__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
     if (newVar == NULL) {
@@ -456,16 +380,6 @@ void call__split__(hmStack* fStack, error* err) {
     newVar->value._array = arr;
 }
 
-function* declare__range__(error *err){
-    fakeFunctionParam start = {"start", _int};
-    fakeFunctionParam end = {"end", _int};
-    fakeFunctionParam increment = {"increment", _int};
-    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 3);
-    params[0] = start;
-    params[1] = end;
-    params[2] = increment;
-    return newFunctionPrototype("range", _array, params, __range__, 3, err);
-}
 void call__range__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
     if (newVar == NULL) {

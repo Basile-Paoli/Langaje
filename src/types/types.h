@@ -87,6 +87,6 @@ var* getVarPointerFromArray(var* array, int index, error *err);
 void destroyVar(var* v);
 void destroyFunction(function* f);
 char* getVarTypeName(varType type);
-function* newFunctionPrototype(char* name, varType type, fakeFunctionParam* parameters, __builtinFunction__ __builtinId__, int parametersCount, error* err);
+function* newFunctionPrototype(char* name, varType type, __builtinFunction__ __builtinId__, int parametersCount, error* err, fakeFunctionParam* parameters);
 
 #endif //LANGAJE_TYPES_H
