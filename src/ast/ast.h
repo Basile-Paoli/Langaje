@@ -25,6 +25,7 @@ typedef enum {
     RETURN,
     BREAKPOINT,
     MEMORY_DUMP,
+    POINTER
 } astNodeType;
 typedef enum operator {
     ADDITION,

@@ -1,0 +1,9 @@
+def string[2] a = ["b", "a"];
+def string[2] d = ["c", "a"];
+def int[10] tab = [0,1,2,3,4,5,6,7,8,9];
+
+@memoryDump
+
+a = d;
+a[1] = "caca";
+@memoryDump
