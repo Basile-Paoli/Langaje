@@ -112,7 +112,8 @@ int main(int argc, char **argv) {
     /*---------- PARSER ----------*/
     InstructionBlock *pr = parse(tl, err);
     if (err->value != ERR_SUCCESS) {
-        printf("[PARSER][ERROR] %s\n", err->message);
+        assignErrorMessage(err, "Cannot parse");
+        printError(err);
         return 1;
     }
     //printInstructionBlock(pr, 0);
@@ -146,7 +147,8 @@ int main(int argc, char **argv) {
     printf("Time taken to execute : %f seconds\n", cpu_time_used);
     if(runInstructionResult == 1){
         // Print the error msg
-        printf("[RUNTIME][ERROR] %s\n", err->message);
+        assignErrorMessage(err, "Cannot run instruction");
+        printError(err);
         return 1;
     }
 
