@@ -370,8 +370,8 @@ int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,error* err){
     while(shouldContinue == 1){
         hm* hashmap = hm_create();
         hmStackPush(stack,hashmap);
-        if(runInstructionBlock(&instructions,stack,functionMap,err) == 1){
-            printf("%s\n", err->message);
+        if(runInstructionBlock(&instructions,stack,functionMap,err) != 0){
+            //printf("%s\n", err->message);
             hmStackPop(stack);
             return 1;
         }
@@ -380,6 +380,7 @@ int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,error* err){
         result = computeNode(&condition,stack,functionMap,err);
         shouldContinue = result->value.value.value._int;
     }
+    return 0;
 }
 
 
@@ -419,7 +420,10 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
         while (loopIndexValue > conditionValue) {
             hm* hashmap = hm_create();
             hmStackPush(stack,hashmap);        
-            runInstructionBlock(&instructions, stack, functionMap,err);
+            if(runInstructionBlock(&instructions, stack, functionMap,err) != 0){
+                hmStackPop(stack);
+                return 1;
+            };
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
@@ -429,7 +433,10 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
         while (loopIndexValue < conditionValue) {
             hm* hashmap = hm_create();
             hmStackPush(stack,hashmap);
-            runInstructionBlock(&instructions, stack, functionMap,err);
+            if(runInstructionBlock(&instructions, stack, functionMap,err) != 0){
+                hmStackPop(stack);
+                return 1;
+            };
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
@@ -515,12 +522,12 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
     tmpNode->value.value.value = returnValue->value;
 
     hmStackPop(functionStack);
-
     tmpNode->type = VALUE;
     return tmpNode;
 }
 
 astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
+
     function* fun = (struct function*)hm_get(functionMap,node->value.functionCall.name);
     if(fun->isBuiltin == 1){
         //Run builtin function generate its own tmp node
@@ -559,6 +566,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
 
         hmStackPush(functionStack,Fhashmap);
         runInstructionBlock(fun->instructions, functionStack, functionMap, err);
+        
 
         var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
         astNode* tmpNode = malloc(sizeof(astNode));
@@ -567,6 +575,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
 
         hmStackPop(functionStack);
         tmpNode->type = VALUE;
+
         return tmpNode;
     }
     
@@ -596,7 +605,9 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
             if(node->children[i]->type == BLOCK){
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
-                runInstructionBlock(node->children[i]->value.block, stack, functionMap,err);
+                if(runInstructionBlock(node->children[i]->value.block, stack, functionMap,err) != 0){
+                    return NULL;
+                }
                 hmStackPop(stack);
 
             }
@@ -607,17 +618,23 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
                 
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
-                runInstructionBlock(node->children[i]->value.block, stack, functionMap,err);
+                if(runInstructionBlock(node->children[i]->value.block, stack, functionMap,err) != 0){
+                    return NULL;
+                };
                 hmStackPop(stack);
 
             }
 
             i+=1;
         } else if(node->type == WHILE_LOOP){
-            runWhileLoop(node,stack,functionMap,err);
+            if(runWhileLoop(node,stack,functionMap,err) != 0){
+                return 1;
+            };
             break;
         } else if(node->type == FOR_LOOP){
-            runForLoop(node,stack,functionMap,err);
+            if(runForLoop(node,stack,functionMap,err) != 0){
+                return 1;
+            };
             break;
         } else{
             values[i] = computeNode(node->children[i], stack,functionMap, err);
@@ -639,6 +656,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
        return node;
     } else if (node->type == FUNCTION_DECLARATION){
         declareFunction(node,stack,functionMap,err);
+        return node;
     } else if (node->type == FUNCTION_CALL) {
         return runFunction(node, stack, functionMap, err);
     } else if(node->type == RETURN){
@@ -675,10 +693,9 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
 */
 
 int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionMap, error *err){
-    
     for(int i = 0; i < program->instructionsCount; i++){
         if(computeNode(program->instructions[i], stack, functionMap,err) == NULL){
-            return 0;
+            return -1;
         };
         // Stop computing if there's an error
         if(err->value != ERR_SUCCESS)
