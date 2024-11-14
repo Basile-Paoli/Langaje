@@ -300,7 +300,11 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
             if(hmIndex > -1){
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
                 if(valueToAssign->type == VALUE){
-                    var2var(tmp, &(valueToAssign->value.value), err);
+                    if(valueToAssign->value.referencedValue == NULL){
+                        var2var(tmp, &(valueToAssign->value.value), err);
+                    } else{
+                        var2var(tmp, valueToAssign->value.referencedValue, err);
+                    }
                 } else {
                     var tmpVar = *subsituteValue(valueToAssign, stack, err);
                     var2var(tmp, &(tmpVar), err);
