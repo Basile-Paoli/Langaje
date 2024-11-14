@@ -628,12 +628,12 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
             i+=1;
         } else if(node->type == WHILE_LOOP){
             if(runWhileLoop(node,stack,functionMap,err) != 0){
-                return 1;
+                return NULL;
             };
             break;
         } else if(node->type == FOR_LOOP){
             if(runForLoop(node,stack,functionMap,err) != 0){
-                return 1;
+                return NULL;
             };
             break;
         } else{
