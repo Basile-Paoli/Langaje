@@ -10,7 +10,6 @@ var* subsituteValue(astNode* value, hmStack* stack, error *err){
     
     if(hmIndex == -1){
         err->value = ERR_NOT_FOUND;
-
         char *msg = malloc(strlen("Value not found : %s") + 50);
         sprintf(msg, "Value not found : %s", value->value.variable);
 
@@ -46,6 +45,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     err_op.value = ERR_SUCCESS;
     int hasSubsituted = 0;
     var var1;
+    
     if(values[0]->type == VARIABLE){   
         var1 = *subsituteValue(values[0],stack, err);
         hasSubsituted = 1;
@@ -60,14 +60,14 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
             var2 = values[1]->value.value;
         }
     }
-
     astNode* tmpNode = malloc(sizeof(astNode));
+    tmpNode->type = VALUE;
     
 
     switch(op){
         case ADDITION:{
             // Return error msg if array values not of same type
-            if(var1.type == _array) {
+            if(var1.type == _array && var2.type == _array) {
                 if (var1.value._array->values[0].type != var2.value._array->values[0].type) {
                     err_op.value = ERR_TYPE;
                     assignErrorMessage(&err_op, "Elements array must be of same type");
@@ -134,6 +134,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
             } else {
                 tmpNode->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
             }
+        tmpNode->type = POINTER;
             
     
             break;
@@ -158,7 +159,6 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         //return NULL;
     }
 
-    tmpNode->type = VALUE;
     return tmpNode;
 }
 
@@ -275,7 +275,6 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
         if(valueToAssign->type == ARRAY){
-
             var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack, err);
 
             if(newArr == NULL){
@@ -296,12 +295,17 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
 
         } else {
+
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
 
             if(hmIndex > -1){
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
-                if(valueToAssign->type == VALUE){
-                    var2var(tmp, &(valueToAssign->value.value), err);
+                if(valueToAssign->type == VALUE || valueToAssign->type == POINTER){
+                    if(valueToAssign->type != POINTER){
+                        var2var(tmp, &(valueToAssign->value.value), err);
+                    } else{
+                        var2var(tmp, valueToAssign->value.referencedValue, err);
+                    }
                 } else {
                     var tmpVar = *subsituteValue(valueToAssign, stack, err);
                     var2var(tmp, &(tmpVar), err);
@@ -317,8 +321,13 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
         }
     } else {
         //FOR ARRAYS SUBSCRIPT
-        if(nodeToAssign->value.referencedValue != NULL){
-            var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value,err);
+        if(nodeToAssign->type  == POINTER){
+            if(valueToAssign->type == POINTER){
+                var2var(nodeToAssign->value.referencedValue,valueToAssign->value.referencedValue,err);
+            } else {
+                var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value,err);
+            }
+            
             return 1;
         }
 
@@ -405,26 +414,29 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
      
     
     int loopIndexValue = newVar->value._int;
-    //MAYBE PUT IT IN THE WHILE, TESTING !!
-    hm* hashmap = hm_create();
-    hmStackPush(stack,hashmap);
+    
     if(loopIndexValue > conditionValue){
         while (loopIndexValue > conditionValue) {
-            
+            hm* hashmap = hm_create();
+            hmStackPush(stack,hashmap);        
             runInstructionBlock(&instructions, stack, functionMap,err);
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
+            hmStackPop(stack);
         }
     } else {
         while (loopIndexValue < conditionValue) {
+            hm* hashmap = hm_create();
+            hmStackPush(stack,hashmap);
             runInstructionBlock(&instructions, stack, functionMap,err);
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
+            hmStackPop(stack);
         }
     }
-    hmStackPop(stack);
+    
 
     return 0;
 }
@@ -649,6 +661,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
         return NULL;
     } else if (node->type == MEMORY_DUMP){
         displayHashmap(stack,err);
+        return node;
     } else {
         return node;
     }

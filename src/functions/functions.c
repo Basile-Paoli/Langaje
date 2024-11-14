@@ -51,7 +51,6 @@ var add(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
     char buffer[20];
-
     // Define the type of var to return
     switch (var1->type) {
         case _int:
@@ -155,17 +154,18 @@ var add(var *var1, var *var2, error *err){
             }
             break;
         case _array: {
-            int newArraySize = var1->value._array->length + var2->value._array->length;
-
-            var *tmp = newArrayVar(newArraySize, var1->value._array->values[0].type);
-            result = *tmp;
-
-            // If var2 is not an array
+             // If var2 is not an array
             if(var2->type != _array) {
                 err->value = ERR_TYPE;
                 assignErrorMessage(err, "Both variables must be arrays");
                 break;
             }
+            int newArraySize = var1->value._array->length + var2->value._array->length;
+
+            var *tmp = newArrayVar(newArraySize, var1->value._array->values[0].type);
+            result = *tmp;
+
+           
 
             int concatSuccess = concatArray(var1, var2, err, newArraySize, tmp);
 
@@ -567,6 +567,13 @@ var isEqual(var* v, var* v2,int reversed, error* err){
                 result.value._int = 0;
                 return result;
             }
+            int res = strcmp(v->value._string,v2->value._string);
+            if(reversed == 1){
+                result.value._int = res == 0 ? 0 : 1;
+            } else {
+                result.value._int = res == 0 ? 1 : 0;
+            }
+            
             
             break;
         }

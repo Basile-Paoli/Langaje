@@ -117,7 +117,6 @@ int main(int argc, char **argv) {
     }
     //printInstructionBlock(pr, 0);
     
-    
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
