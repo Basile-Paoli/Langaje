@@ -4,14 +4,22 @@
 
 #include "token.h"
 
-TokenList *new_TokenList() {
+TokenList *new_TokenList(error *err) {
     TokenList *tl = (TokenList *)malloc(sizeof(TokenList));
     if (tl == NULL) {
-        printf("[ERROR][TOKEN]: Cannot allocate memory for TokenList\n");
+        free(tl);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for TokenList");
         return NULL;
     }
 
     tl->tokens = (Token *)malloc(sizeof(Token));
+    if (tl->tokens == NULL) {
+        free(tl); free(tl->tokens);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for TokenList->tokens");
+        return NULL;
+    }
     tl->nb_tokens = 0;
     return tl;
 }
@@ -28,11 +36,12 @@ void print_token(Token *t) {
     if (t->type == TOKEN_SEMICOLON) printf("\n");
 }
 
-Token *new_Token(TokenType type, char *value, int line, int column) {
+Token *new_Token(TokenType type, char *value, int line, int column, error *err) {
     Token *t = (Token *)malloc(sizeof(Token));
     if (t == NULL) {
         free(t);
-        printf("[ERROR][TOKEN]: Cannot allocate memory for Token\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for Token");
         return NULL;
     }
 
@@ -40,7 +49,8 @@ Token *new_Token(TokenType type, char *value, int line, int column) {
     t->value = (char *)malloc(strlen(value) + 1);
     if (t->value == NULL) {
         free(t); free(t->value);
-        printf("[ERROR][TOKEN]: Cannot allocate memory for value\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for Token->value");
         return NULL;
     }
 
@@ -52,17 +62,19 @@ Token *new_Token(TokenType type, char *value, int line, int column) {
     return t;
 }
 
-int add_Token(TokenList *tl, Token *t) {
+int add_Token(TokenList *tl, Token *t, error *err) {
     tl->tokens = (Token *) realloc(tl->tokens, (tl->nb_tokens + 1) * sizeof(Token));
     if (tl->tokens == NULL) {
-        printf("[ERROR][TOKEN]: Cannot allocate memory for token\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot reallocate memory for TokenList->tokens");
         return 1;
     }
 
     tl->tokens[tl->nb_tokens++].type = t->type;
     tl->tokens[tl->nb_tokens - 1].value = (char *)malloc(strlen(t->value) + 1);
     if (tl->tokens[tl->nb_tokens - 1].value == NULL) {
-        printf("[ERROR][TOKEN]: Cannot allocate memory for value\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for value");
         return 1;
     }
     strcpy(tl->tokens[tl->nb_tokens - 1].value, t->value);

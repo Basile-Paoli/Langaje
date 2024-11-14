@@ -16,7 +16,8 @@ typedef enum {
     ERR_ALREADY_EXISTS,
     ERR_NULL_POINTER,
     ERR_MEMORY,
-    ERR_FILE
+    ERR_FILE,
+    ERR_ARGS
 } errorValue;
 
 typedef struct {
@@ -24,6 +25,7 @@ typedef struct {
     char *message;
 } error;
 
+void printError(error *err);
 void *endOfInputError(error *err);
 int assignErrorMessage(error *err, char *msg);
 char* getNameTypeError(errorValue error);

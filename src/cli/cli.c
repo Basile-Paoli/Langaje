@@ -1,4 +1,10 @@
-#include <stdio.h>
+#include "../lexer/lexer.h"
+
+int cliMode(Lexer *l) {
+    return 0;
+}
+
+/*#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <termios.h>
@@ -198,4 +204,4 @@ int cliMode(Lexer *l) {
 
     return 0;
 
-}
+}*/

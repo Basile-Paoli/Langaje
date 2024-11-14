@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "errors.h"
 
 void *endOfInputError(error *err) {
@@ -20,11 +21,20 @@ void *endOfInputError(error *err) {
  *
  * */
 int assignErrorMessage(error *err, char *msg) {
-    err->message = malloc(strlen(getNameTypeError(err->value)) + strlen(msg) + 1);
-    strcpy(err->message, getNameTypeError(err->value));
+    //err->message = malloc(strlen(getNameTypeError(err->value)) + strlen(msg) + 1);
+    err->message = (char *)realloc(err->message, strlen(getNameTypeError(err->value)) + strlen(msg) + strlen(err->message) + 1);
+    strcat(err->message, getNameTypeError(err->value));
     strcat(err->message, msg);
+    strcat(err->message, "\n");
 
     return 0;
+}
+
+void printError(error *err) {
+    printf("\x1B[31m%s\n", err->message);
+    printf("\x1B[0m");
+    free(err->message);
+    free(err);
 }
 
 /*
@@ -52,6 +62,8 @@ char *getNameTypeError(errorValue error) {
             return "Memory error: ";
         case ERR_FILE:
             return "File error: ";
+        case ERR_ARGS:
+            return "Arguments error: ";
         default:
             return "Unknown error: ";
     }

@@ -5,12 +5,15 @@
 
 #include "lexer.h"
 #include "token.h"
+#include "../errors/errors.h"
 
-Lexer *new_lexer() {
+Lexer *new_lexer(error *err) {
 
     Lexer *l = malloc(sizeof(Lexer));
     if (l == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for lexer\n");
+        free_lexer(l);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for lexer");
         return NULL;
     }
 
@@ -19,18 +22,19 @@ Lexer *new_lexer() {
 
     // Default rules
     if (
-    add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+"               , TOKEN_PREPROCESSEUR_LANG)) +
-    add_lexer_rule(l, new_lexer_rule("#include"                     , TOKEN_PREPROCESSEUR_INCLUDE)) +
-    add_lexer_rule(l, new_lexer_rule("[0-9_]+\\.[0-9_]+"              , TOKEN_FLOAT)) +
-    add_lexer_rule(l, new_lexer_rule("[0-9_]+"                       , TOKEN_INT)) +
-    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\""                   , TOKEN_STRING)) + 
-    add_lexer_rule(l, new_lexer_rule("f\"[^\"]*\""                  , TOKEN_FORMATTED_STRING)) +
-    add_lexer_rule(l, new_lexer_rule("@memoryDump"                  , TOKEN_MEMORY_DUMP)) +
-    add_lexer_rule(l, new_lexer_rule("@breakPoint"                  , TOKEN_BREAKPOINT)) +
-    add_lexer_rule(l, new_lexer_rule("//[^\n]*"                     , TOKEN_COMMENT)) + 
-    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/"   , TOKEN_COMMENT))
+    add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+"               , TOKEN_PREPROCESSEUR_LANG, err), err) +
+    add_lexer_rule(l, new_lexer_rule("#include"                     , TOKEN_PREPROCESSEUR_INCLUDE, err), err) +
+    add_lexer_rule(l, new_lexer_rule("[0-9_]+\\.[0-9_]+"            , TOKEN_FLOAT, err), err) +
+    add_lexer_rule(l, new_lexer_rule("[0-9_]+"                      , TOKEN_INT, err), err) +
+    add_lexer_rule(l, new_lexer_rule("\"[^\"]*\""                   , TOKEN_STRING, err), err) +
+    add_lexer_rule(l, new_lexer_rule("f\"[^\"]*\""                  , TOKEN_FORMATTED_STRING, err), err) +
+    add_lexer_rule(l, new_lexer_rule("@memoryDump"                  , TOKEN_MEMORY_DUMP, err), err) +
+    add_lexer_rule(l, new_lexer_rule("@breakPoint"                  , TOKEN_BREAKPOINT, err), err) +
+    add_lexer_rule(l, new_lexer_rule("//[^\n]*"                     , TOKEN_COMMENT, err), err) +
+    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/"   , TOKEN_COMMENT, err), err)
     != 0) {
-        printf("[ERROR][LEXER]: Cannot add default rules\n");
+        free_lexer(l);
+        assignErrorMessage(err, "Cannot add default rules to lexer");
         return NULL;
     }
 
@@ -38,7 +42,7 @@ Lexer *new_lexer() {
 
 }
 
-char *get_lang(char *input) {
+char *get_lang(char *input, error *err) {
     // input is the whole file
     // We get the lang preprocessor
     char *lang = NULL;
@@ -46,7 +50,8 @@ char *get_lang(char *input) {
     char *temp = calloc(strlen(input) + 1, sizeof(char));
     if (temp == NULL) {
         free(temp);
-        printf("[ERROR][LEXER]: Cannot allocate memory for temp\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for temp");
         return NULL;
     }
     strcpy(temp, input);
@@ -54,7 +59,9 @@ char *get_lang(char *input) {
     if (strstr(temp, "#LANG_") != NULL) {
         lang = calloc(10, sizeof(char));
         if (lang == NULL) {
-            printf("[ERROR][LEXER]: Cannot allocate memory for lang\n");
+            free(temp);
+            err->value = ERR_MEMORY;
+            assignErrorMessage(err, "Cannot allocate memory for lang");
             return NULL;
         }
         size_t k = 0;
@@ -74,48 +81,118 @@ char *get_lang(char *input) {
     return lang;
 }
 
-int readLexerFile(Lexer *l, char* filename) {
-    char *buffer = read_file(filename);
+int readLexerFile(Lexer *l, char* filename, error *err) {
+    char *buffer = read_file(filename, err);
     if (buffer == NULL){
         free(buffer);
-        printf("[ERROR][LEXER]: Cannot read file <%s>\n", filename);
+        err->value = ERR_FILE;
+        assignErrorMessage(err, "Cannot read lexer file :");
+        assignErrorMessage(err, filename);
         return 1;
     }
 
     if (strlen(buffer) == 0) {
         free(buffer);
-        printf("[ERROR][LEXER]: Empty file\n");
+        err->value = ERR_FILE;
+        assignErrorMessage(err, "Empty lexer file :");
+        assignErrorMessage(err, filename);
         return 1;
     }
 
     // for each line in the file
     for (char *line = strtok(buffer, "\n"); line != NULL; line = strtok(NULL, "\n")) {
 
+        if (strlen(line) == 0) {
+            free(buffer);
+            err->value = ERR_SYNTAX;
+            assignErrorMessage(err, "Empty line in lexer file");
+            return 1;
+        }
+
+        if (strchr(line, '=') == NULL) {
+            free(buffer);
+            err->value = ERR_SYNTAX;
+            assignErrorMessage(err, "Missing '=' at line : ");
+            assignErrorMessage(err, line);
+            return 1;
+        }
+
+        if (strchr(line, '=') == line) {
+            free(buffer);
+            err->value = ERR_SYNTAX;
+            assignErrorMessage(err, "Missing token name at line : ");
+            assignErrorMessage(err, line);
+            return 1;
+        }
+
+        if (strchr(line, '=') == line + strlen(line) - 1) {
+            free(buffer);
+            err->value = ERR_SYNTAX;
+            assignErrorMessage(err, "Missing regex at line : ");
+            assignErrorMessage(err, line);
+            return 1;
+        }
+
         // We get the token name
         char *tokenName = (char *)calloc(strlen(line), sizeof(char));
         if (tokenName == NULL) {
             free(buffer); free(tokenName);
-            printf("[ERROR][LEXER]: Cannot allocate memory for tokenName\n");
+            err->value = ERR_MEMORY;
+            assignErrorMessage(err, "Cannot allocate memory for tokenName");
             return 1;
         }
         size_t k = 0;
         char *tempLine = (char *)malloc(strlen(line) + 1);
         if (tempLine == NULL) {
             free(buffer); free(tokenName); free(tempLine);
-            printf("[ERROR][LEXER]: Cannot allocate memory for tempLine\n");
+            err->value = ERR_MEMORY;
+            assignErrorMessage(err, "Cannot allocate memory for tempLine");
             return 1;
         }
         strcpy(tempLine, line);
         while (*tempLine != '=') *(tokenName+k++) = *tempLine++;
         free(tempLine - k);
 
-        if (verifyLexerLine(line, tokenName, l) != 0) {
-            printf("[ERROR][LEXER]: Invalid line <%s>\n", line);
+        if (str_to_token_type(tokenName) == TOKEN_UNKNOWN) {
+            free(buffer); free(tokenName);
+            err->value = ERR_SYNTAX;
+            assignErrorMessage(err, "Token unknown at line : ");
+            assignErrorMessage(err, line);
             return 1;
         }
 
-        if (add_lexer_rule(l, new_lexer_rule(strstr(line, "=") + 1, str_to_token_type(tokenName))) != 0) {
-            printf("[ERROR][LEXER]: Cannot add rule for line <%s>\n", line);
+        if (is_token_in_lexer(l, str_to_token_type(tokenName)) == 1) {
+            free(buffer); free(tokenName);
+            err->value = ERR_SYNTAX;
+            assignErrorMessage(err, "Token already defined at line : ");
+            assignErrorMessage(err, line);
+            return 1;
+        }
+
+        regex_t reg;
+        if (regcomp(&reg, strstr(line, "=") + 1, REG_EXTENDED) != 0) {
+            regfree(&reg); free(buffer); free(tokenName);
+            err->value = ERR_SYNTAX;
+            assignErrorMessage(err, "Invalid regex at line : ");
+            assignErrorMessage(err, line);
+            return 1;
+        }
+
+        if (is_token_reserved_by_system(str_to_token_type(tokenName))) {
+            regfree(&reg); free(buffer); free(tokenName);
+            err->value = ERR_SYNTAX;
+            assignErrorMessage(err, "Token reserved by the system at line : ");
+            assignErrorMessage(err, line);
+            return 1;
+        }
+
+        regfree(&reg);
+
+        if (add_lexer_rule(l, new_lexer_rule(strstr(line, "=") + 1, str_to_token_type(tokenName), err), err) != 0) {
+            free(buffer); free(tokenName);
+            err->value = ERR_SYNTAX;
+            assignErrorMessage(err, "Cannot add lexer rule at line: ");
+            assignErrorMessage(err, line);
             return 1;
         }
 
@@ -125,63 +202,14 @@ int readLexerFile(Lexer *l, char* filename) {
     free(buffer);
 
     // Default rule for identifiers. This rule must be the last one
-    if (add_lexer_rule(l, new_lexer_rule("[a-zA-Z_][a-zA-Z0-9_]*", TOKEN_IDENTIFIER)) != 0) {
-        printf("[ERROR][LEXER]: Cannot add default rule for identifiers\n");
+    if (add_lexer_rule(l, new_lexer_rule("[a-zA-Z_][a-zA-Z0-9_]*", TOKEN_IDENTIFIER, err), err) != 0) {
+        err->value = ERR_SYNTAX;
+        assignErrorMessage(err, "Cannot add default rule for identifiers");
         return 1;
     }
 
     return 0;
 
-}
-
-int verifyLexerLine(char *line, char *tokenName, Lexer *l) {
-
-    if (strlen(line) == 0) {
-        printf("[ERROR][LEXER]: Empty line\n");
-        return 1;
-    }
-
-    if (strchr(line, '=') == NULL) {
-        printf("[ERROR][LEXER]: Missing '=' at line <%s>\n", line);
-        return 1;
-    }
-
-    if (strchr(line, '=') == line) {
-        printf("[ERROR][LEXER]: Missing token name at line <%s>\n", line);
-        return 1;
-    }
-
-    if (strchr(line, '=') == line + strlen(line) - 1) {
-        printf("[ERROR][LEXER]: Missing regex at line <%s>\n", line);
-        return 1;
-    }
-
-    if (str_to_token_type(tokenName) == TOKEN_UNKNOWN) {
-        printf("[ERROR][LEXER]: Token unknown at line <%s>\n", line);
-        return 1;
-    }
-
-    if (is_token_in_lexer(l, str_to_token_type(tokenName)) == 1) {
-        printf("[ERROR][LEXER]: Token already defined at line <%s>\n", line);
-        return 1;
-    }
-
-    regex_t reg;
-    if (regcomp(&reg, strstr(line, "=") + 1, REG_EXTENDED) != 0) {
-        regfree(&reg);
-        printf("[ERROR][LEXER]: Invalid regex at line <%s>\n", line);
-        return 1;
-    }
-
-    if (is_token_reserved_by_system(str_to_token_type(tokenName))) {
-        regfree(&reg);
-        printf("[ERROR][LEXER]: Token reserved by the system at line <%s>\n", line);
-        return 1;
-    }
-
-    regfree(&reg);
-
-    return 0;
 }
 
 int is_token_reserved_by_system(TokenType type) {
@@ -206,12 +234,13 @@ int is_token_in_lexer(Lexer *l, TokenType token) {
     return 0;
 }
 
-TokenList *tokenizer(char *input, Lexer *l) {
+TokenList *tokenizer(char *input, Lexer *l, error *err) {
 
-    TokenList *list = new_TokenList();
+    TokenList *list = new_TokenList(err);
     if (list == NULL) {
         free_tokenList(list);
-        printf("[ERROR][LEXER]: Cannot allocate memory for TokenList\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for TokenList");
         return NULL;
     }
 
@@ -275,23 +304,26 @@ TokenList *tokenizer(char *input, Lexer *l) {
             char *buffer = (char *)calloc(matchEndIndex + 1, sizeof(char));
             if (buffer == NULL) {
                 free(buffer); free_tokenList(list);
-                printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
+                err->value = ERR_MEMORY;
+                assignErrorMessage(err, "Cannot allocate memory for buffer");
                 return NULL;
             }
             strncpy(buffer, input + matchStartIndex, matchEndIndex);
 
             // Create the token
-            Token *t = new_Token(l->rules[ruleIndex].type, buffer, nbLine, nbColon);
+            Token *t = new_Token(l->rules[ruleIndex].type, buffer, nbLine, nbColon, err);
             if (t == NULL) {
                 free(buffer); free_tokenList(list);
-                printf("[ERROR][LEXER]: Cannot allocate memory for token\n");
+                err->value = ERR_MEMORY;
+                assignErrorMessage(err, "Cannot allocate memory for token");
                 return NULL;
             }
 
             // Add the token to the list
-            if (add_Token(list, t) != 0) {
+            if (add_Token(list, t, err) != 0) {
                 free(buffer); free_tokenList(list);
-                printf("[ERROR][LEXER]: Cannot add token to list\n");
+                err->value = ERR_MEMORY;
+                assignErrorMessage(err, "Cannot add token to list");
                 return NULL;
             }
 
@@ -301,19 +333,44 @@ TokenList *tokenizer(char *input, Lexer *l) {
             nbColon += matchEndIndex;
             
         } else { // If no match has been found, we print an error
-            printf("[ERROR][LEXER]: Unknown token: <%c> at position Ln-%d Col-%d\n", input[i], nbLine, nbColon);
-            printf("[ERROR][LEXER]: The lang used may not be correctly configurated\n");
+            free_tokenList(list);
+            err->value = ERR_SYNTAX;
 
-            // print the line
+            char *buffer = (char *)calloc(100, sizeof(char));
+            if (buffer == NULL) {
+                free(buffer); free_tokenList(list);
+                err->value = ERR_MEMORY;
+                assignErrorMessage(err, "Cannot allocate memory for buffer");
+                return NULL;
+            }
+            sprintf(buffer, "<%c> at position Ln-%d Col-%d\n", input[i], nbLine, nbColon);
+            strcat(buffer, "The lang used may not be correctly configurated\n");
+
+            // print the line where the error occured
             int j = i;
             while (input[j] != '\n' && j > 0) j--;
             j++;
-            while (input[j] != '\n' && input[j] != '\0') printf("%c", input[j++]);
-            printf("\n");
-            for (int k = 1; k < nbColon; k++) printf(" ");
-            printf("^\n"); // the error is here
+            while (input[j] != '\n' && input[j] != '\0') {
+                buffer = (char *)realloc(buffer, strlen(buffer) * 2);
+                if (buffer == NULL) {
+                    free(buffer); free_tokenList(list);
+                    err->value = ERR_MEMORY;
+                    assignErrorMessage(err, "Cannot allocate memory for buffer");
+                    return NULL;
+                }
+                sprintf(buffer, "%s%c", buffer, input[j]);
+                j++;
+            }
 
-            free_tokenList(list);
+            strcat(buffer, "\n");
+            // print ^ where the error occured
+            for (int k = 0; k < nbColon - 1; k++) strcat(buffer, " ");
+            strcat(buffer, "^\n");
+
+            assignErrorMessage(err, buffer);
+
+            free(buffer);
+
             return NULL;
         }
 
@@ -322,20 +379,22 @@ TokenList *tokenizer(char *input, Lexer *l) {
     return list;
 }
 
-char *include_files(char *input) {
+char *include_files(char *input, error *err) {
 
     // if the input contains #include, we include the file
     char *final = (char *)calloc(strlen(input) + 1, sizeof(char));
     if (final == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for final\n");
         free(final);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for final");
         return NULL;
     }
 
     char *temp = (char *)calloc(strlen(input) + 1, sizeof(char));
     if (temp == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for temp\n");
         free(final); free(temp);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for temp");
         return NULL;
     }
     strcpy(temp, input);
@@ -347,25 +406,29 @@ char *include_files(char *input) {
             if (strstr(line, "#include") != NULL) {
                 char *filename = (char *)calloc(strlen(line) + 1, sizeof(char));
                 if (filename == NULL) {
-                    printf("[ERROR][LEXER]: Cannot allocate memory for filename\n");
                     free(final); free(temp); free(filename);
+                    err->value = ERR_MEMORY;
+                    assignErrorMessage(err, "Cannot allocate memory for filename");
                     return NULL;
                 }
                 size_t j = 0;
                 while (*line != '"') line++;
                 line++;
                 while (*line != '"') filename[j++] = *line++;
-                char *buffer = read_file(filename);
+                char *buffer = read_file(filename, err);
                 if (buffer == NULL) {
-                    printf("[ERROR][LEXER]: Cannot read file <%s>\n", filename);
                     free(final); free(temp); free(filename); free(buffer);
+                    err->value = ERR_FILE;
+                    assignErrorMessage(err, "Cannot read file :");
+                    assignErrorMessage(err, filename);
                     return NULL;
                 }
 
                 final = (char *)realloc(final, strlen(final) + strlen(buffer) + 1);
                 if (final == NULL) {
-                    printf("[ERROR][LEXER]: Cannot allocate memory for final\n");
                     free(final); free(temp); free(filename); free(buffer);
+                    err->value = ERR_MEMORY;
+                    assignErrorMessage(err, "Cannot allocate memory for final");
                     return NULL;
                 }
 
@@ -375,8 +438,9 @@ char *include_files(char *input) {
             } else {
                 final = (char *)realloc(final, strlen(final) + strlen(line) + 2);
                 if (final == NULL) {
-                    printf("[ERROR][LEXER]: Cannot allocate memory for final\n");
                     free(final); free(temp);
+                    err->value = ERR_MEMORY;
+                    assignErrorMessage(err, "Cannot allocate memory for final");
                     return NULL;
                 }
                 strcat(final, line);
@@ -392,12 +456,14 @@ char *include_files(char *input) {
     return final;
 }
 
-char *read_file(char *filename) {
+char *read_file(char *filename, error *err) {
     // We read the file and output a single char *
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
-        printf("[ERROR][LEXER]: Cannot open file <%s>\n", filename);
         fclose(file);
+        err->value = ERR_FILE;
+        assignErrorMessage(err, "Cannot open file :");
+        assignErrorMessage(err, filename);
         return NULL;
     }
 
@@ -407,8 +473,9 @@ char *read_file(char *filename) {
 
     char *buffer = (char *)malloc(length + 1);
     if (buffer == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for buffer\n");
         free(buffer); fclose(file);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for buffer");
         return NULL;
     }
     fread(buffer, 1, length, file);
@@ -420,16 +487,18 @@ char *read_file(char *filename) {
 
 }
 
-lexer_rule *new_lexer_rule(char *regex, TokenType type){
+lexer_rule *new_lexer_rule(char *regex, TokenType type, error *err) {
     lexer_rule *rule = malloc(sizeof(lexer_rule));
     if (rule == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for rule\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for rule");
         return NULL;
     }
 
     rule->regex = malloc(strlen(regex) + 1);
     if (rule->regex == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for regex\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for rule->regex");
         return NULL;
     }
     strcpy(rule->regex, regex); // copy the regex string to the rule
@@ -439,17 +508,19 @@ lexer_rule *new_lexer_rule(char *regex, TokenType type){
 
     return rule;
 }
-int add_lexer_rule(Lexer *l, lexer_rule *rule){
+int add_lexer_rule(Lexer *l, lexer_rule *rule, error *err) {
     // Add a rule to the lexer (a rule is a regex and a token type)
 
     if (rule == NULL) {
-        printf("[ERROR][LEXER]: rule is NULL\n");
+        err->value = ERR_NULL_POINTER;
+        assignErrorMessage(err, "Cannot add NULL rule to lexer");
         return 1;
     }
 
     l->rules = (lexer_rule *)realloc(l->rules, (l->nb_rules + 1) * sizeof(lexer_rule));
     if (l->rules == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for rule\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot reallocate memory for lexer->rules");
         return 1;
     }
 

@@ -1,6 +1,8 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+#include "../errors/errors.h"
+
 typedef enum {
     TOKEN_IDENTIFIER,
 
@@ -83,19 +85,19 @@ typedef struct {
     int nb_tokens;
 } TokenList;
 
-Token *new_Token(TokenType type, char *value, int line, int column);
+Token *new_Token(TokenType type, char *value, int line, int column, error *err);
 
 void print_token(Token *t);
 
 void free_Token(Token *t);
 
-TokenList *new_TokenList();
+TokenList *new_TokenList(error *err);
 
 void print_tokenList(TokenList *tl);
 
 void free_tokenList(TokenList *tl);
 
-int add_Token(TokenList *tl, Token *t);
+int add_Token(TokenList *tl, Token *t, error *err);
 
 TokenType str_to_token_type(char *input);
 
