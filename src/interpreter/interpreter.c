@@ -469,23 +469,23 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
 
     switch(fun->__builtinIdentifier__){
         case __print__:{
-            call__print(functionStack, err);
+            call__print__(functionStack, err);
             break;
         }
         case __strlen__:{
-            call__strlen(functionStack, err);
+            call__strlen__(functionStack, err);
             break;
         }
         case __arrlen__:{
-            call__arrlen(functionStack, err);
+            call__arrlen__(functionStack, err);
             break;
         }
         case __randint__:{
-            call__randint(functionStack, err);
+            call__randint__(functionStack, err);
             break;
         }
         case __randfloat__:{
-            call__randfloat(functionStack, err);
+            call__randfloat__(functionStack, err);
             break;
         }
         case __system__:{
@@ -506,6 +506,10 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
         }
         case __fwrite__:{
             call__fwrite__(functionStack, err);
+            break;
+        }
+        case __split__:{
+            call__split__(functionStack, err);
             break;
         }
         default:{

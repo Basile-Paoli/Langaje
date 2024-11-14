@@ -1,2 +1,4 @@
-def string file = fwrite("test4.txt", "test", "a");
+def string value = "Tout les espaces";
+def string[3] splitted = split(value, " ");
+
 @memoryDump
