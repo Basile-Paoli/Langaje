@@ -16,6 +16,7 @@
  * @return 0 on success, 1 on failure.
  */
 int assignString(var *v, char *value) {
+
     int len = strlen(value);
     if (len < 0) {
         return 1;

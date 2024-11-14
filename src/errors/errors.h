@@ -15,6 +15,8 @@ typedef enum {
     ERR_UNKNOWN_OPERATOR,
     ERR_ALREADY_EXISTS,
     ERR_NULL_POINTER,
+    ERR_MEMORY,
+    ERR_FILE
 } errorValue;
 
 typedef struct {

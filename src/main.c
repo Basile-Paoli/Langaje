@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
     }
     free(input); free(langFile); free_lexer(l);
 
-    print_tokenList(tl); // Print the token list
+    // print_tokenList(tl); // Print the token list
 
 
     /*---------- PARSER ----------*/
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
     err.value = ERR_SUCCESS;
     InstructionBlock *pr = parse(tl, &err);
     if (err.value != ERR_SUCCESS) {
-        printf("Error: %s\n", err.message);
+        printf("[PARSER][ERROR] %s\n", err.message);
         return 1;
     }
     //printInstructionBlock(pr, 0);
@@ -119,6 +119,9 @@ int main(int argc, char **argv) {
     //declare builtins : 
     __builtinToMap__(functionMap,&err);
 
+    // init rand
+    srand(time(NULL));
+
     int runInstructionResult = runInstructionBlock(pr, stack, functionMap, &err_run);
     //displayHashmap(stack, &err);
     hmStackPop(stack);
@@ -130,7 +133,7 @@ int main(int argc, char **argv) {
     printf("Time taken to execute : %f seconds\n", cpu_time_used);
     if(runInstructionResult == 1){
         // Print the error msg
-        printf("%s\n", err_run.message);
+        printf("[RUNTIME][ERROR] %s\n", err_run.message);
         return 1;
     }
 

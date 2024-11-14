@@ -48,6 +48,10 @@ char *getNameTypeError(errorValue error) {
             return "Already exists: ";
         case ERR_NULL_POINTER:
             return "Pointer error: ";
+        case ERR_MEMORY:
+            return "Memory error: ";
+        case ERR_FILE:
+            return "File error: ";
         default:
             return "Unknown error: ";
     }

@@ -22,7 +22,16 @@ typedef enum varType {
 }varType;
 
 typedef enum __builtinFunction__ {
-    __print__
+    __print__,
+    __strlen__,
+    __arrlen__,
+    __randint__,
+    __randfloat__,
+    __system__,
+    __input__,
+    __randchoice__,
+    __fread__,
+    __fwrite__
 }__builtinFunction__;
 
 typedef struct array{

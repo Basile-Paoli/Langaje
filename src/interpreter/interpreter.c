@@ -469,6 +469,43 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
 
     switch(fun->__builtinIdentifier__){
         case __print__:{
+            call__print(functionStack, err);
+            break;
+        }
+        case __strlen__:{
+            call__strlen(functionStack, err);
+            break;
+        }
+        case __arrlen__:{
+            call__arrlen(functionStack, err);
+            break;
+        }
+        case __randint__:{
+            call__randint(functionStack, err);
+            break;
+        }
+        case __randfloat__:{
+            call__randfloat(functionStack, err);
+            break;
+        }
+        case __system__:{
+            call__system__(functionStack, err);
+            break;
+        }
+        case __input__:{
+            call__input__(functionStack, err);
+            break;
+        }
+        case __randchoice__:{
+            call__randchoice__(functionStack, err);
+            break;
+        }
+        case __fread__:{
+            call__fread__(functionStack, err);
+            break;
+        }
+        case __fwrite__:{
+            call__fwrite__(functionStack, err);
             break;
         }
         default:{
@@ -654,7 +691,7 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionM
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
     // displayHashmap(stack,err);
-    displayFunctionMap(functionMap,err);
+    // displayFunctionMap(functionMap,err);
     return 0;
 }
 

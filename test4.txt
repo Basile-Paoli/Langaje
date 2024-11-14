@@ -1,0 +1,2 @@
+def string file = fwrite("test4.txt", "test", "a");
+@memoryDump
