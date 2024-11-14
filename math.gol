@@ -1,0 +1,14 @@
+func pow(int a, int b) int {
+    if (b == 0) {
+        return 1;
+    } else {
+        return a * pow(a, b - 1);
+    }
+}
+
+func modulo(int a, int b) int {
+    while (a >= b) {
+        a = a - b;
+    }
+    return a;
+}

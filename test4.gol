@@ -1,6 +1,3 @@
-def int a = 3;
-@memoryDump
+#include "math.gol"
 
-def int b = 1;
-
-@memoryDump
+print("(2 % 3)^2 = " + pow(modulo(2, 3), 2));
