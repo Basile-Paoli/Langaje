@@ -1,3 +1,1 @@
-def int[] liste = range(0,10,1);
-
-@memoryDump
+print("OUI");

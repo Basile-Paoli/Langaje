@@ -467,59 +467,22 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
     //hm_set(stack->stack[0], "!!$RETURNVALUE$!!", returnValue);
     //RETURN VALUE MUST BE A MALLOC VAR 
 
-    switch(fun->__builtinIdentifier__){
-        case __print__:{
-            call__print__(functionStack, err);
-            break;
-        }
-        case __strlen__:{
-            call__strlen__(functionStack, err);
-            break;
-        }
-        case __arrlen__:{
-            call__arrlen__(functionStack, err);
-            break;
-        }
-        case __randint__:{
-            call__randint__(functionStack, err);
-            break;
-        }
-        case __randfloat__:{
-            call__randfloat__(functionStack, err);
-            break;
-        }
-        case __system__:{
-            call__system__(functionStack, err);
-            break;
-        }
-        case __input__:{
-            call__input__(functionStack, err);
-            break;
-        }
-        case __randchoice__:{
-            call__randchoice__(functionStack, err);
-            break;
-        }
-        case __fread__:{
-            call__fread__(functionStack, err);
-            break;
-        }
-        case __fwrite__:{
-            call__fwrite__(functionStack, err);
-            break;
-        }
-        case __split__:{
-            call__split__(functionStack, err);
-            break;
-        }
-        case __range__:{
-            call__range__(functionStack, err);
-            break;
-        }
-        default:{
-            printf("__UNKNOWN FUNCTION__");
-        }
-    }
+    void (*builtinFunctions[])(hmStack*, error*) = {
+        [__print__]         = call__print__,
+        [__strlen__]        = call__strlen__,
+        [__arrlen__]        = call__arrlen__,
+        [__randint__]       = call__randint__,
+        [__randfloat__]     = call__randfloat__,
+        [__system__]        = call__system__,
+        [__input__]         = call__input__,
+        [__randchoice__]    = call__randchoice__,
+        [__fread__]         = call__fread__,
+        [__fwrite__]        = call__fwrite__,
+        [__split__]         = call__split__,
+        [__range__]         = call__range__
+    };
+
+    builtinFunctions[fun->__builtinIdentifier__](functionStack, err);
 
     var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
     astNode* tmpNode = malloc(sizeof(astNode));
