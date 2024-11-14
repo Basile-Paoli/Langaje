@@ -36,6 +36,7 @@ int concat(var *result, char *var1, char *var2, char** resultValue){
     return 0;
 }
 
+
 /*
  *
  * ADD FUNCTION
@@ -43,6 +44,7 @@ int concat(var *result, char *var1, char *var2, char** resultValue){
  * float = int = float / float + float = float / float + char = float / float + str = str
  * char + char = str / char + int = char / char + float = float / char + str = str
  * str + int/char/float = str
+ * array => concat function
  *
  */
 var add(var *var1, var *var2, error *err){
@@ -152,6 +154,27 @@ var add(var *var1, var *var2, error *err){
                 free(resultValue);
             }
             break;
+        case _array: {
+            int newArraySize = var1->value._array->length + var2->value._array->length;
+
+            var *tmp = newArrayVar(newArraySize, var1->value._array->values[0].type);
+            result = *tmp;
+
+            // If var2 is not an array
+            if(var2->type != _array) {
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Both variables must be arrays");
+                break;
+            }
+
+            int concatSuccess = concatArray(var1, var2, err, newArraySize, tmp);
+
+            if(concatSuccess == 0)
+                result = *tmp;
+
+            break;
+        }
+
         default:
             err->value = ERR_TYPE;
             assignErrorMessage(err, "Variables must be of type int, float, char or string.");
@@ -390,6 +413,68 @@ var power(var *var1, var *var2, error *err){
 
 /*
  *
+ * ARRAY CONCATENATION
+ *
+ */
+int concatArray(var *var1, var *var2, error *err, int arraySize, var *tmp){
+    int var1Length = var1->value._array->length;
+
+    for(int i = 0; i < arraySize; i++){
+        if(var1Length > i)
+            tmp->value._array->values[i] = var1->value._array->values[i];
+        else {
+            tmp->value._array->values[i] = var2->value._array->values[i - var1Length];
+        }
+    }
+
+    return 0;
+}
+
+/*
+ *
+ * APPEND
+ *
+ */
+int appendArray(var *var1, var *var2, error *err){
+    if(var1->value._array->values[0].type != var2->type){
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Array elements type and element to append must be of same type");
+        return 1;
+    }
+
+    int var1Length = var1->value._array->length;
+    var *tmp = newArrayVar(var1Length + 1, var1->value._array->values[0].type);
+
+    for(int i = 0; i < var1Length; i++){
+        tmp->value._array->values[i] = var1->value._array->values[i];
+    }
+    tmp->value._array->values[var1Length].value = var2->value;
+
+    *var1 = *tmp;
+
+    return 0;
+}
+
+/*
+ *
+ * POP
+ *
+ */
+int popArray(var *var1, error *err){
+    int varNewLength = var1->value._array->length - 1;
+    var *tmp = newArrayVar(varNewLength, var1->value._array->values[0].type);
+
+    for(int i = 0; i < varNewLength; i++){
+        tmp->value._array->values[i] = var1->value._array->values[i];
+    }
+
+    *var1 = *tmp;
+
+    return 0;
+}
+
+/*
+ *
  * AND FUNCTION
  *
  */
@@ -619,7 +704,6 @@ var valueReverse(var* v, error* err){
     return result;
 }
 
-
 var unaryMinus(var* v, error* err){
     var result;
     result.type = v->type;
@@ -644,7 +728,6 @@ var unaryMinus(var* v, error* err){
 }
 
 /*
-
     BUFFER MAX LEN IS ONLY FOR STRINGS, IF SET TO 1 OR UNDER, USES THE MAX BUFFER SIZE
 */
 var* userInput(varType inputType, char* inputMessage, int bufferMaxLen, error* err){

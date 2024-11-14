@@ -66,6 +66,15 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
 
     switch(op){
         case ADDITION:{
+            // Return error msg if array values not of same type
+            if(var1.type == _array) {
+                if (var1.value._array->values[0].type != var2.value._array->values[0].type) {
+                    err_op.value = ERR_TYPE;
+                    assignErrorMessage(&err_op, "Elements array must be of same type");
+                    break;
+                }
+            }
+
             tmpNode->value.value =  add(&var1,&var2, &err_op);
             break;
         }
@@ -146,8 +155,9 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         err->value = err_op.value;
         err->message = malloc(strlen(err_op.message));
         sprintf(err->message, "%s", err_op.message);
-        return NULL;
+        //return NULL;
     }
+
     tmpNode->type = VALUE;
     return tmpNode;
 }
@@ -216,6 +226,7 @@ var* declareEmptyArray(astNode* node, error *err){
         for(int i = 0; i < oldCurr.arraySize; i++){
             newArr = newArrayVar(curr->arraySize,curr->elementsType->type);
             newArr->type = oldCurr.type;
+
             var2var(&currArray->value._array->values[i],newArr, err);
         }
 
@@ -263,9 +274,10 @@ var* declareVar(astNode* node, error *err){
 int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, error *err){
 
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
-
         if(valueToAssign->type == ARRAY){
+
             var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack, err);
+
             if(newArr == NULL){
                 //RAISE ERROR MAYBE?
                 return 0;
@@ -285,6 +297,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
         } else {
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
+
             if(hmIndex > -1){
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
                 if(valueToAssign->type == VALUE){
