@@ -1,4 +1,3 @@
-def string value = "Tout les espaces";
-def string[3] splitted = split(value, " ");
+def int[] liste = range(0,10,1);
 
 @memoryDump

@@ -32,7 +32,8 @@ typedef enum __builtinFunction__ {
     __randchoice__,
     __fread__,
     __fwrite__,
-    __split__
+    __split__,
+    __range__
 }__builtinFunction__;
 
 typedef struct array{

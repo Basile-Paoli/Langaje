@@ -512,6 +512,10 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
             call__split__(functionStack, err);
             break;
         }
+        case __range__:{
+            call__range__(functionStack, err);
+            break;
+        }
         default:{
             printf("__UNKNOWN FUNCTION__");
         }

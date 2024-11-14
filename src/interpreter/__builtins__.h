@@ -43,4 +43,7 @@ void call__fwrite__(hmStack* fStack, error* err);
 function* declare__split__(error* err);
 void call__split__(hmStack* fStack, error* err);
 
+function* declare__range__(error* err);
+void call__range__(hmStack* fStack, error* err);
+
 #endif

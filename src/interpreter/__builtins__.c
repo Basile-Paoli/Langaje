@@ -12,7 +12,8 @@ void __builtinToMap__(hm* functionMap, error* err){
         declare__randchoice__(err),
         declare__fread__(err),
         declare__fwrite__(err),
-        declare__split__(err)
+        declare__split__(err),
+        declare__range__(err)
     };
 
 
@@ -34,6 +35,11 @@ function *declare__print__(error *err){
 }
 void call__print__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -61,6 +67,11 @@ function *declare__strlen__(error *err){
 void call__strlen__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -86,6 +97,11 @@ function *declare__arrlen__(error *err){
 void call__arrlen__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -113,6 +129,11 @@ function *declare__randint__(error *err){
 void call__randint__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -141,6 +162,11 @@ function *declare__randfloat__(error *err){
 void call__randfloat__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -169,6 +195,11 @@ function *declare__system__(error *err){
 void call__system__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -193,6 +224,11 @@ function* declare__input__(error* err){
 }
 void call__input__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -231,6 +267,11 @@ function* declare__randchoice__(error* err){
 }
 void call__randchoice__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -255,6 +296,11 @@ function* declare__fread__(error* err){
 }
 void call__fread__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -307,6 +353,11 @@ function* declare__fwrite__(error* err){
 }
 void call__fwrite__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -352,6 +403,11 @@ function* declare__split__(error* err){
 }
 void call__split__(hmStack* fStack, error* err) {
     var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
 
     newVar->type = _int;
     newVar->value._int = 1;
@@ -394,6 +450,67 @@ void call__split__(hmStack* fStack, error* err) {
 
         arr->length++;
         token = strtok(NULL, delimiter->value._string);
+    }
+
+    newVar->type = _array;
+    newVar->value._array = arr;
+}
+
+function* declare__range__(error *err){
+    fakeFunctionParam start = {"start", _int};
+    fakeFunctionParam end = {"end", _int};
+    fakeFunctionParam increment = {"increment", _int};
+    fakeFunctionParam* params = malloc(sizeof(fakeFunctionParam) * 3);
+    params[0] = start;
+    params[1] = end;
+    params[2] = increment;
+    return newFunctionPrototype("range", _array, params, __range__, 3, err);
+}
+void call__range__(hmStack* fStack, error* err) {
+    var* newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
+
+    newVar->type = _int;
+    newVar->value._int = 1;
+    hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
+
+    var* start = (var*)hm_get(fStack->stack[0], "start");
+    var* end = (var*)hm_get(fStack->stack[0], "end");
+    var* increment = (var*)hm_get(fStack->stack[0], "increment");
+    
+    if (start->type != _int || end->type != _int || increment->type != _int) {
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "range function expect 3 parameters: start(int), end(int), increment(int)\n");
+        return;
+    }
+
+    array* arr = malloc(sizeof(array));
+    arr->type = _int;
+    arr->capacity = 1;
+    arr->length = 0;
+    arr->values = malloc(sizeof(var) * arr->capacity);
+
+    int i = start->value._int;
+    while (i < end->value._int) {
+        if (arr->length == arr->capacity) {
+            arr->capacity *= 2;
+            arr->values = realloc(arr->values, sizeof(var) * arr->capacity);
+            if (arr->values == NULL) {
+                err->value = ERR_MEMORY;
+                assignErrorMessage(err, "Memory allocation error\n");
+                return;
+            }
+        }
+
+        arr->values[arr->length].type = _int;
+        arr->values[arr->length].value._int = i;
+
+        arr->length++;
+        i += increment->value._int;
     }
 
     newVar->type = _array;
