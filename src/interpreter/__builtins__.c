@@ -347,6 +347,42 @@ void call__split__(hmStack* fStack, error* err) {
         return;
     }
 
+    // If the delimiter is an empty string, we split the string into characters
+    if (strlen(delimiter->value._string) == 0) {
+        for (int i = 0; i < strlen(string->value._string); i++) {
+            if (newVar->value._array->length == newVar->value._array->capacity) {
+                newVar->value._array->capacity *= 2;
+                newVar->value._array->values = realloc(newVar->value._array->values, sizeof(var) * newVar->value._array->capacity);
+                if (newVar->value._array->values == NULL) {
+                    err->value = ERR_MEMORY;
+                    assignErrorMessage(err, "Memory allocation error\n");
+                    return;
+                }
+            }
+
+            newVar->value._array->values[newVar->value._array->length].type = _string;
+            newVar->value._array->values[newVar->value._array->length].value._string = (char*)malloc(2);
+            if (assignString(&newVar->value._array->values[newVar->value._array->length], (char[]){string->value._string[i], '\0'}) == 1) {
+                err->value = ERR_MEMORY;
+                assignErrorMessage(err, "Memory allocation error\n");
+                return;
+            }
+
+            newVar->value._array->length++;
+        }
+
+        newVar->value._array->values = realloc(newVar->value._array->values, sizeof(var) * newVar->value._array->length);
+        if (newVar->value._array->values == NULL) {
+            err->value = ERR_MEMORY;
+            assignErrorMessage(err, "Memory allocation error\n");
+            return;
+        }
+
+        newVar->value._array->capacity = newVar->value._array->length;
+        newVar->type = _array;
+        return;
+    }
+
     char* token = strtok(string->value._string, delimiter->value._string);
     while (token != NULL) {
         if (newVar->value._array->length == newVar->value._array->capacity) {
