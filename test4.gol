@@ -1,18 +1,7 @@
-#include "math.gol"
+#include "string.gol"
 
-print("(2 % 3)^2 = " + pow(modulo(2, 3), 2)); // 1
-
-print("sqrt(9) = " + sqrt(9)); // 3
-
-print("ceil(3.14) = " + ceil(3.14)); // 4
-
-print("floor(3.14) = " + floor(3.14)); // 3
-
-print("iabs(-5) = " + iabs(-5)); // 5
-
-print("fabs(-3.14) = " + fabs(-3.14)); // 3.14
-
-print("fact(5) = " + fact(5)); // 120
-
-def int[] arr = [1, 2, 3, 4, 5];
-print("arrSum([1, 2, 3, 4, 5]) = " + arrSum(arr)); // 15
+def string a = "Hello, World!"
+def string[] b = split(a, ", ");
+for(i in 0, arrlen(b)) {
+    print(b[i]);
+}

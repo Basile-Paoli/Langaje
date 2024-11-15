@@ -61,10 +61,32 @@ func fact(int a) int {
     }
 }
 
-/*func arrSum(int[] arr) int {
+func sum(int[] arr) int {
     def int sum = 0;
     for (i in 0, arrlen(arr)) {
         sum = sum + arr[i];
     }
     return sum;
-}*/
+}
+
+func pgcd(int a, int b) int {
+    while (a != b) {
+        if (a > b) {
+            a = a - b;
+        } else {
+            b = b - a;
+        }
+    }
+    return a;
+}
+
+func log(int x, int base) int {
+    def int res = 0;
+    while (x >= base) {
+        x = x / base;
+        res = res + 1;
+    }
+    return res;
+}
+
+def float PI = 3.14159265358979323846;
