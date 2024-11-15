@@ -497,9 +497,13 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
             tmp = subsituteValue(subNode, stack, err);
             hm_set(Fhashmap, fun->parameters[i].name, tmp);        
         
-        } else {
+        } else if(subNode->type == VALUE){
             tmp->type = subNode->value.value.type;
             var2var(tmp,&subNode->value.value,err);
+            hm_set(Fhashmap, fun->parameters[i].name , tmp);
+        } else {
+            tmp->type = subNode->value.referencedValue->type;
+            var2var(tmp,subNode->value.referencedValue,err);
             hm_set(Fhashmap, fun->parameters[i].name , tmp);
         }
     }
@@ -580,9 +584,13 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
                 var2var(tmp,tmpV,err);
                 hm_set(Fhashmap, fun->parameters[i].name, tmp);        
             
-            } else {
+            } else if(subNode->type == VALUE){
                 tmp->type = subNode->value.value.type;
                 var2var(tmp,&subNode->value.value,err);
+                hm_set(Fhashmap, fun->parameters[i].name , tmp);
+            } else {
+                tmp->type = subNode->value.referencedValue->type;
+                var2var(tmp,subNode->value.referencedValue,err);
                 hm_set(Fhashmap, fun->parameters[i].name , tmp);
             }
         }
