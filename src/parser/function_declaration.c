@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <stddef.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include "function_declaration.h"
 #include "expression.h"

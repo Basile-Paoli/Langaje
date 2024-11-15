@@ -531,14 +531,20 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
 
     builtinFunctions[fun->__builtinIdentifier__](functionStack, err);
 
-    var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
-    astNode* tmpNode = malloc(sizeof(astNode));
-    tmpNode->value.value.type = returnValue->type;
-    tmpNode->value.value.value = returnValue->value;
+    if(err->value == ERR_SUCCESS) {
+        var *returnValue = (var *) hm_get(Fhashmap, "!!$RETURNVALUE$!!");
+        astNode *tmpNode = malloc(sizeof(astNode));
 
-    hmStackPop(functionStack);
-    tmpNode->type = VALUE;
-    return tmpNode;
+        tmpNode->value.value.type = returnValue->type;
+        tmpNode->value.value.value = returnValue->value;
+
+        hmStackPop(functionStack);
+
+        tmpNode->type = VALUE;
+        return tmpNode;
+    }
+
+    return NULL;
 }
 
 astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
