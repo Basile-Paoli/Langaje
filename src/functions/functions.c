@@ -721,7 +721,7 @@ var unaryMinus(var* v, error* err){
             break;
         }
         case _float:{
-            int tmp = v->value._float;
+            float tmp = v->value._float;
             result.value._float = -tmp;
             break;
         }
