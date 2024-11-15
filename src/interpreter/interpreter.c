@@ -49,15 +49,19 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     if(values[0]->type == VARIABLE){   
         var1 = *subsituteValue(values[0],stack, err);
         hasSubsituted = 1;
-    } else {
+    } else if(values[0]->type == VALUE){
         var1 = values[0]->value.value;
+    } else {
+        var1 = *values[0]->value.referencedValue;
     }
     var var2;
     if(valuesAmount > 1){
         if(values[1]->type == VARIABLE){
             var2 = *subsituteValue(values[1],stack,err);
-        } else {
+        } else if(values[1]->type == VALUE){
             var2 = values[1]->value.value;
+        } else {
+            var2 = *values[1]->value.referencedValue;
         }
     }
     astNode* tmpNode = malloc(sizeof(astNode));
@@ -189,10 +193,8 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap
             //For each children call the function recursively
             var* subVar = declareArray(node->children[i],type->elementsType, stack, functionMap, err);
             if(subVar == NULL)return NULL;
-            printf("__DEBUG_aa_ %d \n",node->children[i]->type);
 
             astNode* tmp = computeNode(node->children[i],stack,functionMap,err);
-            printf("__DEBUG_bb_ %d \n",tmp->type);
             
             if(tmp->type == POINTER){
                 subVar->type = tmp->value.referencedValue->type;   
@@ -201,7 +203,6 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap
                 subVar->type = tmp->value.value.type;   
                 var2var(subVar, &tmp->value.value,err);
             }
-            printf("__DEBUG__ %d \n",subVar->type);
             if(subVar->type != arr->value._array->type){
                 err->value = ERR_TYPE;
 
@@ -566,7 +567,9 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
             astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
             var* tmp = malloc(sizeof(var));
             if(subNode->type == VARIABLE){
-                tmp = subsituteValue(subNode, stack, err);
+                var* tmpV = subsituteValue(subNode, stack, err);
+                tmp->type = tmpV->type;
+                var2var(tmp,tmpV,err);
                 hm_set(Fhashmap, fun->parameters[i].name, tmp);        
             
             } else {
@@ -583,7 +586,9 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
         var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
         astNode* tmpNode = malloc(sizeof(astNode));
         tmpNode->value.value.type = returnValue->type;
+
         var2var(&tmpNode->value.value, returnValue,err);
+
         hmStackPop(functionStack);
         tmpNode->type = VALUE;
 
@@ -674,15 +679,15 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
         //IF VOID RETURN DONT DO THAT WHEN BASILE HAVE FIXED TODO
         var* returnValue = malloc(sizeof(var));
         if(values[0]->type == VARIABLE){
-            returnValue = subsituteValue(values[0],stack,err);
-        } else {
+            var* tmpV = subsituteValue(values[0],stack,err);
+            returnValue->type = tmpV->type;
+            var2var(returnValue,tmpV,err);
+        } else if(values[0]->type == VALUE){
             returnValue->type = values[0]->value.value.type;
-            if(returnValue->type != _string){
-                var2var(returnValue,&values[0]->value.value,err);
-            } else {
-                assignString(returnValue, values[0]->value.value.value._string);
-            }
-            
+            var2var(returnValue,&values[0]->value.value,err);
+        } else {
+            returnValue->type = values[0]->value.referencedValue->type;
+            var2var(returnValue,values[0]->value.referencedValue,err);
         }
 
         hm_set(stack->stack[0], "!!$RETURNVALUE$!!", returnValue);
