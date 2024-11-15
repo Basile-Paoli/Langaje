@@ -22,5 +22,7 @@ void call__fread__(hmStack* fStack, error* err);
 void call__fwrite__(hmStack* fStack, error* err);
 void call__split__(hmStack* fStack, error* err);
 void call__range__(hmStack* fStack, error* err);
+void call__append__(hmStack* fStack, error* err);
+void call__pop__(hmStack* fStack, error* err);
 
 #endif

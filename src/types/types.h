@@ -33,7 +33,9 @@ typedef enum __builtinFunction__ {
     __fread__,
     __fwrite__,
     __split__,
-    __range__
+    __range__,
+    __append__,
+    __pop__,
 }__builtinFunction__;
 
 typedef struct array{

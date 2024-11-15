@@ -497,9 +497,13 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
             tmp = subsituteValue(subNode, stack, err);
             hm_set(Fhashmap, fun->parameters[i].name, tmp);        
         
-        } else {
+        } else if(subNode->type == VALUE){
             tmp->type = subNode->value.value.type;
             var2var(tmp,&subNode->value.value,err);
+            hm_set(Fhashmap, fun->parameters[i].name , tmp);
+        } else {
+            tmp->type = subNode->value.referencedValue->type;
+            var2var(tmp,subNode->value.referencedValue,err);
             hm_set(Fhashmap, fun->parameters[i].name , tmp);
         }
     }
@@ -524,19 +528,27 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
         [__fread__]         = call__fread__,
         [__fwrite__]        = call__fwrite__,
         [__split__]         = call__split__,
-        [__range__]         = call__range__
+        [__range__]         = call__range__,
+        [__append__]        = call__append__,
+        [__pop__]           = call__pop__
     };
 
     builtinFunctions[fun->__builtinIdentifier__](functionStack, err);
 
-    var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
-    astNode* tmpNode = malloc(sizeof(astNode));
-    tmpNode->value.value.type = returnValue->type;
-    tmpNode->value.value.value = returnValue->value;
+    if(err->value == ERR_SUCCESS) {
+        var *returnValue = (var *) hm_get(Fhashmap, "!!$RETURNVALUE$!!");
+        astNode *tmpNode = malloc(sizeof(astNode));
 
-    hmStackPop(functionStack);
-    tmpNode->type = VALUE;
-    return tmpNode;
+        tmpNode->value.value.type = returnValue->type;
+        tmpNode->value.value.value = returnValue->value;
+
+        hmStackPop(functionStack);
+
+        tmpNode->type = VALUE;
+        return tmpNode;
+    }
+
+    return NULL;
 }
 
 astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
@@ -572,9 +584,13 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
                 var2var(tmp,tmpV,err);
                 hm_set(Fhashmap, fun->parameters[i].name, tmp);        
             
-            } else {
+            } else if(subNode->type == VALUE){
                 tmp->type = subNode->value.value.type;
                 var2var(tmp,&subNode->value.value,err);
+                hm_set(Fhashmap, fun->parameters[i].name , tmp);
+            } else {
+                tmp->type = subNode->value.referencedValue->type;
+                var2var(tmp,subNode->value.referencedValue,err);
                 hm_set(Fhashmap, fun->parameters[i].name , tmp);
             }
         }
