@@ -432,49 +432,6 @@ int concatArray(var *var1, var *var2, error *err, int arraySize, var *tmp){
 
 /*
  *
- * APPEND
- *
- */
-int appendArray(var *var1, var *var2, error *err){
-    if(var1->value._array->values[0].type != var2->type){
-        err->value = ERR_TYPE;
-        assignErrorMessage(err, "Array elements type and element to append must be of same type");
-        return 1;
-    }
-
-    int var1Length = var1->value._array->length;
-    var *tmp = newArrayVar(var1Length + 1, var1->value._array->values[0].type);
-
-    for(int i = 0; i < var1Length; i++){
-        tmp->value._array->values[i] = var1->value._array->values[i];
-    }
-    tmp->value._array->values[var1Length].value = var2->value;
-
-    *var1 = *tmp;
-
-    return 0;
-}
-
-/*
- *
- * POP
- *
- */
-int popArray(var *var1, error *err){
-    int varNewLength = var1->value._array->length - 1;
-    var *tmp = newArrayVar(varNewLength, var1->value._array->values[0].type);
-
-    for(int i = 0; i < varNewLength; i++){
-        tmp->value._array->values[i] = var1->value._array->values[i];
-    }
-
-    *var1 = *tmp;
-
-    return 0;
-}
-
-/*
- *
  * AND FUNCTION
  *
  */
