@@ -30,8 +30,8 @@ Lexer *new_lexer(error *err) {
     add_lexer_rule(l, new_lexer_rule("f\"[^\"]*\""                  , TOKEN_FORMATTED_STRING, err), err) +
     add_lexer_rule(l, new_lexer_rule("@memoryDump"                  , TOKEN_MEMORY_DUMP, err), err) +
     add_lexer_rule(l, new_lexer_rule("@breakPoint"                  , TOKEN_BREAKPOINT, err), err) +
-    add_lexer_rule(l, new_lexer_rule("//[^\n]*"                     , TOKEN_COMMENT, err), err) +
-    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/"   , TOKEN_COMMENT, err), err)
+    add_lexer_rule(l, new_lexer_rule("//[^\n]*"                     , TOKEN_COMMENT, err), err) + // Single line comment
+    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/"    , TOKEN_COMMENT, err), err) // Multi line comment
     != 0) {
         free_lexer(l);
         assignErrorMessage(err, "Cannot add default rules to lexer");
@@ -433,6 +433,7 @@ char *include_files(char *input, error *err) {
                 }
 
                 strcat(final, buffer);
+                strcat(final, "\n");
                 free(buffer);
                 free(filename);
             } else {
