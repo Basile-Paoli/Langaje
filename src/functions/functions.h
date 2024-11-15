@@ -24,8 +24,6 @@ var logicalAnd(var *, var*, error *);
 var logicalOr(var *, var *, error *);
 var squareroot(var *, error *);
 int concatArray(var *, var*, error *, int, var *);
-int appendArray(var *var1, var *var2, error *err);
-int popArray(var *var1, error *err);
 var isEqual(var*, var*, int, error*);
 var isGreater(var*, var*, int, error*);
 var isLesser(var*, var*, int, error*);

@@ -13,7 +13,10 @@ void __builtinToMap__(hm* functionMap, error* err){
         newFunctionPrototype("fread",        _string,   __fread__,      1, err, (fakeFunctionParam[]){{"filename", _string}}),
         newFunctionPrototype("fwrite",       _int,      __fwrite__,     3, err, (fakeFunctionParam[]){{"filename", _string}, {"content", _string}, {"method", _string}}),
         newFunctionPrototype("split",        _array,    __split__,      2, err, (fakeFunctionParam[]){{"string", _string}, {"delimiter", _string}}),
-        newFunctionPrototype("range",        _array,    __range__,      3, err, (fakeFunctionParam[]){{"start", _int}, {"end", _int}, {"step", _int}})
+        newFunctionPrototype("range",        _array,    __range__,      3, err, (fakeFunctionParam[]){{"start", _int}, {"end", _int}, {"step", _int}}),
+        newFunctionPrototype("append",      _array,     __append__,     2, err, (fakeFunctionParam[]){{"array", _array}, {"toAdd", _void}}),
+        newFunctionPrototype("pop",        _array,     __pop__,        1, err, (fakeFunctionParam[]){{"array", _array}})
+
     };
 
 
@@ -429,4 +432,37 @@ void call__range__(hmStack* fStack, error* err) {
 
     newVar->type = _array;
     newVar->value._array = arr;
+}
+
+void call__append__(hmStack* fStack, error* err){
+    var* arrayToAppend = (var*)hm_get(fStack->stack[0], "array");
+    var* varToAppend   = (var*)hm_get(fStack->stack[0], "toAdd");
+
+    if(arrayToAppend->value._array->type != varToAppend->type){
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "Array elements type and element to append must be of same type");
+        return;
+    }
+
+    int arrayLen = arrayToAppend->value._array->length;
+    var *tmp = newArrayVar(arrayLen + 1, arrayToAppend->value._array->type);
+
+    for(int i = 0; i < arrayLen; i++)
+        var2var(&tmp->value._array->values[i], &arrayToAppend->value._array->values[i], err);
+
+    var2var(&tmp->value._array->values[arrayLen], varToAppend, err);
+
+    hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", tmp);
+}
+
+void call__pop__(hmStack* fStack, error* err){
+    var* arrayToPop = (var*)hm_get(fStack->stack[0], "array");
+
+    int arrayLen = arrayToPop->value._array->length -1 ;
+    var *tmp = newArrayVar(arrayLen, arrayToPop->value._array->type);
+
+    for(int i = 0; i < arrayLen; i++)
+        var2var(&tmp->value._array->values[i], &arrayToPop->value._array->values[i], err);
+
+    hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", tmp);
 }

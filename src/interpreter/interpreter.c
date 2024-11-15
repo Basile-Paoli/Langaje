@@ -524,7 +524,9 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
         [__fread__]         = call__fread__,
         [__fwrite__]        = call__fwrite__,
         [__split__]         = call__split__,
-        [__range__]         = call__range__
+        [__range__]         = call__range__,
+        [__append__]        = call__append__,
+        [__pop__]           = call__pop__
     };
 
     builtinFunctions[fun->__builtinIdentifier__](functionStack, err);
