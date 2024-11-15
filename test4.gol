@@ -2,6 +2,5 @@ def string a = "Hello, World!";
 def string[] b = split(a, ", ");
 for(i in 0, arrlen(b)) {
     def string c = b[i];
-    @memoryDump
     print(b[i]);
 }
