@@ -189,6 +189,9 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
             //For each children call the function recursively
             var* subVar = declareArray(node->children[i],type->elementsType, stack, err);
             if(subVar == NULL)return NULL;
+            if(node->children[i]->type == VARIABLE){
+                subVar = subsituteValue(node->children[i],stack,err);
+            }
 
             if(subVar->type != arr->value._array->type){
                 err->value = ERR_TYPE;
