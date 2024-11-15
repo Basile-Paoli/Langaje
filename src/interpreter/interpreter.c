@@ -565,15 +565,15 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
 astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
 
     function* fun = (struct function*)hm_get(functionMap,node->value.functionCall.name);
-    if(fun->isBuiltin == 1){
-        //Run builtin function generate its own tmp node
-        return runBuiltinFunction(node,stack,functionMap,fun,err);
-    } else {
-        if(fun == NULL){
+    if(fun == NULL){
             printf("FUN NOT FOUND\n");
             //Error binding doesnt work. need to fix ?
             return NULL;
         }
+    if(fun->isBuiltin == 1){
+        //Run builtin function generate its own tmp node
+        return runBuiltinFunction(node,stack,functionMap,fun,err);
+    } else {
         if(node->childrenCount < fun->parametersCount){
             printf("__TOO FEW ARGS__\n");
             //Too few args 
