@@ -116,9 +116,8 @@ int main(int argc, char **argv) {
         printError(err);
         return 1;
     }
-    //printInstructionBlock(pr, 0);
+    printInstructionBlock(pr, 0);
     
-
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
     clock_t start, end;

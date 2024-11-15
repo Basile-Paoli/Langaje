@@ -167,7 +167,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
 * Function that declare an array based on a ARRAY node in the AST.
 * Returns the array
 */
-var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
+var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap, error *err){
     if(type->type !=  _array){
         return &node->value.value;
     } else {
@@ -187,12 +187,21 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
         var* arr = newArrayVar(node->childrenCount, type->elementsType->type);
         for(int i = 0; i < node->childrenCount; i++){
             //For each children call the function recursively
-            var* subVar = declareArray(node->children[i],type->elementsType, stack, err);
+            var* subVar = declareArray(node->children[i],type->elementsType, stack, functionMap, err);
             if(subVar == NULL)return NULL;
-            if(node->children[i]->type == VARIABLE){
-                subVar = subsituteValue(node->children[i],stack,err);
-            }
+            printf("__DEBUG_aa_ %d \n",node->children[i]->type);
 
+            astNode* tmp = computeNode(node->children[i],stack,functionMap,err);
+            printf("__DEBUG_bb_ %d \n",tmp->type);
+            
+            if(tmp->type == POINTER){
+                subVar->type = tmp->value.referencedValue->type;   
+                var2var(subVar,tmp->value.referencedValue,err);
+            } else if (tmp->type == VALUE){
+                subVar->type = tmp->value.value.type;   
+                var2var(subVar, &tmp->value.value,err);
+            }
+            printf("__DEBUG__ %d \n",subVar->type);
             if(subVar->type != arr->value._array->type){
                 err->value = ERR_TYPE;
 
@@ -274,11 +283,11 @@ var* declareVar(astNode* node, error *err){
 * Return 1 on success, 0 on failure.
 */
 
-int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, error *err){
+int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, hm* functionMap, error *err){
 
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
         if(valueToAssign->type == ARRAY){
-            var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack, err);
+            var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack,functionMap, err);
 
             if(newArr == NULL){
                 //RAISE ERROR MAYBE?
@@ -651,7 +660,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
             //ERROR
             return NULL;
         }
-        assignValueToHashmap(values[0], values[1], stack, err);
+        assignValueToHashmap(values[0], values[1], stack,functionMap, err);
     } else if(node->type == OPERATOR && valuesAmount > 0){
         return calculateNode(values, node, stack, valuesAmount, err);
         free(values);
