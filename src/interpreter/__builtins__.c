@@ -326,58 +326,58 @@ void call__fwrite__(hmStack* fStack, error* err) {
 }
 
 void call__split__(hmStack* fStack, error* err) {
-    var* newVar = malloc(sizeof(var));
+    var* newVar = newArrayVar(0, _string);
     if (newVar == NULL) {
         err->value = ERR_MEMORY;
         assignErrorMessage(err, "Memory allocation error\n");
         return;
     }
 
-    newVar->type = _int;
-    newVar->value._int = 1;
     hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
 
     var* string = (var*)hm_get(fStack->stack[0], "string");
     var* delimiter = (var*)hm_get(fStack->stack[0], "delimiter");
-    
+
     if (string->type != _string || delimiter->type != _string) {
         err->value = ERR_TYPE;
         assignErrorMessage(err, "split function expect 2 parameters: string(string), delimiter(string)\n");
         return;
     }
 
-    array* arr = malloc(sizeof(array));
-    arr->type = _string;
-    arr->capacity = 1;
-    arr->length = 0;
-    arr->values = malloc(sizeof(var) * arr->capacity);
-
     char* token = strtok(string->value._string, delimiter->value._string);
     while (token != NULL) {
-        if (arr->length == arr->capacity) {
-            arr->capacity *= 2;
-            arr->values = realloc(arr->values, sizeof(var) * arr->capacity);
-            if (arr->values == NULL) {
+        if (newVar->value._array->length == newVar->value._array->capacity) {
+            newVar->value._array->capacity *= 2;
+            newVar->value._array->values = realloc(newVar->value._array->values, sizeof(var) * newVar->value._array->capacity);
+            if (newVar->value._array->values == NULL) {
                 err->value = ERR_MEMORY;
                 assignErrorMessage(err, "Memory allocation error\n");
                 return;
             }
         }
 
-        arr->values[arr->length].type = _string;
-        arr->values[arr->length].value._string = (char*)malloc(sizeof(char));
-        if (assignString(&arr->values[arr->length], token) == 1) {
+        newVar->value._array->values[newVar->value._array->length].type = _string;
+        newVar->value._array->values[newVar->value._array->length].value._string = (char*)malloc(sizeof(char));
+        if (assignString(&newVar->value._array->values[newVar->value._array->length], token) == 1) {
             err->value = ERR_MEMORY;
             assignErrorMessage(err, "Memory allocation error\n");
             return;
         }
 
-        arr->length++;
+        newVar->value._array->length++;
         token = strtok(NULL, delimiter->value._string);
     }
 
+    newVar->value._array->values = realloc(newVar->value._array->values, sizeof(var) * newVar->value._array->length);
+    if (newVar->value._array->values == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
+
+    newVar->value._array->capacity = newVar->value._array->length;
     newVar->type = _array;
-    newVar->value._array = arr;
+
 }
 
 void call__range__(hmStack* fStack, error* err) {
