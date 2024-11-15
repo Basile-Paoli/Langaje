@@ -197,7 +197,7 @@ var* copyArray(var* originalArray, error* err){
 * Function that destroy variables 
 */
 void destroyVar(var* v){
-    if(v->type == _array){
+    if(v->type == _array && v->value._array->type == _array){
         destroyVar(v->value._array->values);
     } else {
         if(v != NULL){

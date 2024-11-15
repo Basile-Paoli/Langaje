@@ -571,8 +571,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
         var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
         astNode* tmpNode = malloc(sizeof(astNode));
         tmpNode->value.value.type = returnValue->type;
-        tmpNode->value.value.value = returnValue->value;
-
+        var2var(&tmpNode->value.value, returnValue,err);
         hmStackPop(functionStack);
         tmpNode->type = VALUE;
 
@@ -667,13 +666,12 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
         } else {
             returnValue->type = values[0]->value.value.type;
             if(returnValue->type != _string){
-                returnValue->value = values[0]->value.value.value;
+                var2var(returnValue,&values[0]->value.value,err);
             } else {
                 assignString(returnValue, values[0]->value.value.value._string);
             }
             
         }
-        
 
         hm_set(stack->stack[0], "!!$RETURNVALUE$!!", returnValue);
         return NULL;
