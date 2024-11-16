@@ -1,5 +1,32 @@
 #include "__builtins__.h"
 
+char *replace_str(char *str) {
+    char *newStr = (char *) malloc(strlen(str) + 1);
+    if (newStr == NULL) {
+        return NULL;
+    }
+
+    int i = 0;
+    int j = 0;
+    while (str[i] != '\0') {
+        if (str[i] == '\\' && str[i + 1] == 'n') {
+            newStr[j] = '\n';
+            i++;
+        } else if (str[i] == '\\' && str[i + 1] == 't') {
+            newStr[j] = '\t';
+            i++;
+        } else {
+            newStr[j] = str[i];
+        }
+        i++;
+        j++;
+    }
+    newStr[j] = '\0';
+
+    return newStr;
+}
+
+
 void __builtinToMap__(hm* functionMap, error* err){
     function* functions[] = {
         newFunctionPrototype("print",        _void,     __print__,      1, err, (fakeFunctionParam[]){{"message", _string}}),
@@ -54,24 +81,10 @@ void call__print__(hmStack* fStack, error* err) {
         return;
     }
     message->value._string = getString(message,err);
+    char *str = replace_str(message->value._string);
 
-    // replace '\n' string by '\n' character
-    for (int i = 0; i < strlen(message->value._string); i++) {
-        if (message->value._string[i] == '\\' && message->value._string[i + 1] == 'n') {
-            message->value._string[i] = '\n';
-            for (int j = i + 1; j < strlen(message->value._string); j++) {
-                message->value._string[j] = message->value._string[j + 1];
-            }
-        }
-        if (message->value._string[i] == '\\' && message->value._string[i + 1] == 't') {
-            message->value._string[i] = '\t';
-            for (int j = i + 1; j < strlen(message->value._string); j++) {
-                message->value._string[j] = message->value._string[j + 1];
-            }
-        }
-    }
-
-    printf("%s\n", message->value._string);
+    printf("%s\n", str);
+    free(str);
 
     newVar->value._int = 0;
 }
@@ -101,6 +114,7 @@ void call__strlen__(hmStack* fStack, error* err) {
         return;
     }
     char* str = getString(string,err);
+    str = replace_str(str);
     newVar->value._int = strlen(str);
     free(str);
 }
@@ -222,8 +236,12 @@ void call__system__(hmStack* fStack, error* err) {
         free(str);
         return;
     }
-
+    char* str = getString(command,err);
+    str = replace_str(str);
+    
     newVar->value._int = system(command->value._string);
+    
+    free(str);
 }
 
 void call__input__(hmStack* fStack, error* err) {
@@ -249,7 +267,7 @@ void call__input__(hmStack* fStack, error* err) {
         return;
     }
     char* str = getString(message,err);
-
+    str = replace_str(str);
 
     char* input = (char*)malloc(255);
     printf("%s", str);
@@ -318,14 +336,16 @@ void call__fread__(hmStack* fStack, error* err) {
         free(str);
         return;
     }
-    filename->value._string = getString(filename,err);
+    char *str = getString(filename,err);
+    str = replace_str(str);
 
-    FILE* file = fopen(filename->value._string, "r");
+    FILE* file = fopen(str, "r");
     if (file == NULL) {
         err->value = ERR_FILE;
         assignErrorMessage(err, "File not found\n");
         return;
     }
+    free(str);
 
     fseek(file, 0, SEEK_END);
     long size = ftell(file);
@@ -376,39 +396,34 @@ void call__fwrite__(hmStack* fStack, error* err) {
         free(str);
         return;
     }
-    filename->value._string = getString(filename,err);
-    content->value._string = getString(content,err);
-    method->value._string = getString(method,err);
+    char *filenameStr = getString(filename,err);
+    filenameStr = replace_str(filenameStr);
+    char *contentStr = getString(content,err);
+    contentStr = replace_str(contentStr);
+    char *methodStr = getString(method,err);
+    methodStr = replace_str(methodStr);
 
-    if (strcmp(method->value._string, "w") != 0 && strcmp(method->value._string, "a") != 0) {
+    if (strcmp(methodStr, "w") != 0 && strcmp(methodStr, "a") != 0) {
         err->value = ERR_TYPE;
         assignErrorMessage(err, "fwrite function expect method to be 'w' or 'a'\n");
         return;
     }
 
-    FILE* file = fopen(filename->value._string, method->value._string);
+    FILE* file = fopen(filenameStr, methodStr);
     if (file == NULL) {
         err->value = ERR_FILE;
         assignErrorMessage(err, "File not found\n");
         return;
     }
 
-    fwrite(content->value._string, 1, strlen(content->value._string), file);
+    fwrite(contentStr, 1, strlen(contentStr), file);
 
-    fclose(file);
+    fclose(file); free(filenameStr); free(contentStr); free(methodStr);
 
     newVar->value._int = 0;
 }
 
 void call__split__(hmStack* fStack, error* err) {
-    var* newVar = newArrayVar(0, _string,err);
-    if (newVar == NULL) {
-        err->value = ERR_MEMORY;
-        assignErrorMessage(err, "Memory allocation error\n");
-        return;
-    }
-
-    hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
 
     var* string = (var*)hm_get(fStack->stack[0], "string");
     var* delimiter = (var*)hm_get(fStack->stack[0], "delimiter");
@@ -424,78 +439,60 @@ void call__split__(hmStack* fStack, error* err) {
         free(str);
         return;
     }
-    string->value._string = getString(string,err);
-    delimiter->value._string = getString(delimiter,err);
+    char *stringStr = getString(string,err);
+    stringStr = replace_str(stringStr);
+    char *delimiterStr = getString(delimiter,err);
+    delimiterStr = replace_str(delimiterStr);
 
-    // If the delimiter is an empty string, we split the string into characters
-    if (strlen(delimiter->value._string) == 0) {
-        for (int i = 0; i < strlen(string->value._string); i++) {
-            if (newVar->value._array->length == newVar->value._array->capacity) {
-                newVar->value._array->capacity *= 2;
-                newVar->value._array->values = realloc(newVar->value._array->values, sizeof(var) * newVar->value._array->capacity);
-                if (newVar->value._array->values == NULL) {
-                    err->value = ERR_MEMORY;
-                    assignErrorMessage(err, "Memory allocation error\n");
-                    return;
-                }
-            }
-
-            newVar->value._array->values[newVar->value._array->length].type = _string;
-            newVar->value._array->values[newVar->value._array->length].value._string = (char*)malloc(2);
-            if (assignString(&newVar->value._array->values[newVar->value._array->length], (char[]){string->value._string[i], '\0'}) == 1) {
-                err->value = ERR_MEMORY;
-                assignErrorMessage(err, "Memory allocation error\n");
-                return;
-            }
-
-            newVar->value._array->length++;
-        }
-
-        newVar->value._array->values = realloc(newVar->value._array->values, sizeof(var) * newVar->value._array->length);
-        if (newVar->value._array->values == NULL) {
-            err->value = ERR_MEMORY;
-            assignErrorMessage(err, "Memory allocation error\n");
+    // If the delimiter is empty, we return an array with every character of the string
+    if (strlen(delimiterStr) == 0) {
+        
+        var *newVar = newArrayVar(strlen(stringStr), _string, err);
+        if (newVar == NULL) {
             return;
         }
 
-        newVar->value._array->capacity = newVar->value._array->length;
-        newVar->type = _array;
+        for (int i = 0; i < strlen(stringStr); i++) {
+            newVar->value._array->values[i].type = _string;
+            newVar->value._array->values[i].value._string = (char*)malloc(2);
+            newVar->value._array->values[i].value._string[0] = stringStr[i];
+            newVar->value._array->values[i].value._string[1] = '\0';
+        }
+
+        hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
+
+        free(stringStr); free(delimiterStr);
+
         return;
     }
 
-    char* token = strtok(string->value._string, delimiter->value._string);
+    // We count the number of occurences of the delimiter in the string
+    int count = 0;
+    for (int i = 0; i < strlen(stringStr); i++) {
+        if (stringStr[i] == delimiterStr[0]) {
+            count++;
+        }
+    }
+
+    // We create the array that will contain the splitted string
+    var *newVar = newArrayVar(count + 1, _string, err);
+    if (newVar == NULL) {
+        return;
+    }
+
+    // We split the string using strtok
+    char *token = strtok(stringStr, delimiterStr);
+    int i = 0;
     while (token != NULL) {
-        if (newVar->value._array->length == newVar->value._array->capacity) {
-            newVar->value._array->capacity *= 2;
-            newVar->value._array->values = realloc(newVar->value._array->values, sizeof(var) * newVar->value._array->capacity);
-            if (newVar->value._array->values == NULL) {
-                err->value = ERR_MEMORY;
-                assignErrorMessage(err, "Memory allocation error\n");
-                return;
-            }
-        }
-
-        newVar->value._array->values[newVar->value._array->length].type = _string;
-        newVar->value._array->values[newVar->value._array->length].value._string = (char*)malloc(sizeof(char));
-        if (assignString(&newVar->value._array->values[newVar->value._array->length], token) == 1) {
-            err->value = ERR_MEMORY;
-            assignErrorMessage(err, "Memory allocation error\n");
-            return;
-        }
-
-        newVar->value._array->length++;
-        token = strtok(NULL, delimiter->value._string);
+        newVar->value._array->values[i].type = _string;
+        newVar->value._array->values[i].value._string = strdup(token);
+        token = strtok(NULL, delimiterStr);
+        i++;
     }
 
-    newVar->value._array->values = realloc(newVar->value._array->values, sizeof(var) * newVar->value._array->length);
-    if (newVar->value._array->values == NULL) {
-        err->value = ERR_MEMORY;
-        assignErrorMessage(err, "Memory allocation error\n");
-        return;
-    }
+    hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
 
-    newVar->value._array->capacity = newVar->value._array->length;
-    newVar->type = _array;
+    free(stringStr); free(delimiterStr); free(token);
 
 }
 
