@@ -329,7 +329,7 @@ void call__fwrite__(hmStack* fStack, error* err) {
 }
 
 void call__split__(hmStack* fStack, error* err) {
-    var* newVar = newArrayVar(0, _string);
+    var* newVar = newArrayVar(0, _string,err);
     if (newVar == NULL) {
         err->value = ERR_MEMORY;
         assignErrorMessage(err, "Memory allocation error\n");
@@ -481,7 +481,7 @@ void call__append__(hmStack* fStack, error* err){
     }
 
     int arrayLen = arrayToAppend->value._array->length;
-    var *tmp = newArrayVar(arrayLen + 1, arrayToAppend->value._array->type);
+    var *tmp = newArrayVar(arrayLen + 1, arrayToAppend->value._array->type,err);
 
     for(int i = 0; i < arrayLen; i++)
         var2var(&tmp->value._array->values[i], &arrayToAppend->value._array->values[i], err);
@@ -495,7 +495,7 @@ void call__pop__(hmStack* fStack, error* err){
     var* arrayToPop = (var*)hm_get(fStack->stack[0], "array");
 
     int arrayLen = arrayToPop->value._array->length -1 ;
-    var *tmp = newArrayVar(arrayLen, arrayToPop->value._array->type);
+    var *tmp = newArrayVar(arrayLen, arrayToPop->value._array->type,err);
 
     for(int i = 0; i < arrayLen; i++)
         var2var(&tmp->value._array->values[i], &arrayToPop->value._array->values[i], err);

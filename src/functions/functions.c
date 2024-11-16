@@ -170,7 +170,7 @@ var add(var *var1, var *var2, error *err){
             }
             int newArraySize = var1->value._array->length + var2->value._array->length;
 
-            var *tmp = newArrayVar(newArraySize, var1->value._array->values[0].type);
+            var *tmp = newArrayVar(newArraySize, var1->value._array->values[0].type,err);
             result = *tmp;
 
            

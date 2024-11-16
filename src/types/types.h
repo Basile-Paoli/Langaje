@@ -91,7 +91,7 @@ void display(var* v, error *err,int indentLevel);
 
 void var2var(var* v, var* v2, error *err);
 
-var* newArrayVar(int size, varType type);
+var* newArrayVar(int size, varType type,error* err);
 void appendToArrayVar(var *tab, var val);
 var* getVarPointerFromArray(var* array, int index, error *err);
 void destroyVar(var* v);

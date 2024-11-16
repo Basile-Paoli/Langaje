@@ -192,7 +192,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap
             return NULL;
         }
         //Declare array (types.c)
-        var* arr = newArrayVar(node->childrenCount, type->elementsType->type);
+        var* arr = newArrayVar(node->childrenCount, type->elementsType->type,err);
         for(int i = 0; i < node->childrenCount; i++){
             //For each children call the function recursively
             var* subVar = declareArray(node->children[i],type->elementsType, stack, functionMap, err);
@@ -200,13 +200,16 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap
 
             astNode* tmp = computeNode(node->children[i],stack,functionMap,err);
             
+
             if(tmp->type == POINTER){
                 subVar->type = tmp->value.referencedValue->type;   
                 var2var(subVar,tmp->value.referencedValue,err);
             } else if (tmp->type == VALUE){
                 subVar->type = tmp->value.value.type;   
+                
                 var2var(subVar, &tmp->value.value,err);
             }
+
             if(subVar->type != arr->value._array->type){
                 err->value = ERR_TYPE;
 
@@ -218,6 +221,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap
                 return NULL;
             }
             //Assign the subvar to the array slot  (either NODE so value OR Subarray)
+
             var2var(&arr->value._array->values[i],subVar, err);
         }
         arr->type = type->type;
@@ -232,7 +236,7 @@ var* declareEmptyArray(astNode* node, error *err){
     initType* curr = &node->value.initialization.type;
     
     //Declare main array
-    var* arr = newArrayVar(node->value.initialization.type.arraySize, node->value.initialization.type.elementsType->type);
+    var* arr = newArrayVar(node->value.initialization.type.arraySize, node->value.initialization.type.elementsType->type,err);
 
     //Go to next subarray if there's one
     initType oldCurr = *curr;
@@ -241,7 +245,7 @@ var* declareEmptyArray(astNode* node, error *err){
     while(curr->type == _array){
         var* newArr;
         for(int i = 0; i < oldCurr.arraySize; i++){
-            newArr = newArrayVar(curr->arraySize,curr->elementsType->type);
+            newArr = newArrayVar(curr->arraySize,curr->elementsType->type,err);
             newArr->type = oldCurr.type;
 
             var2var(&currArray->value._array->values[i],newArr, err);

@@ -16,29 +16,25 @@
  * @return 0 on success, 1 on failure.
  */
 int assignString(var *v, char *value) {
-    int len = strlen(value);
+    int len = strlen(value) + 1;
     if (len < 0) {
         return 1;
     }
-    if(v->value._TMPstring != NULL ){
+    if(v->type != _string && v->value._TMPstring != NULL ){
         free(v->value._TMPstring->chars);
         free(v->value._TMPstring);
         v->value._TMPstring = NULL;
     }
-    if (v->value._TMPstring == NULL || len <= v->value._TMPstring->length) {
-        declareString(v,len + 3);
-    }
+    declareString(v,len + 1);
     if (v->value._TMPstring == NULL) {
         return 1;
     }
 
     v->value._TMPstring->length = len + 1;
-
     for(int i = 0; i < len; i++){
         v->value._TMPstring->chars[i].value._char = value[i];
     }
     v->value._TMPstring->chars[len].value._char = '\0';
-
     return 0;
 }
 
@@ -175,7 +171,6 @@ void var2var(var* v, var* v2, error *err){
                         break;
                         */
                     case _string: {
-
                         assignString(v, v2->value._string);
                         break;
                     }
@@ -235,7 +230,7 @@ void var2var(var* v, var* v2, error *err){
 }
 
 var* copyArray(var* originalArray, error* err){
-    var* tmp = newArrayVar(originalArray->value._array->capacity, originalArray->value._array->type);
+    var* tmp = newArrayVar(originalArray->value._array->capacity, originalArray->value._array->type,err);
     
     if(originalArray->value._array->type == _array){
         for(int i = 0; i < originalArray->value._array->capacity; i++){
@@ -327,7 +322,7 @@ void display(var* v, error *err, int indentLevel) {
 * Creates an array with default values at the size of the parameter and the type passed.
 * returns a pointer to this array.
  */
-var* newArrayVar(int size, varType type) {
+var* newArrayVar(int size, varType type,error* err) {
     var* res = malloc(sizeof(var));
     res->value._array = malloc(sizeof(array));
 
@@ -347,9 +342,8 @@ var* newArrayVar(int size, varType type) {
                 break;
             }
             case _string:{
-                res->value._array->values[i].value._string = malloc(sizeof(char));
-                assignString(&res->value._array->values[i], "");
-
+                declareString(&res->value._array->values[i],1);
+                res->value._array->type = _TMPString;
                 break;
             }
             
