@@ -10,11 +10,15 @@
 #include "../errors/errors.h"
 
 
+void *addPositionToError(error *err, Token token);
+
 InstructionBlock *parse(TokenList *tokenList, error *err);
 
 InstructionBlock *parseInstructions(TokenList *tokenList, int *currentToken, error *err);
 
 InstructionBlock *parseInstructionBlockWithBraces(TokenList *tokenList, int *currentToken, error *err);
+
+astNode *parseFunctionOrInstruction(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err);
 

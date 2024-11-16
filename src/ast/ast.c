@@ -34,7 +34,7 @@ astNode *newOperatorNode(operator operator) {
 astNode *newInitializationNode(char *name, int typed, initType type) {
     astNode *node = malloc(sizeof(astNode));
     node->type = INITIALIZATION;
-    node->value.initialization.name = malloc(sizeof(char) * strlen(name));
+    node->value.initialization.name = malloc(sizeof(char) * (strlen(name) + 1));
     strcpy(node->value.initialization.name, name);
     node->value.initialization.typed = typed;
     node->value.initialization.type = type;
@@ -205,7 +205,6 @@ void freeAstNode(astNode *node) {
     for (int i = 0; i < node->childrenCount; i++) {
         freeAstNode(node->children[i]);
     }
-    printAST(node, 0);
     free(node->children);
     free(node);
 }
