@@ -26,6 +26,7 @@ typedef enum {
     CURLY_BRACKETS
 } BracketType;
 
-int cliMode(Lexer *l, error *err);
+int cliMode(Lexer *l, hmStack *stack, hm* functionMap, error *err);
+
 
 #endif //LANGAJE_ERRORS_H
