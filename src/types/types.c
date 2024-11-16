@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "../ast/ast.h"
 #include "types.h"
 
 /**
@@ -21,14 +22,16 @@ int assignString(var *v, char *value) {
     }
     
     if (v->value._string == NULL || len != strlen(v->value._string)) {
-        v->value._string = (char *) realloc(v->value._string, sizeof(char) * (len + 1));
+        v->value._string = calloc(sizeof(char), len + 1);
     }
     if (v->value._string == NULL) {
         return 1;
     }
+
     if (strcpy(v->value._string, value) == NULL) {
         return 1;
     }
+
     return 0;
 }
 
@@ -62,118 +65,141 @@ int assign(var *v, void *value, error *err) {
 }
 
 void var2var(var* v, var* v2, error *err){
-    switch(v->type){
-        case(_int):
-            //assign(v,&v2->value._int);
-            switch(v2->type){
-                case _float:{
-                    v->value._int = (int)v2->value._float;
-                    break;
-                }
-                case _char:{
-                    v->value._int = (int)v2->value._char;
-                    break;
-                }
-                case _string:{
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Can't convert string into integer");
-                    break;
-                }default:{
-                    v->value._int = v2->value._int;
-                    break;
-                }
-            }
-            break;
-        case(_float):
-            switch(v2->type){
-                case _int:{
-                    v->value._float = (float)v2->value._int;
-                    break;
-                }
-                case _char:{
-                    v->value._float = (float)v2->value._char;
-                    break;
-                }
-                case _string:{
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Can't convert string into float");
-                    break;
-                }
-                default:{
-                    v->value._float = v2->value._float;
-                    break;
-                }
-            }
-            break;
 
-        case(_char):
-            switch(v2->type){
-                case _int:{
-                    v->value._char = (char)v2->value._int;
-                    break;
+    if(err->value == ERR_SUCCESS) {
+        switch (v->type) {
+            case (_int):
+                //assign(v,&v2->value._int);
+                switch (v2->type) {
+                    case _float: {
+                        v->value._int = (int) v2->value._float;
+                        break;
+                    }
+                    case _char: {
+                        v->value._int = (int) v2->value._char;
+                        break;
+                    }
+                    case _string: {
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Can't convert string into integer");
+                        break;
+                    }
+                    default: {
+                        v->value._int = v2->value._int;
+                        break;
+                    }
                 }
-                case _float:{
-                    v->value._char = (char)v2->value._float;
-                    break; 
+                break;
+            case (_float):
+                switch (v2->type) {
+                    case _int: {
+                        v->value._float = (float) v2->value._int;
+                        break;
+                    }
+                    case _char: {
+                        v->value._float = (float) v2->value._char;
+                        break;
+                    }
+                    case _string: {
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Can't convert string into float");
+                        break;
+                    }
+                    default: {
+                        v->value._float = v2->value._float;
+                        break;
+                    }
                 }
-                case _string:{
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Can't convert string into char");
-                    break;
-                }
-                default:{
-                    v->value._char = v2->value._char;
-                    break;
-                }
-            }
-            break;
+                break;
 
-        case(_string):
-            switch(v2->type){
-                /*
-                case _float:
-                case _int:
-                case _char:
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Expected string, other given");
-                    break;
-                    */
-                case _string:{
-                    assignString(v,v2->value._string);
-                    break;
+            case (_char):
+                switch (v2->type) {
+                    case _int: {
+                        v->value._char = (char) v2->value._int;
+                        break;
+                    }
+                    case _float: {
+                        v->value._char = (char) v2->value._float;
+                        break;
+                    }
+                    case _string: {
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Can't convert string into char");
+                        break;
+                    }
+                    default: {
+                        v->value._char = v2->value._char;
+                        break;
+                    }
                 }
-                default:{
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Expected string, other given");
-                    break;
+                break;
+
+            case (_string):
+                switch (v2->type) {
+                    /*
+                    case _float:
+                    case _int:
+                    case _char:
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Expected string, other given");
+                        break;
+                        */
+                    case _string: {
+                        assignString(v, v2->value._string);
+                        break;
+                    }
+                    default: {
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Expected string, other given");
+                        break;
+                    }
                 }
+                break;
+            case (_array): {
+                switch (v2->type) {
+                    case _array:{
+                        var* vvv = copyArray(v2,err);
+                        v->type = vvv->type;
+                        v->value = vvv->value;
+                        break;  
+                    }
+                    default:
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Expected array, other given");
+                        break;
+                }
+                break;
             }
-            break;
-        case(_array):{
-            switch(v2->type){
-                case _array:
-                    v->value._array = v2->value._array;
-                    break;
-                default:
-                    err->value = ERR_TYPE;
-                    assignErrorMessage(err, "Expected array, other given");
-                    break;
-            }
-            break;
+
+            default:
+                err->value = ERR_TYPE;
+                assignErrorMessage(err, "Variable must be of type int, float, char, string or array.");
+                break;
         }
-        
-        default:
-            err->value = ERR_TYPE;
-            assignErrorMessage(err, "Variable must be of type int, float, char, string or array.");
-            break;
     }
+}
+
+var* copyArray(var* originalArray, error* err){
+    var* tmp = newArrayVar(originalArray->value._array->capacity, originalArray->value._array->type);
+    
+    if(originalArray->value._array->type == _array){
+        for(int i = 0; i < originalArray->value._array->capacity; i++){
+            tmp->value._array->values[i] = *copyArray(&originalArray->value._array->values[i], err);
+        }
+    } else {
+        for(int i = 0; i < originalArray->value._array->capacity; i++){
+            tmp->value._array->values[i] = originalArray->value._array->values[i];
+        }
+    }
+
+    return tmp;
 }
 
 /* 
 * Function that destroy variables 
 */
 void destroyVar(var* v){
-    if(v->type == _array){
+    if(v->type == _array && v->value._array->type == _array){
         destroyVar(v->value._array->values);
     } else {
         if(v != NULL){
@@ -273,6 +299,48 @@ var* newArrayVar(int size, varType type) {
     return res;
 }
 
+function* newFunctionPrototype(char* name, varType type, __builtinFunction__ __builtinId__, int parametersCount, error* err, fakeFunctionParam* parameters){
+    function* f = malloc(sizeof(function));
+    if (f == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return NULL;
+    }
+    f->isBuiltin = 1;
+    f->instructions = NULL;
+    f->type = type;
+    f->parametersCount = parametersCount;
+    functionParameter* p = malloc(sizeof(functionParameter) * parametersCount);
+    if (p == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return NULL;
+    }
+
+    for(int i = 0; i < parametersCount; i++){
+        p[i].name = malloc(sizeof(char) * (strlen(parameters[i].name) + 1));
+        if (p[i].name == NULL) {
+            err->value = ERR_MEMORY;
+            assignErrorMessage(err, "Memory allocation error\n");
+            return NULL;
+        }
+
+        strcpy(p[i].name,parameters[i].name);
+        p[i].type.type = parameters[i].type;
+    }
+    f->parameters = p;
+    f->name = malloc(sizeof(char) * (strlen(name) + 1));
+    if (f->name == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return NULL;
+    }
+
+    f->__builtinIdentifier__ = __builtinId__;
+    strcpy(f->name,name);
+    return f;
+}
+
 /**
 * Function that returns the pointer of the array[index]
 */
@@ -289,6 +357,22 @@ var* getVarPointerFromArray(var* array, int index, error *err){
         return NULL;
     }
     return &(array->value._array->values[index]);
+}
+
+var* getCharValueFromString(var* string, int index, error* err){
+    char* str = malloc(sizeof(char) * (strlen(string->value._string) + 1));
+    strcpy(str,string->value._string);
+    if(index >= strlen(str)){
+        err->value = ERR_OUT_OF_BOUNDS;
+        free(str);
+        return NULL;
+    }
+
+    var* newVar = malloc(sizeof(var));
+    newVar->type = _string;
+    newVar->value._string = calloc(3,sizeof(char)); 
+    newVar->value._string[0] = (char)str[0];
+    return newVar;
 }
 
 //NOT USED OR WORKING I THINK CURRENTLY

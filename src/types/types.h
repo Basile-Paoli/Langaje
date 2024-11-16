@@ -17,8 +17,26 @@ typedef enum varType {
     _float,
     _char,
     _string,
-    _array
+    _array,
+    _void
 }varType;
+
+typedef enum __builtinFunction__ {
+    __print__,
+    __strlen__,
+    __arrlen__,
+    __randint__,
+    __randfloat__,
+    __system__,
+    __input__,
+    __randchoice__,
+    __fread__,
+    __fwrite__,
+    __split__,
+    __range__,
+    __append__,
+    __pop__,
+}__builtinFunction__;
 
 typedef struct array{
     varType type;
@@ -41,6 +59,12 @@ typedef struct var{
     varValue value;
 }var;
 
+typedef struct fakeFunctionParam{
+    char* name;
+    varType type;
+}fakeFunctionParam;
+
+
 typedef struct function{
     char* name;
     functionParameter* parameters;
@@ -48,7 +72,10 @@ typedef struct function{
     int voidReturn;
     varType type;
     InstructionBlock* instructions;
+    char isBuiltin;
+    __builtinFunction__ __builtinIdentifier__;
 }function;
+
 
 int assignString(var* v, char* value);
 int assign(var* v, void* value, error *err);
@@ -62,5 +89,9 @@ var* getVarPointerFromArray(var* array, int index, error *err);
 void destroyVar(var* v);
 void destroyFunction(function* f);
 char* getVarTypeName(varType type);
+function* newFunctionPrototype(char* name, varType type, __builtinFunction__ __builtinId__, int parametersCount, error* err, fakeFunctionParam* parameters);
+var* copyArray(var* originalArray, error* err);
+
+var* getCharValueFromString(var* string, int index, error* err);
 
 #endif //LANGAJE_TYPES_H

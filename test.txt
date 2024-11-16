@@ -1,4 +1,0 @@
-#include "test2.txt";
-a+=b;
-}
-a++;

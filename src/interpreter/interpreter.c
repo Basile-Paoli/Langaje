@@ -5,12 +5,11 @@
 * Raise error if the value doesn't exist
 */
 
-var subsituteValue(astNode* value, hmStack* stack, error *err){
+var* subsituteValue(astNode* value, hmStack* stack, error *err){
     int hmIndex = isInStackDownwards(stack,value->value.variable);
     
     if(hmIndex == -1){
         err->value = ERR_NOT_FOUND;
-
         char *msg = malloc(strlen("Value not found : %s") + 50);
         sprintf(msg, "Value not found : %s", value->value.variable);
 
@@ -20,8 +19,15 @@ var subsituteValue(astNode* value, hmStack* stack, error *err){
         printf("Value not found : %s\n",value->value.variable);
         
     } else {
-        var tmp = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
-    
+        var* tmp = malloc(sizeof(var));
+        var tmp2 = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
+        tmp->type = tmp2.type;
+        if(tmp->type != _string){
+            tmp->value = tmp2.value;
+        } else {
+            assignString(tmp, tmp2.value._string);
+        }
+        
         return tmp;
     }
 
@@ -39,26 +45,40 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     err_op.value = ERR_SUCCESS;
     int hasSubsituted = 0;
     var var1;
+    
     if(values[0]->type == VARIABLE){   
-        var1 = subsituteValue(values[0],stack, err);
+        var1 = *subsituteValue(values[0],stack, err);
         hasSubsituted = 1;
-    } else {
+    } else if(values[0]->type == VALUE){
         var1 = values[0]->value.value;
+    } else {
+        var1 = *values[0]->value.referencedValue;
     }
     var var2;
     if(valuesAmount > 1){
         if(values[1]->type == VARIABLE){
-            var2 = subsituteValue(values[1],stack,err);
-        } else {
+            var2 = *subsituteValue(values[1],stack,err);
+        } else if(values[1]->type == VALUE){
             var2 = values[1]->value.value;
+        } else {
+            var2 = *values[1]->value.referencedValue;
         }
     }
-
     astNode* tmpNode = malloc(sizeof(astNode));
+    tmpNode->type = VALUE;
     
 
     switch(op){
         case ADDITION:{
+            // Return error msg if array values not of same type
+            if(var1.type == _array && var2.type == _array) {
+                if (var1.value._array->values[0].type != var2.value._array->values[0].type) {
+                    err_op.value = ERR_TYPE;
+                    assignErrorMessage(&err_op, "Elements array must be of same type");
+                    break;
+                }
+            }
+
             tmpNode->value.value =  add(&var1,&var2, &err_op);
             break;
         }
@@ -113,12 +133,23 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         case SUBSCRIPT:{
             //If it has substituted means value is in &var1 else it's in values[0].value.referencedValue 
             //We work with pointer because we go edit directly the memory of the array.
-            if(hasSubsituted == 1){
-                tmpNode->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int,err);
+            if(var1.type == _string){
+                if(hasSubsituted == 1){
+                   tmpNode->value.referencedValue = getCharValueFromString(&var1,var2.value._int,err);
+                } else {
+                    tmpNode->value.referencedValue = getCharValueFromString(values[0]->value.referencedValue,var2.value._int,err);
+                }
+            } else if(var1.type == _array){
+                if(hasSubsituted == 1){
+                   tmpNode->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int,err);
+                } else {
+                    tmpNode->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
+                }
             } else {
-                tmpNode->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
+                //RAISE ERROR
             }
             
+            tmpNode->type = POINTER;
     
             break;
         }
@@ -139,9 +170,9 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         err->value = err_op.value;
         err->message = malloc(strlen(err_op.message));
         sprintf(err->message, "%s", err_op.message);
-        return NULL;
+        //return NULL;
     }
-    tmpNode->type = VALUE;
+
     return tmpNode;
 }
 
@@ -150,7 +181,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
 * Function that declare an array based on a ARRAY node in the AST.
 * Returns the array
 */
-var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
+var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap, error *err){
     if(type->type !=  _array){
         return &node->value.value;
     } else {
@@ -170,9 +201,18 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, error *err){
         var* arr = newArrayVar(node->childrenCount, type->elementsType->type);
         for(int i = 0; i < node->childrenCount; i++){
             //For each children call the function recursively
-            var* subVar = declareArray(node->children[i],type->elementsType, stack, err);
+            var* subVar = declareArray(node->children[i],type->elementsType, stack, functionMap, err);
             if(subVar == NULL)return NULL;
 
+            astNode* tmp = computeNode(node->children[i],stack,functionMap,err);
+            
+            if(tmp->type == POINTER){
+                subVar->type = tmp->value.referencedValue->type;   
+                var2var(subVar,tmp->value.referencedValue,err);
+            } else if (tmp->type == VALUE){
+                subVar->type = tmp->value.value.type;   
+                var2var(subVar, &tmp->value.value,err);
+            }
             if(subVar->type != arr->value._array->type){
                 err->value = ERR_TYPE;
 
@@ -209,6 +249,7 @@ var* declareEmptyArray(astNode* node, error *err){
         for(int i = 0; i < oldCurr.arraySize; i++){
             newArr = newArrayVar(curr->arraySize,curr->elementsType->type);
             newArr->type = oldCurr.type;
+
             var2var(&currArray->value._array->values[i],newArr, err);
         }
 
@@ -253,12 +294,12 @@ var* declareVar(astNode* node, error *err){
 * Return 1 on success, 0 on failure.
 */
 
-int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, error *err){
+int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, hm* functionMap, error *err){
 
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
-
         if(valueToAssign->type == ARRAY){
-            var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack, err);
+            var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack,functionMap, err);
+
             if(newArr == NULL){
                 //RAISE ERROR MAYBE?
                 return 0;
@@ -277,13 +318,20 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
 
 
         } else {
+
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
+
             if(hmIndex > -1){
+
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
-                if(valueToAssign->type == VALUE){
-                    var2var(tmp, &(valueToAssign->value.value), err);
+                if(valueToAssign->type == VALUE || valueToAssign->type == POINTER){
+                    if(valueToAssign->type != POINTER){
+                        var2var(tmp, &(valueToAssign->value.value), err);
+                    } else{
+                        var2var(tmp, valueToAssign->value.referencedValue, err);
+                    }
                 } else {
-                    var tmpVar = subsituteValue(valueToAssign, stack, err);
+                    var tmpVar = *subsituteValue(valueToAssign, stack, err);
                     var2var(tmp, &(tmpVar), err);
                 }
                 
@@ -297,8 +345,13 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
         }
     } else {
         //FOR ARRAYS SUBSCRIPT
-        if(nodeToAssign->value.referencedValue != NULL){
-            var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value,err);
+        if(nodeToAssign->type  == POINTER){
+            if(valueToAssign->type == POINTER){
+                var2var(nodeToAssign->value.referencedValue,valueToAssign->value.referencedValue,err);
+            } else {
+                var2var(nodeToAssign->value.referencedValue,&valueToAssign->value.value,err);
+            }
+            
             return 1;
         }
 
@@ -341,8 +394,8 @@ int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,error* err){
     while(shouldContinue == 1){
         hm* hashmap = hm_create();
         hmStackPush(stack,hashmap);
-        if(runInstructionBlock(&instructions,stack,functionMap,err) == 1){
-            printf("%s\n", err->message);
+        if(runInstructionBlock(&instructions,stack,functionMap,err) != 0){
+            //printf("%s\n", err->message);
             hmStackPop(stack);
             return 1;
         }
@@ -351,6 +404,7 @@ int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,error* err){
         result = computeNode(&condition,stack,functionMap,err);
         shouldContinue = result->value.value.value._int;
     }
+    return 0;
 }
 
 
@@ -385,26 +439,35 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
      
     
     int loopIndexValue = newVar->value._int;
-    //MAYBE PUT IT IN THE WHILE, TESTING !!
-    hm* hashmap = hm_create();
-    hmStackPush(stack,hashmap);
+    
     if(loopIndexValue > conditionValue){
         while (loopIndexValue > conditionValue) {
-            
-            runInstructionBlock(&instructions, stack, functionMap,err);
+            hm* hashmap = hm_create();
+            hmStackPush(stack,hashmap);        
+            if(runInstructionBlock(&instructions, stack, functionMap,err) != 0){
+                hmStackPop(stack);
+                return 1;
+            };
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
+            hmStackPop(stack);
         }
     } else {
         while (loopIndexValue < conditionValue) {
-            runInstructionBlock(&instructions, stack, functionMap,err);
+            hm* hashmap = hm_create();
+            hmStackPush(stack,hashmap);
+            if(runInstructionBlock(&instructions, stack, functionMap,err) != 0){
+                hmStackPop(stack);
+                return 1;
+            };
             newVar->value._int += incrementValue;
             hm_set(stack->stack[hmIndex], node->value.variable, newVar);
             loopIndexValue =  newVar->value._int;
+            hmStackPop(stack);
         }
     }
-    hmStackPop(stack);
+    
 
     return 0;
 }
@@ -415,7 +478,7 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
     functionDeclarationNode fun = node->value.functionDeclaration;
     if((struct function*)hm_get(functionMap,fun.name) != NULL){
         err->value = ERR_ALREADY_EXISTS;
-        assignErrorMessage(err,sprintf("Function redefinition : %s", fun.name));
+        assignErrorMessage(err,strcat("Function redefinition : ", fun.name));
         return 0;
     }
     function* funTmp = malloc(sizeof(function));
@@ -427,13 +490,140 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
     funTmp->type = fun.returnType.type;
     funTmp->voidReturn = fun.voidReturn;
     funTmp->instructions = node->children[0]->value.block;
+    funTmp->isBuiltin = 0;
 
     hm_set(functionMap, fun.name, funTmp);
 
     return 1;
 }
 
+astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, function* fun, error* err){
 
+    hm* Fhashmap = hm_create();
+    hmStack* functionStack = hmStackCreate(1);
+    for(int i = 0; i < node->childrenCount; i++){
+        astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
+        var* tmp = malloc(sizeof(var));
+        if(subNode->type == VARIABLE){
+            tmp = subsituteValue(subNode, stack, err);
+            hm_set(Fhashmap, fun->parameters[i].name, tmp);        
+        
+        } else if(subNode->type == VALUE){
+            tmp->type = subNode->value.value.type;
+            var2var(tmp,&subNode->value.value,err);
+            hm_set(Fhashmap, fun->parameters[i].name , tmp);
+        } else {
+            tmp->type = subNode->value.referencedValue->type;
+            var2var(tmp,subNode->value.referencedValue,err);
+            hm_set(Fhashmap, fun->parameters[i].name , tmp);
+        }
+    }
+
+    hmStackPush(functionStack,Fhashmap);
+
+    //ABOVE CREATES A HASHMAP TO BIND PARAMETERS GIVEN BY THE USER, WITH THE KEYS DEFINED IN THE FAKE FUNCTION PROTOTYPE.
+    //PASS THE FUNCTIONSTACK TO YOUR PROGRAM TO RETRIEVE THE VALUES
+    //RETURN THE VALUE IN !!$RETURNVALUE$!!
+    //hm_set(stack->stack[0], "!!$RETURNVALUE$!!", returnValue);
+    //RETURN VALUE MUST BE A MALLOC VAR 
+
+    void (*builtinFunctions[])(hmStack*, error*) = {
+        [__print__]         = call__print__,
+        [__strlen__]        = call__strlen__,
+        [__arrlen__]        = call__arrlen__,
+        [__randint__]       = call__randint__,
+        [__randfloat__]     = call__randfloat__,
+        [__system__]        = call__system__,
+        [__input__]         = call__input__,
+        [__randchoice__]    = call__randchoice__,
+        [__fread__]         = call__fread__,
+        [__fwrite__]        = call__fwrite__,
+        [__split__]         = call__split__,
+        [__range__]         = call__range__,
+        [__append__]        = call__append__,
+        [__pop__]           = call__pop__
+    };
+
+    builtinFunctions[fun->__builtinIdentifier__](functionStack, err);
+
+    if(err->value == ERR_SUCCESS) {
+        var *returnValue = (var *) hm_get(Fhashmap, "!!$RETURNVALUE$!!");
+        astNode *tmpNode = malloc(sizeof(astNode));
+
+        tmpNode->value.value.type = returnValue->type;
+        tmpNode->value.value.value = returnValue->value;
+
+        hmStackPop(functionStack);
+
+        tmpNode->type = VALUE;
+        return tmpNode;
+    }
+
+    return NULL;
+}
+
+astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
+
+    function* fun = (struct function*)hm_get(functionMap,node->value.functionCall.name);
+    if(fun == NULL){
+            printf("FUN NOT FOUND\n");
+            //Error binding doesnt work. need to fix ?
+            return NULL;
+        }
+    if(fun->isBuiltin == 1){
+        //Run builtin function generate its own tmp node
+        return runBuiltinFunction(node,stack,functionMap,fun,err);
+    } else {
+        if(node->childrenCount < fun->parametersCount){
+            printf("__TOO FEW ARGS__\n");
+            //Too few args 
+            return NULL;
+        } else if (node->childrenCount > fun->parametersCount){
+            //Too many args
+            printf("__TOO MANY ARGS__\n");
+            return NULL;
+        }
+
+        hm* Fhashmap = hm_create();
+        hmStack* functionStack = hmStackCreate(1);
+        for(int i = 0; i < node->childrenCount; i++){
+            astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
+            var* tmp = malloc(sizeof(var));
+            if(subNode->type == VARIABLE){
+                var* tmpV = subsituteValue(subNode, stack, err);
+                tmp->type = tmpV->type;
+                var2var(tmp,tmpV,err);
+                hm_set(Fhashmap, fun->parameters[i].name, tmp);        
+            
+            } else if(subNode->type == VALUE){
+                tmp->type = subNode->value.value.type;
+                var2var(tmp,&subNode->value.value,err);
+                hm_set(Fhashmap, fun->parameters[i].name , tmp);
+            } else {
+                tmp->type = subNode->value.referencedValue->type;
+                var2var(tmp,subNode->value.referencedValue,err);
+                hm_set(Fhashmap, fun->parameters[i].name , tmp);
+            }
+        }
+
+        hmStackPush(functionStack,Fhashmap);
+        runInstructionBlock(fun->instructions, functionStack, functionMap, err);
+        
+
+        var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
+        astNode* tmpNode = malloc(sizeof(astNode));
+        tmpNode->value.value.type = returnValue->type;
+
+        var2var(&tmpNode->value.value, returnValue,err);
+
+        hmStackPop(functionStack);
+        tmpNode->type = VALUE;
+
+        return tmpNode;
+    }
+    
+
+}
 /**
 * Function that compute a node of the AST. 
 * Recursively call on each child of the node.
@@ -441,7 +631,8 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
 */
 
 astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err){
-    if(node->childrenCount == 0 && node->type != INITIALIZATION){
+
+    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT)){
         return node; //Send the whole node back
     }   
 
@@ -449,6 +640,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     int valuesAmount = 0;
     for(int i = 0; i < node->childrenCount; i++){
         if(node->children[i] == NULL)continue;
+        if(node->type == FUNCTION_CALL)break;
         valuesAmount++;
 
 
@@ -457,7 +649,9 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
             if(node->children[i]->type == BLOCK){
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
-                runInstructionBlock(node->children[i]->value.block, stack, functionMap,err);
+                if(runInstructionBlock(node->children[i]->value.block, stack, functionMap,err) != 0){
+                    return NULL;
+                }
                 hmStackPop(stack);
 
             }
@@ -468,34 +662,66 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
                 
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
-                runInstructionBlock(node->children[i]->value.block, stack, functionMap,err);
+                if(runInstructionBlock(node->children[i]->value.block, stack, functionMap,err) != 0){
+                    return NULL;
+                };
                 hmStackPop(stack);
 
             }
 
             i+=1;
         } else if(node->type == WHILE_LOOP){
-            runWhileLoop(node,stack,functionMap,err);
+            if(runWhileLoop(node,stack,functionMap,err) != 0){
+                return NULL;
+            };
             break;
         } else if(node->type == FOR_LOOP){
-            runForLoop(node,stack,functionMap,err);
+            if(runForLoop(node,stack,functionMap,err) != 0){
+                return NULL;
+            };
             break;
         } else{
             values[i] = computeNode(node->children[i], stack,functionMap, err);
         }
     }
+    
     if(node->type == INITIALIZATION){
         initializeValueInHM(node, stack, err);
         return node;
     } else if((node->type == OPERATOR && node->value.operator == ASSIGNMENT)){
-        assignValueToHashmap(values[0], values[1], stack, err);
+        if(values[0] == NULL || values[1] == NULL){
+            //ERROR
+            return NULL;
+        }
+        assignValueToHashmap(values[0], values[1], stack,functionMap, err);
     } else if(node->type == OPERATOR && valuesAmount > 0){
         return calculateNode(values, node, stack, valuesAmount, err);
         free(values);
        return node;
     } else if (node->type == FUNCTION_DECLARATION){
         declareFunction(node,stack,functionMap,err);
+        return node;
     } else if (node->type == FUNCTION_CALL) {
+        return runFunction(node, stack, functionMap, err);
+    } else if(node->type == RETURN){
+        //IF VOID RETURN DONT DO THAT WHEN BASILE HAVE FIXED TODO
+        var* returnValue = malloc(sizeof(var));
+        if(values[0]->type == VARIABLE){
+            var* tmpV = subsituteValue(values[0],stack,err);
+            returnValue->type = tmpV->type;
+            var2var(returnValue,tmpV,err);
+        } else if(values[0]->type == VALUE){
+            returnValue->type = values[0]->value.value.type;
+            var2var(returnValue,&values[0]->value.value,err);
+        } else {
+            returnValue->type = values[0]->value.referencedValue->type;
+            var2var(returnValue,values[0]->value.referencedValue,err);
+        }
+
+        hm_set(stack->stack[0], "!!$RETURNVALUE$!!", returnValue);
+        return NULL;
+    } else if (node->type == MEMORY_DUMP){
+        displayHashmap(stack,err);
         return node;
     } else {
         return node;
@@ -510,9 +736,10 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
 */
 
 int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionMap, error *err){
-    
     for(int i = 0; i < program->instructionsCount; i++){
-        computeNode(program->instructions[i], stack, functionMap,err);
+        if(computeNode(program->instructions[i], stack, functionMap,err) == NULL){
+            return -1;
+        };
         // Stop computing if there's an error
         if(err->value != ERR_SUCCESS)
             return 1;
@@ -520,8 +747,8 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionM
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION
 
-    //displayHashmap(stack,err);
-    displayFunctionMap(functionMap,err);
+    // displayHashmap(stack,err);
+    // displayFunctionMap(functionMap,err);
     return 0;
 }
 
@@ -561,11 +788,17 @@ void displayFunctionMap(hm* functionMap, error* err){
     hmi iterator = hm_iterator(functionMap);
     printf("----------------------FUNCTION MAP DUMP-----------------------\n");
     while(hm_next(&iterator) == 1){
+        if(((function*)iterator.value)->isBuiltin == 1){
+            printf("__builtin__ ");
+        }
         printf("%s : %s\n",((function*)iterator.value)->name, getVarTypeName(((function*)iterator.value)->type));
         for(int i = 0; i < ((function*)iterator.value)->parametersCount; i++){
             printf("Parameter %d: %s %s\n",i,((function*)iterator.value)->parameters[i].name, getVarTypeName(((function*)iterator.value)->parameters[i].type.type));
         }
-        printInstructionBlock(((function*)iterator.value)->instructions,0);
+        if(((function*)iterator.value)->instructions != NULL){
+            printInstructionBlock(((function*)iterator.value)->instructions,0);
+        }
+        
         printf("\n");
     }
     printf("-------------------END OF FUNCTION MAP DUMP-------------------\n");

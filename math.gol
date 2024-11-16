@@ -1,0 +1,92 @@
+func pow(int a, int b) int {
+    if (b == 0) {
+        return 1;
+    } else {
+        return a * pow(a, b - 1);
+    }
+}
+
+func modulo(int a, int b) int {
+    while (a >= b) {
+        a = a - b;
+    }
+    return a;
+}
+
+func sqrt(int a) int {
+    def int x = a;
+    def int y = 1;
+    while (x > y) {
+        x = (x + y) / 2;
+        y = a / x;
+    }
+    return x;
+}
+
+func ceil(float a) int {
+    def int b = a;
+    if (a == b) {
+        return b;
+    } else {
+        return b + 1;
+    }
+}
+
+func floor(float a) int {
+    def int b = a;
+    return b;
+}
+
+func iabs(int a) int {
+    if (a < 0) {
+        return -a;
+    } else {
+        return a;
+    }
+}
+
+func fabs(float a) float {
+    if (a < 0) {
+        return -a;
+    } else {
+        return a;
+    }
+}
+
+func fact(int a) int {
+    if (a == 0) {
+        return 1;
+    } else {
+        return a * fact(a - 1);
+    }
+}
+
+func sum(int[] arr) int {
+    def int sum = 0;
+    for (i in 0, arrlen(arr)) {
+        sum = sum + arr[i];
+    }
+    return sum;
+}
+
+func pgcd(int a, int b) int {
+    while (a != b) {
+        if (a > b) {
+            a = a - b;
+        } else {
+            b = b - a;
+        }
+    }
+    return a;
+}
+
+func log(int x, int base) int {
+    def int res = 0;
+    while (x >= base) {
+        x = x / base;
+        res = res + 1;
+    }
+    return res;
+}
+
+def float PI = 3.14159265358979323846;

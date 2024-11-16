@@ -4,111 +4,22 @@
 
 #include "token.h"
 
-TokenList *mergeTokenLists(TokenList *tl1, TokenList *tl2) {
-    // We merge two token lists
-    TokenList *new_tl = new_TokenList();
-    if (new_tl == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for new_tl\n");
-        return NULL;
-    }
-
-    for (int i = 0; i < tl1->nb_tokens; i++) {
-        if (add_Token(new_tl, &tl1->tokens[i]) != 0) {
-            printf("[ERROR][LEXER]: Cannot add token to new_tl\n");
-            return NULL;
-        }
-    }
-
-    for (int i = 0; i < tl2->nb_tokens; i++) {
-        if (add_Token(new_tl, &tl2->tokens[i]) != 0) {
-            printf("[ERROR][LEXER]: Cannot add token to new_tl\n");
-            return NULL;
-        }
-    }
-
-    return new_tl;
-}
-
-int next_n_token_equal_to(TokenList *tl, int startIndex, int nTokens, TokenType *types) {
-    // We check if the next n tokens are equal to the types
-    for (int i = 0; i < nTokens; i++) {
-        if (tl->tokens[startIndex + i].type != types[i]) return 0;
-    }
-    return 1;
-}
-
-TokenList *removeNTokenFromTokenList(TokenList *tl, int position, int n) {
-    // We remove n tokens from the token list
-    TokenList *new_tl = new_TokenList();
-    if (new_tl == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for new_tl\n");
-        return NULL;
-    }
-
-    for (int i = 0; i < tl->nb_tokens; i++) {
-        if (i < position || i >= position + n) {
-            if (add_Token(new_tl, &tl->tokens[i]) != 0) {
-                printf("[ERROR][LEXER]: Cannot add token to new_tl\n");
-                return NULL;
-            }
-        }
-    }
-
-    return new_tl;
-}
-
-TokenList *insertTokenListIntoTokenList(TokenList *tl, TokenList *tl2, int position) {
-    // We insert a token list into another token list
-    TokenList *new_tl = new_TokenList();
-    if (new_tl == NULL) {
-        printf("[ERROR][LEXER]: Cannot allocate memory for new_tl\n");
-        return NULL;
-    }
-
-    for (int i = 0; i < tl->nb_tokens; i++) {
-        if (i == position) {
-            for (int j = 0; j < tl2->nb_tokens; j++) {
-                if (add_Token(new_tl, &tl2->tokens[j]) != 0) {
-                    printf("[ERROR][LEXER]: Cannot add token to new_tl\n");
-                    return NULL;
-                }
-            }
-        }
-
-        if (add_Token(new_tl, &tl->tokens[i]) != 0) {
-            printf("[ERROR][LEXER]: Cannot add token to new_tl\n");
-            return NULL;
-        }
-    }
-
-    return new_tl;
-}
-
-TokenList *new_TokenListFromTokens(Token *tokens, int nb_tokens) {
-    TokenList *tl = new_TokenList();
+TokenList *new_TokenList(error *err) {
+    TokenList *tl = (TokenList *)malloc(sizeof(TokenList));
     if (tl == NULL) {
-        printf("[ERROR][TOKEN]: Cannot allocate memory for TokenList\n");
+        free(tl);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for TokenList");
         return NULL;
     }
 
-    for (int i = 0; i < nb_tokens; i++) {
-        if (add_Token(tl, &tokens[i]) != 0) {
-            printf("[ERROR][TOKEN]: Cannot add token to TokenList\n");
-            return NULL;
-        }
-    }
-
-    return tl;
-}
-
-TokenList *new_TokenList() {
-    TokenList *tl = malloc(sizeof(TokenList));
-    if (tl == NULL) {
-        printf("[ERROR][TOKEN]: Cannot allocate memory for TokenList\n");
+    tl->tokens = (Token *)malloc(sizeof(Token));
+    if (tl->tokens == NULL) {
+        free(tl); free(tl->tokens);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for TokenList->tokens");
         return NULL;
     }
-
-    tl->tokens = NULL;
     tl->nb_tokens = 0;
     return tl;
 }
@@ -125,18 +36,21 @@ void print_token(Token *t) {
     if (t->type == TOKEN_SEMICOLON) printf("\n");
 }
 
-Token *new_Token(TokenType type, char *value, int line, int column) {
-    Token *t = malloc(sizeof(Token));
+Token *new_Token(TokenType type, char *value, int line, int column, error *err) {
+    Token *t = (Token *)malloc(sizeof(Token));
     if (t == NULL) {
-        printf("[ERROR][TOKEN]: Cannot allocate memory for Token\n");
+        free(t);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for Token");
         return NULL;
     }
 
     t->type = type;
-    t->value = (char *) malloc(strlen(value) + 1);
+    t->value = (char *)malloc(strlen(value) + 1);
     if (t->value == NULL) {
-        printf("[ERROR][TOKEN]: Cannot allocate memory for value\n");
-        free(t);
+        free(t); free(t->value);
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for Token->value");
         return NULL;
     }
 
@@ -148,14 +62,27 @@ Token *new_Token(TokenType type, char *value, int line, int column) {
     return t;
 }
 
-int add_Token(TokenList *tl, Token *t) {
+int add_Token(TokenList *tl, Token *t, error *err) {
     tl->tokens = (Token *) realloc(tl->tokens, (tl->nb_tokens + 1) * sizeof(Token));
     if (tl->tokens == NULL) {
-        printf("[ERROR][TOKEN]: Cannot allocate memory for token\n");
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot reallocate memory for TokenList->tokens");
         return 1;
     }
 
-    tl->tokens[tl->nb_tokens++] = *t;
+    tl->tokens[tl->nb_tokens++].type = t->type;
+    tl->tokens[tl->nb_tokens - 1].value = (char *)malloc(strlen(t->value) + 1);
+    if (tl->tokens[tl->nb_tokens - 1].value == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Cannot allocate memory for value");
+        return 1;
+    }
+    strcpy(tl->tokens[tl->nb_tokens - 1].value, t->value);
+    tl->tokens[tl->nb_tokens - 1].line = t->line;
+    tl->tokens[tl->nb_tokens - 1].column = t->column;
+
+    free_Token(t);
+    free(t);
 
     return 0;
 }
@@ -216,6 +143,8 @@ TokenType str_to_token_type(char *input) {
     else if (strcmp(input, "TOKEN_SUBSTRACTION") == 0) return TOKEN_SUBSTRACTION;
     else if (strcmp(input, "TOKEN_MULTIPLICATION") == 0) return TOKEN_MULTIPLICATION;
     else if (strcmp(input, "TOKEN_DIVISION") == 0) return TOKEN_DIVISION;
+    else if (strcmp(input, "TOKEN_MODULO") == 0) return TOKEN_MODULO;
+    else if (strcmp(input, "TOKEN_POWER") == 0) return TOKEN_POWER;
 
     else if (strcmp(input, "TOKEN_LPAREN") == 0) return TOKEN_LPAREN;
     else if (strcmp(input, "TOKEN_RPAREN") == 0) return TOKEN_RPAREN;
@@ -277,6 +206,8 @@ char *token_type_to_str(TokenType type) {
         [TOKEN_SUBSTRACTION         ] = "SUBSTRACTION",
         [TOKEN_MULTIPLICATION       ] = "MULTIPLICATION",
         [TOKEN_DIVISION             ] = "DIVISION",
+        [TOKEN_MODULO               ] = "MODULO",
+        [TOKEN_POWER                ] = "POWER",
 
         [TOKEN_LPAREN               ] = "LPAREN",
         [TOKEN_RPAREN               ] = "RPAREN",
