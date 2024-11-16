@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 void __builtinToMap__(hm* functionStack, error* err);
+void display__print(var* value, error* err, int level);
 
 void call__print__(hmStack* fStack, error* err);
 void call__strlen__(hmStack* fStack, error* err);

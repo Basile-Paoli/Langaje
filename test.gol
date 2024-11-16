@@ -1,6 +1,3 @@
-def string a = "Hello, World!\nThis is a test.";
-def string[] b = split(a, "\n");
-@memoryDump
-for (i in arrlen(b)) {
-    print("b[" + i + "] = " + b[i]);
-}
+def int[] a = [1, 2, 3, 4, 5];
+print(a);
+print(2);

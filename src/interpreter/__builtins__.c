@@ -71,21 +71,39 @@ void call__print__(hmStack* fStack, error* err) {
 
     var* message = (var*)hm_get(fStack->stack[0], "message");
     
-    if (message->type != _TMPString) {
-        err->value = ERR_TYPE;
-        char *str = strdup("print function expect 1 parameter: message(string). Got -> ");
-        str = realloc(str, strlen(str) + strlen(getVarTypeName(message->type)) + 1);
-        strcat(str, getVarTypeName(message->type));
-        assignErrorMessage(err, str);
-        free(str);
-        return;
-    }
-    char* str = getString(message,err);
-    str = replace_str(str);
-    printf("%s\n", str);
-    free(str);
+    display__print(message, err, 0);
 
     newVar->value._int = 0;
+}
+
+void display__print(var* value, error* err, int level) {
+    switch (value->type) {
+    case _TMPString:
+        char* str = getString(value,err);
+        str = replace_str(str);
+        printf("%s\n", str);
+        free(str);
+        break;
+    case _int:
+        printf("%d\n", value->value._int);
+        break;
+    case _float:
+        printf("%f\n", value->value._float);
+        break;
+    case _char:
+        printf("%c\n", value->value._char);
+        break;
+    case _string:
+        printf("%s\n", value->value._string);
+        break;
+    case _array:
+        for (int i = 0; i < value->value._array->length; i++) {
+            display__print(&value->value._array->values[i], err, level + 1);
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 void call__strlen__(hmStack* fStack, error* err) {
