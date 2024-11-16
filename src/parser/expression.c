@@ -30,21 +30,48 @@ astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, err
     return node;
 }
 
+int isAssignmentOperator(TokenType type) {
+    return type == TOKEN_EQUAL || type == TOKEN_ADDITION_ASSIGNMENT || type == TOKEN_SUBSTRACTION_ASSIGNMENT ||
+           type == TOKEN_MULTIPLICATION_ASSIGNMENT || type == TOKEN_DIVISION_ASSIGNMENT ||
+           type == TOKEN_MODULO_ASSIGNMENT ||
+           type == TOKEN_POWER_ASSIGNMENT;
+}
+
+TokenType assignmenTToBinaryOperator(TokenType type) {
+    switch (type) {
+        case TOKEN_ADDITION_ASSIGNMENT:
+            return TOKEN_ADDITION;
+        case TOKEN_SUBSTRACTION_ASSIGNMENT:
+            return TOKEN_SUBSTRACTION;
+        case TOKEN_MULTIPLICATION_ASSIGNMENT:
+            return TOKEN_MULTIPLICATION;
+        case TOKEN_DIVISION_ASSIGNMENT:
+            return TOKEN_DIVISION;
+        case TOKEN_MODULO_ASSIGNMENT:
+            return TOKEN_MODULO;
+        case TOKEN_POWER_ASSIGNMENT:
+            return TOKEN_POWER;
+        default:
+            return type;
+    }
+}
+
+
 /**
  * Parses an expression
  * Starts with the lowest precedence operator (assignment)
  * Each following function parses a different operator with higher precedence
  * See grammar in README.md for more details
  */
-
 astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
     astNode *node = parseLogicalOr(tokenList, currentToken, err);
     if (err->value != ERR_SUCCESS) {
         return NULL;
     }
-    if (*currentToken >= tokenList->nb_tokens || tokenList->tokens[*currentToken].type != TOKEN_EQUAL) {
+    if (*currentToken >= tokenList->nb_tokens || !isAssignmentOperator(tokenList->tokens[*currentToken].type)) {
         return node;
     }
+    Token operator = tokenList->tokens[*currentToken];
 
     if (node->type != VARIABLE && node->type != OPERATOR && node->value.operator != SUBSCRIPT) {
         err->value = ERR_SYNTAX;
@@ -63,8 +90,13 @@ astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
         freeAstNode(node);
         return NULL;
     }
-    return newBinaryOperatorNode(TOKEN_EQUAL, node, right);
 
+    if (operator.type == TOKEN_EQUAL) {
+        return newBinaryOperatorNode(TOKEN_EQUAL, node, right);
+    }
+
+    astNode *operationNode = newBinaryOperatorNode(assignmenTToBinaryOperator(operator.type), node, right);
+    return newBinaryOperatorNode(TOKEN_EQUAL, node, operationNode);
 }
 
 astNode *parseLogicalOr(TokenList *tokenList, int *currentToken, error *err) {
