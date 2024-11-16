@@ -163,6 +163,6 @@ InstructionBlock *newInstructionBlock(int capacity);
 
 InstructionBlock *appendInstruction(InstructionBlock *parseResult, astNode *instruction);
 
-void freeInstructionBlock(InstructionBlock *parseResult);
+void freeInstructionBlock(InstructionBlock *block);
 
 #endif
