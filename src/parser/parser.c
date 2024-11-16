@@ -25,7 +25,7 @@ InstructionBlock *parse(TokenList *tokenList, error *err) {
 InstructionBlock *parseInstructions(TokenList *tokenList, int *currentToken, error *err) {
     InstructionBlock *block = newInstructionBlock(10);
     while (*currentToken < tokenList->nb_tokens) {
-        astNode *instruction = parseInstruction(tokenList, currentToken, err);
+        astNode *instruction = parseFunctionOrInstruction(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeInstructionBlock(block);
             return NULL;
@@ -67,6 +67,19 @@ InstructionBlock *parseInstructionBlockWithBraces(TokenList *tokenList, int *cur
     return block;
 }
 
+
+astNode *parseFunctionOrInstruction(TokenList *tokenList, int *currentToken, error *err) {
+    assert(*currentToken < tokenList->nb_tokens);
+
+    Token first = tokenList->tokens[*currentToken];
+
+    if (first.type == TOKEN_FUNCTION_DECLARATION) {
+        return parseFunctionDeclaration(tokenList, currentToken, err);
+    } else {
+        return parseInstruction(tokenList, currentToken, err);
+    }
+}
+
 astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
 
     assert(*currentToken < tokenList->nb_tokens);
@@ -86,8 +99,6 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
             return parseBreakInstruction(tokenList, currentToken, err);
         case TOKEN_CONTINUE:
             return parseContinueInstruction(tokenList, currentToken, err);
-        case TOKEN_FUNCTION_DECLARATION:
-            return parseFunctionDeclaration(tokenList, currentToken, err);
         case TOKEN_FUNCTION_RETURN:
             return parseReturnInstruction(tokenList, currentToken, err);
         case TOKEN_BREAKPOINT:

@@ -18,6 +18,8 @@ InstructionBlock *parseInstructions(TokenList *tokenList, int *currentToken, err
 
 InstructionBlock *parseInstructionBlockWithBraces(TokenList *tokenList, int *currentToken, error *err);
 
+astNode *parseFunctionOrInstruction(TokenList *tokenList, int *currentToken, error *err);
+
 astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err);
 
 #endif //LANGAJE_PARSER_H

@@ -97,6 +97,7 @@ functionParameter *parseFunctionParameters(TokenList *tokenList, int *currentTok
 
     if (tokenList->tokens[*currentToken].type == TOKEN_RPAREN) {
         ++*currentToken;
+        *parameterCount = 0;
         return NULL;
     }
 
