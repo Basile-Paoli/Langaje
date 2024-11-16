@@ -26,12 +26,41 @@ char *replace_str(char *str) {
     return newStr;
 }
 
+void display__print(var* value, error* err, int level) {
+    switch (value->type) {
+    case _TMPString:
+        char* str = getString(value,err);
+        str = replace_str(str);
+        printf("%s\n", str);
+        free(str);
+        break;
+    case _int:
+        printf("%d\n", value->value._int);
+        break;
+    case _float:
+        printf("%f\n", value->value._float);
+        break;
+    case _char:
+        printf("%c\n", value->value._char);
+        break;
+    case _string:
+        printf("%s\n", value->value._string);
+        break;
+    case _array:
+        for (int i = 0; i < value->value._array->length; i++) {
+            display__print(&value->value._array->values[i], err, level + 1);
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 
 void __builtinToMap__(hm* functionMap, error* err){
     function* functions[] = {
-        newFunctionPrototype("print",        _void,     __print__,      1, err, (fakeFunctionParam[]){{"message", _string}}),
-        newFunctionPrototype("strlen",       _int,      __strlen__,     1, err, (fakeFunctionParam[]){{"string", _string}}),
-        newFunctionPrototype("arrlen",       _int,      __arrlen__,     1, err, (fakeFunctionParam[]){{"array", _array}}),
+        newFunctionPrototype("print",        _void,     __print__,      1, err, (fakeFunctionParam[]){{"entry", _string}}),
+        newFunctionPrototype("len",          _int,      __len__,        1, err, (fakeFunctionParam[]){{"entry", _string}}),
         newFunctionPrototype("randint",      _int,      __randint__,    2, err, (fakeFunctionParam[]){{"min", _int}, {"max", _int}}),
         newFunctionPrototype("randfloat",    _float,    __randfloat__,  2, err, (fakeFunctionParam[]){{"min", _float}, {"max", _float}}),
         newFunctionPrototype("system",       _int,      __system__,     1, err, (fakeFunctionParam[]){{"command", _string}}),
@@ -41,8 +70,9 @@ void __builtinToMap__(hm* functionMap, error* err){
         newFunctionPrototype("fwrite",       _int,      __fwrite__,     3, err, (fakeFunctionParam[]){{"filename", _string}, {"content", _string}, {"method", _string}}),
         newFunctionPrototype("split",        _array,    __split__,      2, err, (fakeFunctionParam[]){{"string", _string}, {"delimiter", _string}}),
         newFunctionPrototype("range",        _array,    __range__,      3, err, (fakeFunctionParam[]){{"start", _int}, {"end", _int}, {"step", _int}}),
-        newFunctionPrototype("append",      _array,     __append__,     2, err, (fakeFunctionParam[]){{"array", _array}, {"toAdd", _void}}),
-        newFunctionPrototype("pop",        _array,     __pop__,        1, err, (fakeFunctionParam[]){{"array", _array}})
+        newFunctionPrototype("append",       _array,    __append__,     2, err, (fakeFunctionParam[]){{"array", _array}, {"toAdd", _void}}),
+        newFunctionPrototype("pop",          _array,    __pop__,        1, err, (fakeFunctionParam[]){{"array", _array}}),
+        newFunctionPrototype("type",         _string,   __type__,       1, err, (fakeFunctionParam[]){{"entry", _void}})
 
     };
 
@@ -69,26 +99,14 @@ void call__print__(hmStack* fStack, error* err) {
     newVar->value._int = 1;
     hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
 
-    var* message = (var*)hm_get(fStack->stack[0], "message");
+    var* message = (var*)hm_get(fStack->stack[0], "entry");
     
-    if (message->type != _TMPString) {
-        err->value = ERR_TYPE;
-        char *str = strdup("print function expect 1 parameter: message(string). Got -> ");
-        str = realloc(str, strlen(str) + strlen(getVarTypeName(message->type)) + 1);
-        strcat(str, getVarTypeName(message->type));
-        assignErrorMessage(err, str);
-        free(str);
-        return;
-    }
-    char* str = getString(message,err);
-    str = replace_str(str);
-    printf("%s\n", str);
-    free(str);
+    display__print(message, err, 0);
 
     newVar->value._int = 0;
 }
 
-void call__strlen__(hmStack* fStack, error* err) {
+void call__len__(hmStack* fStack, error* err) {
 
     var* newVar = malloc(sizeof(var));
     if (newVar == NULL) {
@@ -101,50 +119,27 @@ void call__strlen__(hmStack* fStack, error* err) {
     newVar->value._int = 1;
     hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
 
-    var* string = (var*)hm_get(fStack->stack[0], "string");
+    var* entry = (var*)hm_get(fStack->stack[0], "entry");
     
-    if (string->type != _TMPString) {
-        err->value = ERR_TYPE;
-        char *str = strdup("strlen function expect 1 parameter: string(string). Got -> ");
-        str = realloc(str, strlen(str) + strlen(getVarTypeName(string->type)) + 1);
-        strcat(str, getVarTypeName(string->type));
-        assignErrorMessage(err, str);
-        free(str);
-        return;
-    }
-    char* str = getString(string,err);
-    str = replace_str(str);
-    newVar->value._int = strlen(str);
-    free(str);
-}
-
-void call__arrlen__(hmStack* fStack, error* err) {
-
-
-    var* newVar = malloc(sizeof(var));
-    if (newVar == NULL) {
-        err->value = ERR_MEMORY;
-        assignErrorMessage(err, "Memory allocation error\n");
-        return;
+    switch (entry->type) {
+        case _TMPString:
+            char *tmp = getString(entry,err);
+            newVar->value._int = strlen(tmp);
+            free(tmp);
+            break;
+        case _array:
+            newVar->value._int = entry->value._array->length;
+            break;
+        default:
+            err->value = ERR_TYPE;
+            char *str = strdup("len function expect 1 parameter: entry(TMPString or Array). Got -> ");
+            str = realloc(str, strlen(str) + strlen(getVarTypeName(entry->type) + 1));
+            strcat(str, getVarTypeName(entry->type));
+            assignErrorMessage(err, str);
+            free(str);
+            break;
     }
 
-    newVar->type = _int;
-    newVar->value._int = 1;
-    hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
-
-    var* array = (var*)hm_get(fStack->stack[0], "array");
-    
-    if (array->type != _array) {
-        err->value = ERR_TYPE;
-        char *str = strdup("arrlen function expect 1 parameter: array(array). Got -> ");
-        str = realloc(str, strlen(str) + strlen(getVarTypeName(array->type)) + 1);
-        strcat(str, getVarTypeName(array->type));
-        assignErrorMessage(err, str);
-        free(str);
-        return;
-    }
-
-    newVar->value._int = array->value._array->length;
 }
 
 void call__randint__(hmStack* fStack, error* err) {
@@ -611,4 +606,22 @@ void call__pop__(hmStack* fStack, error* err){
         var2var(&tmp->value._array->values[i], &arrayToPop->value._array->values[i], err);
 
     hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", tmp);
+}
+
+void call__type__(hmStack *fStack, error *err) {
+    var *newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
+
+    newVar->type = _int;
+    newVar->value._int = 1;
+    hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
+
+    var *entry = (var *) hm_get(fStack->stack[0], "entry");
+
+    newVar->value._string = strdup(getVarTypeName(entry->type));
+    newVar->type = _string;
 }

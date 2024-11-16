@@ -24,8 +24,7 @@ typedef enum varType {
 
 typedef enum __builtinFunction__ {
     __print__,
-    __strlen__,
-    __arrlen__,
+    __len__,
     __randint__,
     __randfloat__,
     __system__,
@@ -37,6 +36,7 @@ typedef enum __builtinFunction__ {
     __range__,
     __append__,
     __pop__,
+    __type__
 }__builtinFunction__;
 
 typedef struct array{

@@ -1,2 +1,2 @@
 def string a = "HelloWorld!";
-print(a[114]);
+print(type(a));
