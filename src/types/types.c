@@ -415,6 +415,17 @@ var* getVarPointerFromArray(var* array, int index, error *err){
 }
 
 var* getCharValueFromString(var* string, int index, error* err){
+    if(index >= string->value._TMPstring->length){
+        err->value = ERR_OUT_OF_BOUNDS;
+
+        char *msg = malloc(strlen("Array access error: Index %d is out of range for the string of size %d.") + 1);
+        sprintf(msg, "Index is out of range for the string of size %d.", string->value._TMPstring->length);
+
+        assignErrorMessage(err, msg);
+        free(msg);
+
+        return NULL;
+    }
     return &(string->value._TMPstring->chars[index]);
 }
 
