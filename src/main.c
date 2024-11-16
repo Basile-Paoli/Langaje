@@ -38,9 +38,7 @@ int main(int argc, char **argv) {
 
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
 
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
+   
     //Push base hm
     hm* hashmap = hm_create();
     hmStackPush(stack,hashmap);
@@ -169,7 +167,9 @@ int main(int argc, char **argv) {
 
     // printInstructionBlock(pr, 0);
 
-
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
     int runInstructionResult = runInstructionBlock(pr, stack, functionMap, err);
     //displayHashmap(stack, err);
     hmStackPop(stack);
