@@ -171,10 +171,11 @@ int main(int argc, char **argv) {
     double cpu_time_used;
     start = clock();
     int runInstructionResult = runInstructionBlock(pr, stack, functionMap, err);
+    end = clock();
     //displayHashmap(stack, err);
     hmStackPop(stack);
     hm_functions_free(functionMap);
-    end = clock();
+    
 
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
