@@ -44,13 +44,14 @@ void call__print__(hmStack* fStack, error* err) {
 
     var* message = (var*)hm_get(fStack->stack[0], "message");
     
-    if (message->type != _string) {
+    if (message->type != _TMPString) {
         err->value = ERR_TYPE;
         assignErrorMessage(err, "print function expect 1 parameter: message(string)\n");
         return;
     }
-
-    printf("%s\n", message->value);
+    char* str = getString(message,err);
+    printf("%s\n", str);
+    free(str);
 
     newVar->value._int = 0;
 }
@@ -70,13 +71,14 @@ void call__strlen__(hmStack* fStack, error* err) {
 
     var* string = (var*)hm_get(fStack->stack[0], "string");
     
-    if (string->type != _string) {
+    if (string->type != _TMPString) {
         err->value = ERR_TYPE;
         assignErrorMessage(err, "strlen function expect 1 parameter: string(string)\n");
         return;
     }
-
-    newVar->value._int = strlen(string->value._string);
+    char* str = getString(string,err);
+    newVar->value._int = strlen(str);
+    free(str);
 }
 
 void call__arrlen__(hmStack* fStack, error* err) {
@@ -192,8 +194,8 @@ void call__input__(hmStack* fStack, error* err) {
     hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
 
     var* message = (var*)hm_get(fStack->stack[0], "message");
-    
-    if (message->type != _string) {
+    char* str = getString(message,err);
+    if (message->type != _TMPString) {
         err->value = ERR_TYPE;
         assignErrorMessage(err, "input function expect 1 parameter: message(string)\n");
         return;
@@ -201,7 +203,8 @@ void call__input__(hmStack* fStack, error* err) {
 
 
     char* input = (char*)malloc(255);
-    printf("%s", message->value._string);
+    printf("%s", str);
+    free(str);
     fgets(input, 255, stdin);
     input[strlen(input) - 1] = '\0';
 
@@ -329,7 +332,7 @@ void call__fwrite__(hmStack* fStack, error* err) {
 }
 
 void call__split__(hmStack* fStack, error* err) {
-    var* newVar = newArrayVar(0, _string);
+    var* newVar = newArrayVar(0, _string,err);
     if (newVar == NULL) {
         err->value = ERR_MEMORY;
         assignErrorMessage(err, "Memory allocation error\n");
@@ -481,7 +484,7 @@ void call__append__(hmStack* fStack, error* err){
     }
 
     int arrayLen = arrayToAppend->value._array->length;
-    var *tmp = newArrayVar(arrayLen + 1, arrayToAppend->value._array->type);
+    var *tmp = newArrayVar(arrayLen + 1, arrayToAppend->value._array->type,err);
 
     for(int i = 0; i < arrayLen; i++)
         var2var(&tmp->value._array->values[i], &arrayToAppend->value._array->values[i], err);
@@ -495,7 +498,7 @@ void call__pop__(hmStack* fStack, error* err){
     var* arrayToPop = (var*)hm_get(fStack->stack[0], "array");
 
     int arrayLen = arrayToPop->value._array->length -1 ;
-    var *tmp = newArrayVar(arrayLen, arrayToPop->value._array->type);
+    var *tmp = newArrayVar(arrayLen, arrayToPop->value._array->type,err);
 
     for(int i = 0; i < arrayLen; i++)
         var2var(&tmp->value._array->values[i], &arrayToPop->value._array->values[i], err);

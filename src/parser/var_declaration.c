@@ -4,6 +4,7 @@
 
 #include "var_declaration.h"
 #include "expression.h"
+#include "parser.h"
 #include "../ast/node_initializers.h"
 #include <string.h>
 #include <assert.h>
@@ -42,6 +43,7 @@ initType parseType(TokenList *tokenList, int *currentToken, error *err) {
     initType type;
     type.type = typeFromKeyword(tokenList->tokens[*currentToken].type, err);
     if (err->value != ERR_SUCCESS) {
+        addPositionToError(err, tokenList->tokens[*currentToken]);
         return type;
     }
 
@@ -64,6 +66,7 @@ initType parseType(TokenList *tokenList, int *currentToken, error *err) {
             if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
                 err->value = ERR_SYNTAX;
                 err->message = strdup("Expected ']'");
+                addPositionToError(err, tokenList->tokens[*currentToken]);
                 return type;
             }
             ++*currentToken;
@@ -73,6 +76,7 @@ initType parseType(TokenList *tokenList, int *currentToken, error *err) {
         } else {
             err->value = ERR_SYNTAX;
             err->message = strdup("Invalid token after '['");
+            addPositionToError(err, tokenList->tokens[*currentToken]);
             return type;
         }
     }
@@ -99,7 +103,7 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
             err->value = ERR_SYNTAX;
             err->message = strdup("Cannot declare a variable without a type or an initialization");
             freeAstNode(initNode);
-            return NULL;
+            return addPositionToError(err, tokenList->tokens[*currentToken]);
         }
         ++*currentToken;
         return initNode;
@@ -112,7 +116,7 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
         sprintf(err->message, "Expected '=' or ';' , got %s",
                 tokenList->tokens[*currentToken].value);
         freeAstNode(initNode);
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     ++*currentToken;
@@ -138,7 +142,7 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
         freeAstNode(expression);
         freeAstNode(initNode);
 
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
     ++*currentToken;
 
@@ -176,7 +180,7 @@ astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err
                 strlen("Expected an identifier, got ") + strlen(tokenList->tokens[*currentToken].value) + 1);
         sprintf(err->message, "Expected an identifier, got %s",
                 tokenList->tokens[*currentToken].value);
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     char *name = strdup(tokenList->tokens[*currentToken].value);

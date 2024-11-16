@@ -146,6 +146,13 @@ TokenType str_to_token_type(char *input) {
     else if (strcmp(input, "TOKEN_MODULO") == 0) return TOKEN_MODULO;
     else if (strcmp(input, "TOKEN_POWER") == 0) return TOKEN_POWER;
 
+    else if (strcmp(input,"TOKEN_ADDITION_ASSIGNMENT") == 0) return TOKEN_ADDITION_ASSIGNMENT;
+    else if (strcmp(input,"TOKEN_SUBSTRACTION_ASSIGNMENT") == 0) return TOKEN_SUBSTRACTION_ASSIGNMENT;
+    else if (strcmp(input,"TOKEN_MULTIPLICATION_ASSIGNMENT") == 0) return TOKEN_MULTIPLICATION_ASSIGNMENT;
+    else if (strcmp(input,"TOKEN_DIVISION_ASSIGNMENT") == 0) return TOKEN_DIVISION_ASSIGNMENT;
+    else if (strcmp(input,"TOKEN_MODULO_ASSIGNMENT") == 0) return TOKEN_MODULO_ASSIGNMENT;
+    else if (strcmp(input,"TOKEN_POWER_ASSIGNMENT") == 0) return TOKEN_POWER_ASSIGNMENT;
+
     else if (strcmp(input, "TOKEN_LPAREN") == 0) return TOKEN_LPAREN;
     else if (strcmp(input, "TOKEN_RPAREN") == 0) return TOKEN_RPAREN;
 
@@ -208,6 +215,14 @@ char *token_type_to_str(TokenType type) {
         [TOKEN_DIVISION             ] = "DIVISION",
         [TOKEN_MODULO               ] = "MODULO",
         [TOKEN_POWER                ] = "POWER",
+
+        [TOKEN_ADDITION_ASSIGNMENT  ] = "ADDITION_ASSIGNMENT",
+        [TOKEN_SUBSTRACTION_ASSIGNMENT] = "SUBSTRACTION_ASSIGNMENT",
+        [TOKEN_MULTIPLICATION_ASSIGNMENT] = "MULTIPLICATION_ASSIGNMENT",
+        [TOKEN_DIVISION_ASSIGNMENT  ] = "DIVISION_ASSIGNMENT",
+        [TOKEN_MODULO_ASSIGNMENT    ] = "MODULO_ASSIGNMENT",
+        [TOKEN_POWER_ASSIGNMENT     ] = "POWER_ASSIGNMENT",
+
 
         [TOKEN_LPAREN               ] = "LPAREN",
         [TOKEN_RPAREN               ] = "RPAREN",

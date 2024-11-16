@@ -28,6 +28,7 @@ astNode *parseReturnInstruction(TokenList *tokenList, int *currentToken, error *
     if (tokenList->tokens[*currentToken].type != TOKEN_SEMICOLON) {
         err->value = ERR_SYNTAX;
         err->message = "Expected a semicolon after return statement";
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     ++*currentToken;
@@ -49,6 +50,7 @@ functionParameter parseFunctionParameter(TokenList *tokenList, int *currentToken
     if (tokenList->tokens[*currentToken].type != TOKEN_IDENTIFIER) {
         err->value = ERR_SYNTAX;
         err->message = "Expected an identifier after type";
+        addPositionToError(err, tokenList->tokens[*currentToken]);
         return parameter;
     }
     char *parameterName = tokenList->tokens[*currentToken].value;
@@ -85,7 +87,7 @@ functionParameter *parseFunctionParameters(TokenList *tokenList, int *currentTok
     if (tokenList->tokens[*currentToken].type != TOKEN_LPAREN) {
         err->value = ERR_SYNTAX;
         err->message = "Expected an open parenthesis after function name";
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
     ++*currentToken;
     if (*currentToken > tokenList->nb_tokens) {
@@ -95,6 +97,7 @@ functionParameter *parseFunctionParameters(TokenList *tokenList, int *currentTok
 
     if (tokenList->tokens[*currentToken].type == TOKEN_RPAREN) {
         ++*currentToken;
+        *parameterCount = 0;
         return NULL;
     }
 
@@ -129,7 +132,7 @@ functionParameter *parseFunctionParameters(TokenList *tokenList, int *currentTok
     if (tokenList->tokens[*currentToken].type != TOKEN_RPAREN) {
         err->value = ERR_SYNTAX;
         err->message = "Expected a closing parenthesis after function parameters";
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     ++*currentToken;
@@ -147,7 +150,7 @@ astNode *parseFunctionDeclaration(TokenList *tokenList, int *currentToken, error
     if (tokenList->tokens[*currentToken].type != TOKEN_IDENTIFIER) {
         err->value = ERR_SYNTAX;
         err->message = "Expected an identifier after function keyword";
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
     char *functionName = tokenList->tokens[*currentToken].value;
 
@@ -184,7 +187,7 @@ astNode *parseFunctionDeclaration(TokenList *tokenList, int *currentToken, error
     if (tokenList->tokens[*currentToken].type != TOKEN_LBRACE) {
         err->value = ERR_SYNTAX;
         err->message = "Expected an opening brace after function declaration";
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     InstructionBlock *functionBody = parseInstructionBlockWithBraces(tokenList, currentToken, err);

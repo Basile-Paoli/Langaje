@@ -43,15 +43,7 @@ int runCode(char *input, Lexer *l, hm* functionMap, hmStack* stack, error *err) 
     return 0;
 }
 
-int cliMode(Lexer *l, error *err) {
-
-    char langFile[] = "lang/CLASSIC.lang";
-
-    // We read the lang file
-    if (readLexerFile(l, langFile, err) != 0) {
-        assignErrorMessage(err, "Could not read lexer file");
-        return 1;
-    }
+int cliMode(Lexer *l, hmStack *stack, hm* functionMap, error *err) {
 
     struct termios orig_termios;
     tcgetattr(STDIN_FILENO, &orig_termios);
@@ -63,12 +55,6 @@ int cliMode(Lexer *l, error *err) {
     int len = 0;
     
     printf(">>> ");
-
-    hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
-    hm* hashmap = hm_create();
-    hm* functionMap = hm_create();
-    __builtinToMap__(functionMap,err);
-    hmStackPush(stack, hashmap);
 
     int nb_brackets[3] = {0};
 
@@ -169,13 +155,6 @@ int cliMode(Lexer *l, error *err) {
     }
 
     disableRawMode(&orig_termios);
-
-    displayHashmap(stack, err);
-
-    hmStackPop(stack);
-    hm_functions_free(functionMap);
-    hmStackDestroy(stack);
-    hm_functions_free(functionMap);
 
     return 0;
 
