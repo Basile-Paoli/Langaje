@@ -21,7 +21,7 @@ int assignString(var *v, char *value) {
         return 1;
     }
     if(v->type != _string && v->value._TMPstring != NULL ){
-        free(v->value._TMPstring->chars);
+        //free(v->value._TMPstring->chars);
         free(v->value._TMPstring);
         v->value._TMPstring = NULL;
     }
@@ -205,6 +205,7 @@ void var2var(var* v, var* v2, error *err){
             case (_TMPString): {
                 switch(v2->type) {
                     case _TMPString:{
+
                         char* str = getString(v2,err);
                         assignString(v,str);
                         free(str);
@@ -414,6 +415,17 @@ var* getVarPointerFromArray(var* array, int index, error *err){
 }
 
 var* getCharValueFromString(var* string, int index, error* err){
+    if(index >= string->value._TMPstring->length){
+        err->value = ERR_OUT_OF_BOUNDS;
+
+        char *msg = malloc(strlen("Array access error: Index %d is out of range for the string of size %d.") + 1);
+        sprintf(msg, "Index is out of range for the string of size %d.", string->value._TMPstring->length);
+
+        assignErrorMessage(err, msg);
+        free(msg);
+
+        return NULL;
+    }
     return &(string->value._TMPstring->chars[index]);
 }
 
