@@ -22,10 +22,13 @@ var* subsituteValue(astNode* value, hmStack* stack, error *err){
         var* tmp = malloc(sizeof(var));
         var tmp2 = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
         tmp->type = tmp2.type;
-        if(tmp->type != _string){
+        if(tmp->type != _string && tmp->type != _TMPString){
             tmp->value = tmp2.value;
         } else {
-            assignString(tmp, tmp2.value._string);
+            //assignString(tmp, tmp2.value._string);
+            tmp->value._string = getString(&tmp2,err);
+            printf("__hello?__\n");
+            tmp->type = _string;
         }
         
         return tmp;
@@ -66,8 +69,18 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     }
     astNode* tmpNode = malloc(sizeof(astNode));
     tmpNode->type = VALUE;
-    
 
+    if(var1.type == _TMPString){
+        var1.value._string = getString(&var1,err);
+        var1.type = _string;
+    } 
+    if(var2.type == _TMPString){
+        var2.value._string = getString(&var2,err);
+        var2.type = _string;
+    } 
+
+
+    printf("__DEBUG __ %d %d \n",var1.type, var2.type);
     switch(op){
         case ADDITION:{
             // Return error msg if array values not of same type
@@ -172,7 +185,6 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         sprintf(err->message, "%s", err_op.message);
         //return NULL;
     }
-
     return tmpNode;
 }
 
@@ -276,7 +288,8 @@ var* declareVar(astNode* node, error *err){
             break;
         }
         case _string:{
-            assignString(newVar,"");
+            //assignString(newVar,"");
+            declareString(newVar,1);
             break;
         }
         default:
@@ -696,7 +709,6 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
         assignValueToHashmap(values[0], values[1], stack,functionMap, err);
     } else if(node->type == OPERATOR && valuesAmount > 0){
         return calculateNode(values, node, stack, valuesAmount, err);
-        free(values);
        return node;
     } else if (node->type == FUNCTION_DECLARATION){
         declareFunction(node,stack,functionMap,err);

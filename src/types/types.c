@@ -16,23 +16,54 @@
  * @return 0 on success, 1 on failure.
  */
 int assignString(var *v, char *value) {
+    printf("_!_ %s __ \n",value);
     int len = strlen(value);
     if (len < 0) {
         return 1;
     }
-    
-    if (v->value._string == NULL || len != strlen(v->value._string)) {
-        v->value._string = calloc(sizeof(char), len + 1);
+    if(v->value._TMPstring != NULL ){
+        free(v->value._TMPstring->chars);
+        free(v->value._TMPstring);
+        v->value._TMPstring = NULL;
     }
-    if (v->value._string == NULL) {
+    if (v->value._TMPstring == NULL || len <= v->value._TMPstring->length) {
+        declareString(v,len + 3);
+    }
+    if (v->value._TMPstring == NULL) {
         return 1;
     }
 
-    if (strcpy(v->value._string, value) == NULL) {
-        return 1;
+    v->value._TMPstring->length = len + 1;
+
+    for(int i = 0; i < len; i++){
+        v->value._TMPstring->chars[i].value._char = value[i];
     }
+    v->value._TMPstring->chars[len].value._char = '\0';
 
     return 0;
+}
+
+int declareString(var* v, int size){
+    string* str = malloc(sizeof(string));
+    str->length = size;
+    str->chars = malloc(sizeof(var) * size);
+    for(int i = 0; i < size; i++){
+        str->chars[i].type = _char;
+        str->chars[i].value._char = '\0';
+    }
+
+    v->type = _TMPString;
+    v->value._TMPstring = str;
+    return 0;
+}
+
+char* getString(var* v, error* err){
+    char* str = malloc(sizeof(char) * v->value._TMPstring->length);
+    for(int i = 0; i < v->value._TMPstring->length; i++){
+        str[i] = v->value._TMPstring->chars[i].value._char;
+    }
+
+    return str;
 }
 
 /**
@@ -55,6 +86,7 @@ int assign(var *v, void *value, error *err) {
             break;
         case _string:
             assignString(v, (char *) value);
+
             break;
         default:
             err->value = ERR_TYPE;
@@ -145,7 +177,14 @@ void var2var(var* v, var* v2, error *err){
                         break;
                         */
                     case _string: {
+
                         assignString(v, v2->value._string);
+                        break;
+                    }
+                    case _TMPString: {
+                        char* str = getString(v2,err);
+                        assignString(v,str);
+                        free(str);
                         break;
                     }
                     default: {
@@ -170,7 +209,25 @@ void var2var(var* v, var* v2, error *err){
                 }
                 break;
             }
-
+            case (_TMPString): {
+                switch(v2->type) {
+                    case _TMPString:{
+                        char* str = getString(v2,err);
+                        assignString(v,str);
+                        free(str);
+                        break;
+                    }
+                    case _string: {
+                        assignString(v, v2->value._string);
+                        break;
+                    }
+                    default:
+                        err->value = ERR_TYPE;
+                        assignErrorMessage(err, "Expected string, other given");
+                        break;
+                }
+                break;
+            }
             default:
                 err->value = ERR_TYPE;
                 assignErrorMessage(err, "Variable must be of type int, float, char, string or array.");
@@ -244,6 +301,11 @@ void display(var* v, error *err, int indentLevel) {
         case _string:
             printf("\"%s\"\n", v->value._string);
             break;
+        case _TMPString:
+            char* str = getString(v,err);
+            printf("\"%s\"\n", str);
+            free(str);
+            break;        
         case _array:
             for (int i = 0; i < v->value._array->length; i++) {
                 if(v->value._array->values[i].type == _array){
@@ -404,7 +466,10 @@ char* getVarTypeName(varType type){
             return "string";
         case _array:
             return "array";
+        case _TMPString:
+            return "TMPString";
         default:
             return "void";
     }
 }
+

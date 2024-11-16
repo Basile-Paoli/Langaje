@@ -1,0 +1,3 @@
+nom;prenom;age
+GAZIO;Mael;22
+AA;Mathis;21
