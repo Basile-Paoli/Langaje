@@ -1,31 +1,4 @@
-#include "../lexer/lexer.h"
-
-int cliMode(Lexer *l) {
-    return 0;
-}
-
-/*#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <termios.h>
-#include <unistd.h>
-
-#include "../lexer/token.h"
-#include "../lexer/lexer.h"
-
-#include "../parser/parser.h"
-#include "../functions/functions.h"
-
-#include "../interpreter/interpreter.h"
-
-#define MAX_INPUT 1024
-#define BASE_MEMORY_STACK_SIZE 16
-
-typedef enum {
-    PARENTHESES,
-    BRACKETS,
-    CURLY_BRACKETS
-} BracketType;
+#include "cli.h"
 
 void enableRawMode(struct termios *orig_termios) {
     struct termios raw = *orig_termios;
@@ -43,37 +16,42 @@ void printPrompt(const char *input, int cursor_pos) {
     fflush(stdout);
 }
 
-int runCode(char *input, Lexer *l, hm* functionMap, hmStack* stack) {
+int runCode(char *input, Lexer *l, hm* functionMap, hmStack* stack, error *err) {
     // Tokenize the input
-    TokenList *tl = tokenizer(input, l);
-    if (tl == NULL) return 1;
-
-    error err;
-    err.value = ERR_SUCCESS;
-    InstructionBlock *pr = parse(tl, &err);
-    if (err.value != ERR_SUCCESS) {
-        printf("[PARSER][ERROR]: %s\n", getNameTypeError(err.value));
-        printf("[PARSER][ERROR]: %s\n", err.message);
+    TokenList *tl = tokenizer(input, l, err);
+    if (tl == NULL) {
+        free_tokenList(tl);
+        assignErrorMessage(err, "Could not Tokenize");
         return 1;
     }
 
-
-    if (runInstructionBlock(pr, stack, functionMap, &err)) {
-        printf("[RUNTIME][ERROR]: %s\n", err.message);
+    InstructionBlock *pr = parse(tl, err);
+    if (err->value != ERR_SUCCESS) {
+        free_tokenList(tl);
+        assignErrorMessage(err, "Could not parse");
         return 1;
     }
 
-    //free_tokenList(tl);
+    if (runInstructionBlock(pr, stack, functionMap, err)) {
+        free_tokenList(tl);
+        assignErrorMessage(err, "Could not run instruction");
+        return 1;
+    }
+
+    free_tokenList(tl);
 
     return 0;
 }
 
-int cliMode(Lexer *l) {
+int cliMode(Lexer *l, error *err) {
 
     char langFile[] = "lang/CLASSIC.lang";
 
     // We read the lang file
-    if (readLexerFile(l, langFile) != 0) {printf("[ERROR][LEXER]: Error while lexing"); return 1;}
+    if (readLexerFile(l, langFile, err) != 0) {
+        assignErrorMessage(err, "Could not read lexer file");
+        return 1;
+    }
 
     struct termios orig_termios;
     tcgetattr(STDIN_FILENO, &orig_termios);
@@ -89,6 +67,7 @@ int cliMode(Lexer *l) {
     hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
     hm* hashmap = hm_create();
     hm* functionMap = hm_create();
+    __builtinToMap__(functionMap,err);
     hmStackPush(stack, hashmap);
 
     int nb_brackets[3] = {0};
@@ -151,16 +130,15 @@ int cliMode(Lexer *l) {
 
             input[len] = '\0';
             if (strcmp(input, "@exit") == 0) break;
-            if (runCode(input, l, functionMap, stack)) { // If an error occured
-                printf(">>> ");
-                continue;
+            if (runCode(input, l, functionMap, stack, err)) { // If an error occured
+                return 1;
             }
             len = 0;
             cursor_pos = 0;
             for (int i = 0; i < MAX_INPUT; i++) {
                 input[i] = 0;
             }
-            printf(">>> ");
+            printf("\n>>> ");
         } else if (c == 127) { // Backspace key
             if (cursor_pos > 0) {
                 for (int i = cursor_pos - 1; i < len - 1; i++) {
@@ -192,16 +170,13 @@ int cliMode(Lexer *l) {
 
     disableRawMode(&orig_termios);
 
-    error err;
-    err.value = ERR_SUCCESS;
-    displayHashmap(stack, &err);
+    displayHashmap(stack, err);
 
     hmStackPop(stack);
     hm_functions_free(functionMap);
     hmStackDestroy(stack);
     hm_functions_free(functionMap);
 
-
     return 0;
 
-}*/
+}

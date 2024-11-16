@@ -1,5 +1,2 @@
-
-func test(int a){
-    return a;
-
-}
+def int a = 2 ^ 2;
+@memoryDump
