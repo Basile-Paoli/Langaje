@@ -549,8 +549,7 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
 
     void (*builtinFunctions[])(hmStack*, error*) = {
         [__print__]         = call__print__,
-        [__strlen__]        = call__strlen__,
-        [__arrlen__]        = call__arrlen__,
+        [__len__]           = call__len__,
         [__randint__]       = call__randint__,
         [__randfloat__]     = call__randfloat__,
         [__system__]        = call__system__,
@@ -561,7 +560,8 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
         [__split__]         = call__split__,
         [__range__]         = call__range__,
         [__append__]        = call__append__,
-        [__pop__]           = call__pop__
+        [__pop__]           = call__pop__,
+        [__type__]          = call__type__
     };
 
     builtinFunctions[fun->__builtinIdentifier__](functionStack, err);
