@@ -17,6 +17,10 @@ operator tokenToBinaryOperator(TokenType type) {
             return MULTIPLICATION;
         case TOKEN_DIVISION:
             return DIVISION;
+        case TOKEN_MODULO:
+            return MODULUS;
+        case TOKEN_POWER:
+            return EXPONENTIATION;
         case TOKEN_EQUAL:
             return ASSIGNMENT;
         case TOKEN_EQUAL_EQUAL:
