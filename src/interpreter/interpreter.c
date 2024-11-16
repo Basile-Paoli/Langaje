@@ -419,19 +419,37 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
     newVar->value._int = 0;
     //If we have more than 2 children, compute the start value
     if(node->childrenCount > 2){
-        newVar->value._int = computeNode(node->children[0],stack,functionMap,err)->value.value.value._int;
+        astNode* tmp = computeNode(node->children[0],stack,functionMap,err);
+        if(tmp->type == VARIABLE){
+            newVar->value._int = (subsituteValue(tmp,stack,err))->value._int;
+        } else {
+            newVar->value._int = tmp->value.value.value._int;
+        }
+        
     }
     hm_set(stack->stack[stack->length-1],node->value.variable,newVar);
     int hmIndex = stack->length-1;
     
     //If we have 4 children, means we have a different increment value
     if(node->childrenCount == 4){
-        incrementValue = computeNode(node->children[node->childrenCount-2],stack,functionMap,err)->value.value.value._int;
+        astNode* tmp = computeNode(node->children[node->childrenCount-2],stack,functionMap,err);
+        if(tmp->type == VARIABLE){
+            incrementValue = (subsituteValue(tmp,stack,err))->value._int;
+        } else {
+            incrementValue = tmp->value.value.value._int;
+        }
     }
+
     //Ternary to know which child to select
     astNode conditionNode = node->childrenCount == 4 ? *node->children[node->childrenCount-3] : *node->children[node->childrenCount-2];
-    int conditionValue = computeNode(&conditionNode,stack,functionMap,err)->value.value.value._int;
-     
+    int conditionValue;
+
+    astNode* tmp = computeNode(&conditionNode,stack,functionMap,err);
+    if(tmp->type == VARIABLE){
+        conditionValue = (subsituteValue(tmp,stack,err))->value._int;
+    } else {
+        conditionValue = tmp->value.value.value._int;
+    }
     
     int loopIndexValue = newVar->value._int;
     
@@ -627,7 +645,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
 
 astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err){
 
-    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT)){
+    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL)){
         return node; //Send the whole node back
     }   
 

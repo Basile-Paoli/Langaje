@@ -23,6 +23,8 @@ astNode *parseAddition(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parseMultiplication(TokenList *tokenList, int *currentToken, error *err);
 
+astNode *parseExponentiation(TokenList *tokenList, int *currentToken, error *err);
+
 astNode *parseUnaryOperators(TokenList *tokenList, int *currentToken, error *err);
 
 astNode *parsePrimary(TokenList *tokenList, int *currentToken, error *err);

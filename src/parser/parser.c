@@ -1,7 +1,3 @@
-//
-// Created by Basile Paoli on 10/5/24.
-//
-
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -13,6 +9,13 @@
 #include "loop.h"
 #include "function_declaration.h"
 
+void *addPositionToError(error *err, Token token) {
+    char *newMessage = malloc(strlen(err->message) + 100);
+    sprintf(newMessage, "%s (line %d, column %d)", err->message, token.line, token.column);
+    free(err->message);
+    err->message = newMessage;
+    return NULL;
+}
 
 InstructionBlock *parse(TokenList *tokenList, error *err) {
     int currentToken = 0;
@@ -22,7 +25,7 @@ InstructionBlock *parse(TokenList *tokenList, error *err) {
 InstructionBlock *parseInstructions(TokenList *tokenList, int *currentToken, error *err) {
     InstructionBlock *block = newInstructionBlock(10);
     while (*currentToken < tokenList->nb_tokens) {
-        astNode *instruction = parseInstruction(tokenList, currentToken, err);
+        astNode *instruction = parseFunctionOrInstruction(tokenList, currentToken, err);
         if (err->value != ERR_SUCCESS) {
             freeInstructionBlock(block);
             return NULL;
@@ -57,11 +60,24 @@ InstructionBlock *parseInstructionBlockWithBraces(TokenList *tokenList, int *cur
         err->value = ERR_SYNTAX;
         err->message = strdup("Expected '}'");
         freeInstructionBlock(block);
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
     (*currentToken)++;
 
     return block;
+}
+
+
+astNode *parseFunctionOrInstruction(TokenList *tokenList, int *currentToken, error *err) {
+    assert(*currentToken < tokenList->nb_tokens);
+
+    Token first = tokenList->tokens[*currentToken];
+
+    if (first.type == TOKEN_FUNCTION_DECLARATION) {
+        return parseFunctionDeclaration(tokenList, currentToken, err);
+    } else {
+        return parseInstruction(tokenList, currentToken, err);
+    }
 }
 
 astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
@@ -83,8 +99,6 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
             return parseBreakInstruction(tokenList, currentToken, err);
         case TOKEN_CONTINUE:
             return parseContinueInstruction(tokenList, currentToken, err);
-        case TOKEN_FUNCTION_DECLARATION:
-            return parseFunctionDeclaration(tokenList, currentToken, err);
         case TOKEN_FUNCTION_RETURN:
             return parseReturnInstruction(tokenList, currentToken, err);
         case TOKEN_BREAKPOINT:
