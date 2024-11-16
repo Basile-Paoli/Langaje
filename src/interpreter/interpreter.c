@@ -424,7 +424,7 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
     newVar->value._int = 0;
     //If we have more than 2 children, compute the start value
     if(node->childrenCount > 2){
-        astNode* tmp = computeNode(node->children[0],stack,functionMap,err)->value.value.value._int;
+        astNode* tmp = computeNode(node->children[0],stack,functionMap,err);
         if(tmp->type == VARIABLE){
             newVar->value._int = (subsituteValue(tmp,stack,err))->value._int;
         } else {
