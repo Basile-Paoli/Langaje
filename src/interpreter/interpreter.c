@@ -640,6 +640,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     int valuesAmount = 0;
     for(int i = 0; i < node->childrenCount; i++){
         if(node->children[i] == NULL)continue;
+        if(node->type == FUNCTION_CALL)break;
         valuesAmount++;
 
 
