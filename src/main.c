@@ -36,13 +36,45 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
+
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+    //Push base hm
+    hm* hashmap = hm_create();
+    hmStackPush(stack,hashmap);
+
+    hm* functionMap = hm_create();
+    
+    //declare builtins : 
+    __builtinToMap__(functionMap,err);
+
+    // init rand
+    srand(time(NULL));
+
     if (argc == 1) {
-        if (cliMode(l, err)) {
-            free_lexer(l);
+        int errCode = 0;
+        
+        if (readLexerFile(l, "lang/CLASSIC.lang", err) != 0) {
+            assignErrorMessage(err, "Could not read lexer file");
+            printError(err);
+            errCode = 1;
+        }
+
+        if (!errCode && cliMode(l, stack, functionMap, err)) {
             assignErrorMessage(err, "Error in the cli");
             printError(err);
-            return 1;
+            errCode = 1;
         }
+
+        free_lexer(l);
+        hmStackPop(stack);
+        hm_functions_free(functionMap);
+        hmStackDestroy(stack);
+        hm_functions_free(functionMap);
+
+        return errCode;
     }
 
     if (argc > 2) {
@@ -113,7 +145,7 @@ int main(int argc, char **argv) {
     }
     free(input); free(langFile); free_lexer(l);
 
-    print_tokenList(tl); // Print the token list
+    // print_tokenList(tl); // Print the token list
 
 
     /*---------- PARSER ----------*/
@@ -124,23 +156,6 @@ int main(int argc, char **argv) {
         return 1;
     }
     // printInstructionBlock(pr, 0);
-    
-    hmStack* stack = hmStackCreate(BASE_MEMORY_STACK_SIZE);
-
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
-    //Push base hm
-    hm* hashmap = hm_create();
-    hmStackPush(stack,hashmap);
-
-    hm* functionMap = hm_create();
-    
-    //declare builtins : 
-    __builtinToMap__(functionMap,err);
-
-    // init rand
-    srand(time(NULL));
 
     int runInstructionResult = runInstructionBlock(pr, stack, functionMap, err);
     //displayHashmap(stack, err);
