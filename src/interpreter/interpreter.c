@@ -133,13 +133,23 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         case SUBSCRIPT:{
             //If it has substituted means value is in &var1 else it's in values[0].value.referencedValue 
             //We work with pointer because we go edit directly the memory of the array.
-            if(hasSubsituted == 1){
-                tmpNode->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int,err);
+            if(var1.type == _string){
+                if(hasSubsituted == 1){
+                   tmpNode->value.referencedValue = getCharValueFromString(&var1,var2.value._int,err);
+                } else {
+                    tmpNode->value.referencedValue = getCharValueFromString(values[0]->value.referencedValue,var2.value._int,err);
+                }
+            } else if(var1.type == _array){
+                if(hasSubsituted == 1){
+                   tmpNode->value.referencedValue = getVarPointerFromArray(&var1,var2.value._int,err);
+                } else {
+                    tmpNode->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
+                }
             } else {
-                tmpNode->value.referencedValue = getVarPointerFromArray(values[0]->value.referencedValue,var2.value._int,err);
+                //RAISE ERROR
             }
-        tmpNode->type = POINTER;
             
+            tmpNode->type = POINTER;
     
             break;
         }
@@ -312,6 +322,7 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
             int hmIndex = isInStackDownwards(stack,nodeToAssign->value.variable);
 
             if(hmIndex > -1){
+
                 var* tmp = (var*)hm_get(stack->stack[hmIndex],nodeToAssign->value.variable);
                 if(valueToAssign->type == VALUE || valueToAssign->type == POINTER){
                     if(valueToAssign->type != POINTER){
@@ -554,15 +565,15 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
 astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
 
     function* fun = (struct function*)hm_get(functionMap,node->value.functionCall.name);
-    if(fun->isBuiltin == 1){
-        //Run builtin function generate its own tmp node
-        return runBuiltinFunction(node,stack,functionMap,fun,err);
-    } else {
-        if(fun == NULL){
+    if(fun == NULL){
             printf("FUN NOT FOUND\n");
             //Error binding doesnt work. need to fix ?
             return NULL;
         }
+    if(fun->isBuiltin == 1){
+        //Run builtin function generate its own tmp node
+        return runBuiltinFunction(node,stack,functionMap,fun,err);
+    } else {
         if(node->childrenCount < fun->parametersCount){
             printf("__TOO FEW ARGS__\n");
             //Too few args 
@@ -629,6 +640,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     int valuesAmount = 0;
     for(int i = 0; i < node->childrenCount; i++){
         if(node->children[i] == NULL)continue;
+        if(node->type == FUNCTION_CALL)break;
         valuesAmount++;
 
 

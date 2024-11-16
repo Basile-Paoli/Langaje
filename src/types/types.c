@@ -16,7 +16,6 @@
  * @return 0 on success, 1 on failure.
  */
 int assignString(var *v, char *value) {
-
     int len = strlen(value);
     if (len < 0) {
         return 1;
@@ -28,9 +27,11 @@ int assignString(var *v, char *value) {
     if (v->value._string == NULL) {
         return 1;
     }
+
     if (strcpy(v->value._string, value) == NULL) {
         return 1;
     }
+
     return 0;
 }
 
@@ -64,6 +65,7 @@ int assign(var *v, void *value, error *err) {
 }
 
 void var2var(var* v, var* v2, error *err){
+
     if(err->value == ERR_SUCCESS) {
         switch (v->type) {
             case (_int):
@@ -355,6 +357,22 @@ var* getVarPointerFromArray(var* array, int index, error *err){
         return NULL;
     }
     return &(array->value._array->values[index]);
+}
+
+var* getCharValueFromString(var* string, int index, error* err){
+    char* str = malloc(sizeof(char) * (strlen(string->value._string) + 1));
+    strcpy(str,string->value._string);
+    if(index >= strlen(str)){
+        err->value = ERR_OUT_OF_BOUNDS;
+        free(str);
+        return NULL;
+    }
+
+    var* newVar = malloc(sizeof(var));
+    newVar->type = _string;
+    newVar->value._string = calloc(3,sizeof(char)); 
+    newVar->value._string[0] = (char)str[0];
+    return newVar;
 }
 
 //NOT USED OR WORKING I THINK CURRENTLY

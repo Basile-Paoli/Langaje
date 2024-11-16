@@ -92,5 +92,6 @@ char* getVarTypeName(varType type);
 function* newFunctionPrototype(char* name, varType type, __builtinFunction__ __builtinId__, int parametersCount, error* err, fakeFunctionParam* parameters);
 var* copyArray(var* originalArray, error* err);
 
+var* getCharValueFromString(var* string, int index, error* err);
 
 #endif //LANGAJE_TYPES_H

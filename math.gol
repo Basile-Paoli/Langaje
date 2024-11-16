@@ -90,17 +90,3 @@ func log(int x, int base) int {
 }
 
 def float PI = 3.14159265358979323846;
-
-func atoi(string a) int {
-    def int num;
-    def int n = strlen(a);
-
-    def string[] aValues = split(a);
-    @memoryDump
-    for (i in 0, n) {
-        num = num * 10 + (aValues[i] - 48);
-    }
-
-    print("" + num);
-    
-}

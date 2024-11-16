@@ -1,8 +1,1 @@
 #include "math.gol"
-
-
-def int a = atoi(input("Enter a number: "));
-def int b = atoi(input("Enter another number: "));
-
-@memoryDump
-//print("The sum of ", a, " and ", b, " is ", add(a, b), ".");
