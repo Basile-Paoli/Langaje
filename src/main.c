@@ -36,7 +36,14 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (argc == 1) return cliMode(l);
+    if (argc == 1) {
+        if (cliMode(l, err)) {
+            free_lexer(l);
+            assignErrorMessage(err, "Error in the cli");
+            printError(err);
+            return 1;
+        }
+    }
 
     if (argc > 2) {
         err->value = ERR_ARGS;
@@ -117,7 +124,7 @@ int main(int argc, char **argv) {
     free(langFile);
     free_lexer(l);
 
-//     print_tokenList(tl); // Print the token list
+    // print_tokenList(tl); // Print the token list
 
 
     /*---------- PARSER ----------*/
