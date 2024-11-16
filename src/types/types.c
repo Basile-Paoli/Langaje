@@ -21,7 +21,7 @@ int assignString(var *v, char *value) {
         return 1;
     }
     if(v->type != _string && v->value._TMPstring != NULL ){
-        free(v->value._TMPstring->chars);
+        //free(v->value._TMPstring->chars);
         free(v->value._TMPstring);
         v->value._TMPstring = NULL;
     }
@@ -205,6 +205,7 @@ void var2var(var* v, var* v2, error *err){
             case (_TMPString): {
                 switch(v2->type) {
                     case _TMPString:{
+
                         char* str = getString(v2,err);
                         assignString(v,str);
                         free(str);
