@@ -650,7 +650,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
 
 astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err){
 
-    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT)){
+    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL)){
         return node; //Send the whole node back
     }   
 
