@@ -1,6 +1,8 @@
-def string a = "Hello, World!";
-def string[] b = split(a, "");
-for(i in 0, arrlen(b)) {
-    def string c = b[i];
-    print(b[i]);
-}
+#include "math.gol"
+
+
+def int a = atoi(input("Enter a number: "));
+def int b = atoi(input("Enter another number: "));
+
+@memoryDump
+//print("The sum of ", a, " and ", b, " is ", add(a, b), ".");
