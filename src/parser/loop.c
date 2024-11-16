@@ -16,7 +16,7 @@ astNode *parseWhileInstruction(TokenList *tokenList, int *currentToken, error *e
     if (tokenList->tokens[*currentToken].type != TOKEN_LPAREN) {
         err->value = ERR_SYNTAX;
         err->message = strdup("Expected '(' after 'while'");
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     astNode *condition = parseParenthesisExpression(tokenList, currentToken, err);
@@ -59,7 +59,7 @@ astNode *parseForInstruction(TokenList *tokenList, int *currentToken, error *err
     if (tokenList->tokens[*currentToken].type != TOKEN_LPAREN) {
         err->value = ERR_SYNTAX;
         err->message = strdup("Expected '(' after 'for'");
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     ++*currentToken;
@@ -67,12 +67,10 @@ astNode *parseForInstruction(TokenList *tokenList, int *currentToken, error *err
         return endOfInputError(err);
     }
 
-    //for (i in 5) or for (i in 0,5) or for (i in 0,5,1)
-
     if (tokenList->tokens[*currentToken].type != TOKEN_IDENTIFIER) {
         err->value = ERR_SYNTAX;
         err->message = strdup("Expected identifier after 'for ('");
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     char *identifier = strdup(tokenList->tokens[*currentToken].value);
@@ -85,7 +83,7 @@ astNode *parseForInstruction(TokenList *tokenList, int *currentToken, error *err
     if (tokenList->tokens[*currentToken].type != TOKEN_IN) {
         err->value = ERR_SYNTAX;
         err->message = strdup("Expected 'in' after identifier in 'for ('");
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     ++*currentToken;
@@ -105,7 +103,7 @@ astNode *parseForInstruction(TokenList *tokenList, int *currentToken, error *err
         err->message = strdup("Expected 1 to 3 expressions separated by commas after 'in' in 'for ('");
         free(identifier);
         freeChildren(children, childrenCount);
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     if (err->value != ERR_SUCCESS) {
@@ -122,7 +120,7 @@ astNode *parseForInstruction(TokenList *tokenList, int *currentToken, error *err
         err->message = strdup("Expected ')'");
         free(identifier);
         freeChildren(children, childrenCount);
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
     ++*currentToken;
 
@@ -166,7 +164,7 @@ astNode *parseBreakInstruction(TokenList *tokenList, int *currentToken, error *e
     if (tokenList->tokens[*currentToken].type != TOKEN_SEMICOLON) {
         err->value = ERR_SYNTAX;
         err->message = strdup("Expected ';'");
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     ++*currentToken;
@@ -185,7 +183,7 @@ astNode *parseContinueInstruction(TokenList *tokenList, int *currentToken, error
     if (tokenList->tokens[*currentToken].type != TOKEN_SEMICOLON) {
         err->value = ERR_SYNTAX;
         err->message = strdup("Expected ';'");
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
     ++*currentToken;

@@ -1,7 +1,3 @@
-//
-// Created by Basile Paoli on 10/5/24.
-//
-
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -13,6 +9,13 @@
 #include "loop.h"
 #include "function_declaration.h"
 
+void *addPositionToError(error *err, Token token) {
+    char *newMessage = malloc(strlen(err->message) + 100);
+    sprintf(newMessage, "%s (line %d, column %d)", err->message, token.line, token.column);
+    free(err->message);
+    err->message = newMessage;
+    return NULL;
+}
 
 InstructionBlock *parse(TokenList *tokenList, error *err) {
     int currentToken = 0;
@@ -57,7 +60,7 @@ InstructionBlock *parseInstructionBlockWithBraces(TokenList *tokenList, int *cur
         err->value = ERR_SYNTAX;
         err->message = strdup("Expected '}'");
         freeInstructionBlock(block);
-        return NULL;
+        return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
     (*currentToken)++;
 

@@ -10,6 +10,8 @@
 #include "../errors/errors.h"
 
 
+void *addPositionToError(error *err, Token token);
+
 InstructionBlock *parse(TokenList *tokenList, error *err);
 
 InstructionBlock *parseInstructions(TokenList *tokenList, int *currentToken, error *err);
