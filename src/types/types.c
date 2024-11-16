@@ -16,7 +16,6 @@
  * @return 0 on success, 1 on failure.
  */
 int assignString(var *v, char *value) {
-    printf("_!_ %s __ \n",value);
     int len = strlen(value);
     if (len < 0) {
         return 1;
@@ -155,8 +154,7 @@ void var2var(var* v, var* v2, error *err){
                         break;
                     }
                     case _string: {
-                        err->value = ERR_TYPE;
-                        assignErrorMessage(err, "Can't convert string into char");
+                        v->value._char = (char) v2->value._string[0];
                         break;
                     }
                     default: {
@@ -422,19 +420,7 @@ var* getVarPointerFromArray(var* array, int index, error *err){
 }
 
 var* getCharValueFromString(var* string, int index, error* err){
-    char* str = malloc(sizeof(char) * (strlen(string->value._string) + 1));
-    strcpy(str,string->value._string);
-    if(index >= strlen(str)){
-        err->value = ERR_OUT_OF_BOUNDS;
-        free(str);
-        return NULL;
-    }
-
-    var* newVar = malloc(sizeof(var));
-    newVar->type = _string;
-    newVar->value._string = calloc(3,sizeof(char)); 
-    newVar->value._string[0] = (char)str[0];
-    return newVar;
+    return &(string->value._TMPstring->chars[index]);
 }
 
 //NOT USED OR WORKING I THINK CURRENTLY

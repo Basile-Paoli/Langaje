@@ -22,15 +22,7 @@ var* subsituteValue(astNode* value, hmStack* stack, error *err){
         var* tmp = malloc(sizeof(var));
         var tmp2 = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
         tmp->type = tmp2.type;
-        if(tmp->type != _string && tmp->type != _TMPString){
-            tmp->value = tmp2.value;
-        } else {
-            //assignString(tmp, tmp2.value._string);
-            tmp->value._string = getString(&tmp2,err);
-            printf("__hello?__\n");
-            tmp->type = _string;
-        }
-        
+        tmp->value = tmp2.value;
         return tmp;
     }
 
@@ -70,17 +62,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     astNode* tmpNode = malloc(sizeof(astNode));
     tmpNode->type = VALUE;
 
-    if(var1.type == _TMPString){
-        var1.value._string = getString(&var1,err);
-        var1.type = _string;
-    } 
-    if(var2.type == _TMPString){
-        var2.value._string = getString(&var2,err);
-        var2.type = _string;
-    } 
 
-
-    printf("__DEBUG __ %d %d \n",var1.type, var2.type);
     switch(op){
         case ADDITION:{
             // Return error msg if array values not of same type
@@ -146,7 +128,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         case SUBSCRIPT:{
             //If it has substituted means value is in &var1 else it's in values[0].value.referencedValue 
             //We work with pointer because we go edit directly the memory of the array.
-            if(var1.type == _string){
+            if(var1.type == _TMPString){
                 if(hasSubsituted == 1){
                    tmpNode->value.referencedValue = getCharValueFromString(&var1,var2.value._int,err);
                 } else {
