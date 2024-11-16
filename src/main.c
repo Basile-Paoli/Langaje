@@ -166,7 +166,9 @@ int main(int argc, char **argv) {
         printError(err);
         return 1;
     }
+
     // printInstructionBlock(pr, 0);
+
 
     int runInstructionResult = runInstructionBlock(pr, stack, functionMap, err);
     //displayHashmap(stack, err);

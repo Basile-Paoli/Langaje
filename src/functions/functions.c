@@ -51,6 +51,14 @@ var add(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
     char buffer[20];
+    if(var1->type == _TMPString){
+        var1->type = _string;
+        var1->value._string = getString(var1,err);
+    }
+    if(var2->type == _TMPString){
+        var2->type = _string;
+        var2->value._string = getString(var2,err);
+    }
     // Define the type of var to return
     switch (var1->type) {
         case _int:
