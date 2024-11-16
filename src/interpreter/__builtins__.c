@@ -80,9 +80,8 @@ void call__print__(hmStack* fStack, error* err) {
         free(str);
         return;
     }
-    message->value._string = getString(message,err);
-    char *str = replace_str(message->value._string);
-
+    char* str = getString(message,err);
+    str = replace_str(str);
     printf("%s\n", str);
     free(str);
 
