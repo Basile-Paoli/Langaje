@@ -520,6 +520,9 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
     hmStack* functionStack = hmStackCreate(1);
     for(int i = 0; i < node->childrenCount; i++){
         astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
+        if (err->value != ERR_SUCCESS || subNode == NULL) {
+            return NULL;
+        }
         var* tmp = malloc(sizeof(var));
         if(subNode->type == VARIABLE){
             tmp = subsituteValue(subNode, stack, err);
@@ -699,6 +702,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
             break;
         } else{
             values[i] = computeNode(node->children[i], stack,functionMap, err);
+            if (err->value != ERR_SUCCESS) return NULL;
         }
     }
     

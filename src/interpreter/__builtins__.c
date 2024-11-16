@@ -46,12 +46,32 @@ void call__print__(hmStack* fStack, error* err) {
     
     if (message->type != _TMPString) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "print function expect 1 parameter: message(string)\n");
+        char *str = strdup("print function expect 1 parameter: message(string). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(message->type)) + 1);
+        strcat(str, getVarTypeName(message->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
-    char* str = getString(message,err);
-    printf("%s\n", str);
-    free(str);
+    message->value._string = getString(message,err);
+
+    // replace '\n' string by '\n' character
+    for (int i = 0; i < strlen(message->value._string); i++) {
+        if (message->value._string[i] == '\\' && message->value._string[i + 1] == 'n') {
+            message->value._string[i] = '\n';
+            for (int j = i + 1; j < strlen(message->value._string); j++) {
+                message->value._string[j] = message->value._string[j + 1];
+            }
+        }
+        if (message->value._string[i] == '\\' && message->value._string[i + 1] == 't') {
+            message->value._string[i] = '\t';
+            for (int j = i + 1; j < strlen(message->value._string); j++) {
+                message->value._string[j] = message->value._string[j + 1];
+            }
+        }
+    }
+
+    printf("%s\n", message->value._string);
 
     newVar->value._int = 0;
 }
@@ -73,7 +93,11 @@ void call__strlen__(hmStack* fStack, error* err) {
     
     if (string->type != _TMPString) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "strlen function expect 1 parameter: string(string)\n");
+        char *str = strdup("strlen function expect 1 parameter: string(string). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(string->type)) + 1);
+        strcat(str, getVarTypeName(string->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
     char* str = getString(string,err);
@@ -82,6 +106,7 @@ void call__strlen__(hmStack* fStack, error* err) {
 }
 
 void call__arrlen__(hmStack* fStack, error* err) {
+
 
     var* newVar = malloc(sizeof(var));
     if (newVar == NULL) {
@@ -98,7 +123,11 @@ void call__arrlen__(hmStack* fStack, error* err) {
     
     if (array->type != _array) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "arrlen function expect 1 parameter: array(array)\n");
+        char *str = strdup("arrlen function expect 1 parameter: array(array). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(array->type)) + 1);
+        strcat(str, getVarTypeName(array->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
 
@@ -123,7 +152,13 @@ void call__randint__(hmStack* fStack, error* err) {
     
     if (min->type != _int || max->type != _int) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "randint function expect 2 parameters: min(int), max(int)\n");
+        char *str = strdup("randint function expect 2 parameters: min(int), max(int). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(min->type)) + strlen(getVarTypeName(max->type)) + 1);
+        strcat(str, getVarTypeName(min->type));
+        strcat(str, ", ");
+        strcat(str, getVarTypeName(max->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
 
@@ -148,7 +183,13 @@ void call__randfloat__(hmStack* fStack, error* err) {
     
     if (min->type != _float || max->type != _float) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "randfloat function expect 2 parameters: min(float), max(float)\n");
+        char *str = strdup("randfloat function expect 2 parameters: min(float), max(float). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(min->type)) + strlen(getVarTypeName(max->type)) + 1);
+        strcat(str, getVarTypeName(min->type));
+        strcat(str, ", ");
+        strcat(str, getVarTypeName(max->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
 
@@ -174,7 +215,11 @@ void call__system__(hmStack* fStack, error* err) {
     
     if (command->type != _string) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "system function expect 1 parameter: command(string)\n");
+        char *str = strdup("system function expect 1 parameter: command(string). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(command->type) + 1));
+        strcat(str, getVarTypeName(command->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
 
@@ -194,12 +239,16 @@ void call__input__(hmStack* fStack, error* err) {
     hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
 
     var* message = (var*)hm_get(fStack->stack[0], "message");
-    char* str = getString(message,err);
     if (message->type != _TMPString) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "input function expect 1 parameter: message(string)\n");
+        char *str = strdup("input function expect 1 parameter: message(string). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(message->type) + 1));
+        strcat(str, getVarTypeName(message->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
+    char* str = getString(message,err);
 
 
     char* input = (char*)malloc(255);
@@ -235,11 +284,15 @@ void call__randchoice__(hmStack* fStack, error* err) {
     
     if (array->type != _array) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "randchoice function expect 1 parameter: array(array)\n");
+        char *str = strdup("randchoice function expect 1 parameter: array(array). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(array->type) + 1));
+        strcat(str, getVarTypeName(array->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
 
-    newVar->value._int = rand() % array->value._array->length;
+    newVar->value._int = array->value._array->values[rand() % array->value._array->length].value._int;
 }
 
 void call__fread__(hmStack* fStack, error* err) {
@@ -256,11 +309,16 @@ void call__fread__(hmStack* fStack, error* err) {
 
     var* filename = (var*)hm_get(fStack->stack[0], "filename");
     
-    if (filename->type != _string) {
+    if (filename->type != _TMPString) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "fread function expect 1 parameter: filename(string)\n");
+        char *str = strdup("fread function expect 1 parameter: filename(string). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(filename->type) + 1));
+        strcat(str, getVarTypeName(filename->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
+    filename->value._string = getString(filename,err);
 
     FILE* file = fopen(filename->value._string, "r");
     if (file == NULL) {
@@ -305,11 +363,22 @@ void call__fwrite__(hmStack* fStack, error* err) {
     var* content = (var*)hm_get(fStack->stack[0], "content");
     var* method = (var*)hm_get(fStack->stack[0], "method");
     
-    if (filename->type != _string || content->type != _string || method->type != _string) {
+    if (filename->type != _TMPString || content->type != _TMPString || method->type != _TMPString) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "fwrite function expect 3 parameters: filename(string), content(string), method(string)\n");
+        char *str = strdup("fwrite function expect 3 parameters: filename(string), content(string), method(string). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(filename->type) + strlen(getVarTypeName(content->type) + strlen(getVarTypeName(method->type) + 1))));
+        strcat(str, getVarTypeName(filename->type));
+        strcat(str, ", ");
+        strcat(str, getVarTypeName(content->type));
+        strcat(str, ", ");
+        strcat(str, getVarTypeName(method->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
+    filename->value._string = getString(filename,err);
+    content->value._string = getString(content,err);
+    method->value._string = getString(method,err);
 
     if (strcmp(method->value._string, "w") != 0 && strcmp(method->value._string, "a") != 0) {
         err->value = ERR_TYPE;
@@ -344,11 +413,19 @@ void call__split__(hmStack* fStack, error* err) {
     var* string = (var*)hm_get(fStack->stack[0], "string");
     var* delimiter = (var*)hm_get(fStack->stack[0], "delimiter");
 
-    if (string->type != _string || delimiter->type != _string) {
+    if (string->type != _TMPString || delimiter->type != _TMPString) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "split function expect 2 parameters: string(string), delimiter(string)\n");
+        char *str = strdup("split function expect 2 parameters: string(string), delimiter(string). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(string->type) + strlen(getVarTypeName(delimiter->type) + 1)));
+        strcat(str, getVarTypeName(string->type));
+        strcat(str, ", ");
+        strcat(str, getVarTypeName(delimiter->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
+    string->value._string = getString(string,err);
+    delimiter->value._string = getString(delimiter,err);
 
     // If the delimiter is an empty string, we split the string into characters
     if (strlen(delimiter->value._string) == 0) {
@@ -440,7 +517,15 @@ void call__range__(hmStack* fStack, error* err) {
     
     if (start->type != _int || end->type != _int || increment->type != _int) {
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "range function expect 3 parameters: start(int), end(int), increment(int)\n");
+        char *str = strdup("range function expect 3 parameters: start(int), end(int), increment(int). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(start->type) + strlen(getVarTypeName(end->type) + strlen(getVarTypeName(increment->type) + 1))));
+        strcat(str, getVarTypeName(start->type));
+        strcat(str, ", ");
+        strcat(str, getVarTypeName(end->type));
+        strcat(str, ", ");
+        strcat(str, getVarTypeName(increment->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
 
@@ -479,7 +564,13 @@ void call__append__(hmStack* fStack, error* err){
 
     if(arrayToAppend->value._array->type != varToAppend->type){
         err->value = ERR_TYPE;
-        assignErrorMessage(err, "Array elements type and element to append must be of same type");
+        char *str = strdup("append function expect 2 parameters: array(array), toAdd(type). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(arrayToAppend->value._array->type) + strlen(getVarTypeName(varToAppend->type) + 1)));
+        strcat(str, getVarTypeName(arrayToAppend->value._array->type));
+        strcat(str, ", ");
+        strcat(str, getVarTypeName(varToAppend->type));
+        assignErrorMessage(err, str);
+        free(str);
         return;
     }
 
@@ -496,6 +587,16 @@ void call__append__(hmStack* fStack, error* err){
 
 void call__pop__(hmStack* fStack, error* err){
     var* arrayToPop = (var*)hm_get(fStack->stack[0], "array");
+
+    if(arrayToPop->value._array->length == 0){
+        err->value = ERR_TYPE;
+        char *str = strdup("pop function expect 1 parameter: array(array) with at least 1 element. Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(arrayToPop->value._array->type) + 1));
+        strcat(str, getVarTypeName(arrayToPop->value._array->type));
+        assignErrorMessage(err, str);
+        free(str);
+        return;
+    }
 
     int arrayLen = arrayToPop->value._array->length -1 ;
     var *tmp = newArrayVar(arrayLen, arrayToPop->value._array->type,err);
