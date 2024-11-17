@@ -162,8 +162,7 @@ var add(var *var1, var *var2, error *err){
             }
             break;
         case _array: {
-             // If var2 is not an array
-            
+             // If var2 is not an array²
             if(var2->type != _array) {
                 err->value = ERR_MEMORY;
                 assignErrorMessage(err, "Both variables must be arrays");
