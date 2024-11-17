@@ -6,24 +6,22 @@ func join(string[] parts) string {
     return result;
 }
 
+func joinWith(string[] parts, string sep) string {
+    def string result = "";
+    for (s in len(parts)) {
+        result += parts[s];
+        if (s < (len(parts) - 1)) {
+            result += sep;
+        }
+    }
+    return result;
+}
+
 def string[] parts = ["Path: ", "test.txt"];
 def string result = join(parts);
 print(join(parts) + "\n");
 
-func split(string str, string sep) string[] {
-    def string[] result = [];
-    def string part = "";
-    for (s in len(str)) {
-        if (str[s] == sep) {
-            result += part;
-            part = "";
-        } else {
-            part += str[s];
-        }
-    }
-    result += part;
-    return result;
-}
 
 def string str = "Path: test.txt";
 def string sep = ": ";
+print(joinWith(split(str, sep),"-> ") + "\n");

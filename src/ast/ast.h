@@ -25,6 +25,7 @@ typedef enum {
     RETURN,
     BREAKPOINT,
     MEMORY_DUMP,
+    FUNCTION_DUMP,
     POINTER
 } astNodeType;
 typedef enum operator {
@@ -154,6 +155,8 @@ astNode *newReturnValueNode(astNode *value);
 astNode *newMemoryDumpNode();
 
 astNode *newBreakpointNode();
+
+astNode *newFunctionDumpNode();
 
 void freeAstNode(astNode *node);
 

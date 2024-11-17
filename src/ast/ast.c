@@ -181,6 +181,14 @@ astNode *newBreakpointNode() {
     return node;
 }
 
+astNode *newFunctionDumpNode() {
+    astNode *node = malloc(sizeof(astNode));
+    node->type = FUNCTION_DUMP;
+    node->children = NULL;
+    node->childrenCount = 0;
+    return node;
+}
+
 void freeInitType(initType type) {
     if (type.type == _array) {
         freeInitType(*type.elementsType);

@@ -523,7 +523,7 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
     functionDeclarationNode fun = node->value.functionDeclaration;
     if((struct function*)hm_get(functionMap,fun.name) != NULL){
         err->value = ERR_ALREADY_EXISTS;
-        assignErrorMessage(err,strcat("Function redefinition : ", fun.name));
+        assignErrorMessage(err,"Function redefinition");
         return 0;
     }
     function* funTmp = malloc(sizeof(function));
@@ -698,7 +698,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
 
 astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, error *err){
 
-    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL)){
+    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL && node->type != FUNCTION_DUMP)){
         return node; //Send the whole node back
     }   
 
@@ -784,7 +784,9 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         free(values);
         return tmp;
     } else if (node->type == FUNCTION_DECLARATION){
-        declareFunction(node,stack,functionMap,err);
+        if(declareFunction(node,stack,functionMap,err) == 0){
+            return NULL;
+        }
         free(values);
         return node;
     } else if (node->type == FUNCTION_CALL) {
@@ -812,6 +814,10 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         return node;
     } else if (node->type == BREAKPOINT){
         cliMode(l,stack,functionMap,err);
+        free(values);
+        return node;
+    } else if (node->type == FUNCTION_DUMP){
+        displayFunctionMap(functionMap,err);
         free(values);
         return node;
     } else {

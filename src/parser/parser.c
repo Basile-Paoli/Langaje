@@ -107,6 +107,9 @@ astNode *parseInstruction(TokenList *tokenList, int *currentToken, error *err) {
         case TOKEN_MEMORY_DUMP:
             ++*currentToken;
             return newMemoryDumpNode();
+        case TOKEN_FUNCTION_DUMP:
+            ++*currentToken;
+            return newFunctionDumpNode();
 
         default:
             return parseExpressionInstruction(tokenList, currentToken, err);
