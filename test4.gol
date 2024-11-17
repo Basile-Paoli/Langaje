@@ -1,8 +1,0 @@
-
-def string a = "A";
-def string b = "BBBBBB";
-@memoryDump
-
-a = a + 3 + b + "Z";
-@memoryDump
-

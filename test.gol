@@ -1,4 +1,0 @@
-#include "strings.gol";
-
-def string a = "123";
-print(atoi(a));

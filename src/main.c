@@ -161,25 +161,25 @@ int main(int argc, char **argv) {
     }
 
     // printInstructionBlock(pr, 0);
-    
-    clock_t start, end;
-    double cpu_time_used;
-    start = clock();
+
+    /*---------- INTEPRETER ----------*/
+
+    // clock_t start, end;
+    // double cpu_time_used;
+    // start = clock();
     int runInstructionResult = runInstructionBlock(pr, stack, functionMap, l, err);
-    end = clock();
+    // end = clock();
     //displayHashmap(stack, err);
     hmStackPop(stack);
     hm_functions_free(functionMap);
     
 
-    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    // cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-    printf("Time taken to execute : %f seconds\n", cpu_time_used);
+    // printf("Time taken to execute : %f seconds\n", cpu_time_used);
     if (runInstructionResult == 1) {
         // Print the error msg
         assignErrorMessage(err, "Cannot run instruction");
-        printError(err);
-        return 1;
     }
 
 
@@ -187,6 +187,5 @@ int main(int argc, char **argv) {
     free_tokenList(tl);
     free_lexer(l);
     printError(err);
-
     return 0;
 }
