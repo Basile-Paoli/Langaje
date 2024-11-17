@@ -37,8 +37,6 @@ var* subsituteValue(astNode* value, hmStack* stack, error *err){
 
 astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount, error *err){
     operator op = node->value.operator;
-    /*error err_op;
-    err_op.value = ERR_SUCCESS;*/
     int hasSubsituted = 0;
     var var1;
     
@@ -739,7 +737,6 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
             values[i] = computeNode(node->children[i], stack,functionMap,l, err);
             if (err->value != ERR_SUCCESS){
                 free(values);
-                assignErrorMessage(err, "Error in instruction block");
                 return NULL;
             } 
         }
@@ -818,7 +815,6 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionM
         };
         // Stop computing if there's an error
         if(err->value != ERR_SUCCESS) {
-            assignErrorMessage(err, "Error in instruction block");
             return 1;
         }
     }
