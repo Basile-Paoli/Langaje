@@ -568,16 +568,19 @@ void call__append__(hmStack* fStack, error* err){
     if(arrayToAppend->type == _string){
         arrayToAppend->type = _TMPString;
     }
+    if(arrayToAppend->value._array->type == _string){
+        arrayToAppend->value._array->type = _TMPString;
+    }
     if(varToAppend->type == _TMPString){
         varToAppend->type = _string;
         varToAppend->value._string = getString(varToAppend,err);
     }
 
-    int arrayLen = arrayToAppend->value._array->length;
+    int arrayLen = arrayToAppend->value._array->capacity;
     var *tmp = newArrayVar(arrayLen + 1, arrayToAppend->value._array->type,err);
-
     for(int i = 0; i < arrayLen; i++){
         var2var(&tmp->value._array->values[i], &arrayToAppend->value._array->values[i], err);
+
     }
         
 

@@ -20,6 +20,7 @@ int assignString(var *v, char *value) {
     if (len < 0) {
         return 1;
     }
+
     if(v->type != _string && v->value._TMPstring != NULL ){
         //free(v->value._TMPstring->chars);
         free(v->value._TMPstring);
@@ -342,7 +343,7 @@ var* newArrayVar(int size, varType type,error* err) {
                 res->value._array->values[i].value._float = 0.0;
                 break;
             }
-            case _string:{
+            case _string:case _TMPString:{
                 declareString(&res->value._array->values[i],1);
                 res->value._array->type = _TMPString;
                 break;
