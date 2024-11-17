@@ -151,7 +151,6 @@ int main(int argc, char **argv) {
     }
     free(input);
     free(langFile);
-    free_lexer(l);
 
     print_tokenList(tl); // Print the token list
 
@@ -189,6 +188,7 @@ int main(int argc, char **argv) {
 
     hmStackDestroy(stack);
     free_tokenList(tl);
+    free_lexer(l);
     printError(err);
 
     return 0;
