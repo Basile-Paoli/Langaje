@@ -70,7 +70,6 @@ int main(int argc, char **argv) {
         hmStackPop(stack);
         hm_functions_free(functionMap);
         hmStackDestroy(stack);
-        hm_functions_free(functionMap);
 
         return errCode;
     }
