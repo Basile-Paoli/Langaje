@@ -128,9 +128,7 @@ int main(int argc, char **argv) {
 
     // We read the lang file
     if (readLexerFile(l, langFile, err) != 0) {
-        free_lexer(l);
-        free(input);
-        free(langFile);
+        free_lexer(l); free(input); free(langFile);
         assignErrorMessage(err, "Cannot read lang file");
         printError(err);
         return 1;
