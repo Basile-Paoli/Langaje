@@ -328,7 +328,7 @@ var* newArrayVar(int size, varType type,error* err) {
     var* res = malloc(sizeof(var));
     res->value._array = malloc(sizeof(array));
 
-    res->value._array->capacity = size == 0 ? 1 : size;
+    res->value._array->capacity = size;
     res->value._array->values = malloc(size * sizeof(var));
     res->value._array->length = size;
     res->value._array->type = type;
@@ -455,12 +455,10 @@ char* getVarTypeName(varType type){
             return "float";
         case _char:
             return "char";
-        case _string:
+        case _TMPString:case _string:
             return "string";
         case _array:
             return "array";
-        case _TMPString:
-            return "TMPString";
         default:
             return "void";
     }

@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 
     if (argc == 1) {
         int errCode = 0;
-        
+
         if (readLexerFile(l, "lang/classic.lang", err) != 0) {
             assignErrorMessage(err, "Could not read lexer file");
             printError(err);
@@ -88,7 +88,6 @@ int main(int argc, char **argv) {
     if (mainFile == NULL) {
         free_lexer(l);
         free(mainFile);
-        assignErrorMessage(err, "Cannot read file");
         printError(err);
         return 1;
     }
@@ -108,7 +107,7 @@ int main(int argc, char **argv) {
     /*---------- LEXER ----------*/
 
     char *lang = get_lang(input, err); // Get the #LANG_
-    if (lang == NULL) lang = "CLASSIC"; // If none is found, we use the default one
+    if (lang == NULL) lang = "classic"; // If none is found, we use the default one
     if (err->value != ERR_SUCCESS) {
         assignErrorMessage(err, "Cannot get lang");
         printError(err);
@@ -151,7 +150,6 @@ int main(int argc, char **argv) {
     }
     free(input);
     free(langFile);
-    free_lexer(l);
 
     print_tokenList(tl); // Print the token list
 
@@ -164,8 +162,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // printInstructionBlock(pr, 0);
-
+     printInstructionBlock(pr, 0);
+    
     clock_t start, end;
     double cpu_time_used;
     start = clock();
@@ -189,6 +187,7 @@ int main(int argc, char **argv) {
 
     hmStackDestroy(stack);
     free_tokenList(tl);
+    free_lexer(l);
     printError(err);
 
     return 0;

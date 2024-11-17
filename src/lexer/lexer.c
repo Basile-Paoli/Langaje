@@ -467,10 +467,11 @@ char *read_file(char *filename, error *err) {
     // We read the file and output a single char *
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
-        fclose(file);
         err->value = ERR_FILE;
-        assignErrorMessage(err, "Cannot open file :");
-        assignErrorMessage(err, filename);
+        char* errMsg = malloc(sizeof(char)*(strlen("Cannot open file : ") + strlen(filename)));
+        strcat(errMsg,"Cannot open file :");
+        strcat(errMsg,filename);
+        assignErrorMessage(err, errMsg);
         return NULL;
     }
 
