@@ -341,6 +341,9 @@ int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack*
                     }
                 } else {
                     var tmpVar = *subsituteValue(valueToAssign, stack, err);
+                    if(err->value != ERR_SUCCESS){
+                        return 0;
+                    }
                     var2var(tmp, &(tmpVar), err);
                 }
                 return 1;
@@ -433,6 +436,9 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, Lexer* l, error *
     if(node->childrenCount > 2){
         astNode* tmp = computeNode(node->children[0],stack,functionMap,l,err);
         if(tmp->type == VARIABLE){
+            if(err->value != ERR_SUCCESS){
+                return 0;
+            }
             newVar->value._int = (subsituteValue(tmp,stack,err))->value._int;
         } else {
             newVar->value._int = tmp->value.value.value._int;
@@ -446,6 +452,9 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, Lexer* l, error *
     if(node->childrenCount == 4){
         astNode* tmp = computeNode(node->children[node->childrenCount-2],stack,functionMap,l,err);
         if(tmp->type == VARIABLE){
+            if(err->value != ERR_SUCCESS){
+                return 0;
+            }
             incrementValue = (subsituteValue(tmp,stack,err))->value._int;
         } else {
             incrementValue = tmp->value.value.value._int;
@@ -459,6 +468,9 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, Lexer* l, error *
     astNode* tmp = computeNode(&conditionNode,stack,functionMap,l,err);
     if(tmp->type == VARIABLE){
         conditionValue = (subsituteValue(tmp,stack,err))->value._int;
+        if(err->value != ERR_SUCCESS){
+            return 0;
+        }
     } else {
         conditionValue = tmp->value.value.value._int;
     }
@@ -540,6 +552,9 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
         var* tmp = malloc(sizeof(var));
         if(subNode->type == VARIABLE){
             tmp = subsituteValue(subNode, stack, err);
+            if(err->value != ERR_SUCCESS){
+                return NULL;
+            }
             hm_set(Fhashmap, fun->parameters[i].name, tmp);        
         
         } else if(subNode->type == VALUE){
