@@ -624,6 +624,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
 
         hm* Fhashmap = hm_create();
         hmStack* functionStack = hmStackCreate(1);
+        
         for(int i = 0; i < node->childrenCount; i++){
             if(node->children[i]->type == ARRAY){
                 err->value = ERR_SYNTAX;
@@ -654,13 +655,14 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
 
         var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
         astNode* tmpNode = malloc(sizeof(astNode));
-        tmpNode->value.value.type = returnValue->type;
+        if(returnValue != NULL){
+            tmpNode->value.value.type = returnValue->type;
+            var2var(&tmpNode->value.value, returnValue,err);
 
-        var2var(&tmpNode->value.value, returnValue,err);
+            hmStackPop(functionStack);
+            tmpNode->type = VALUE;
 
-        hmStackPop(functionStack);
-        tmpNode->type = VALUE;
-
+        }
         return tmpNode;
     }
     
