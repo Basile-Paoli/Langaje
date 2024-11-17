@@ -1,4 +1,1 @@
-#lang "classic"
-
-def string a = "HelloWorld!";
-print(type(a));
+#lang "01234567890123456789012345678901234567890123456789"
