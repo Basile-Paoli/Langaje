@@ -30,6 +30,7 @@ Lexer *new_lexer(error *err) {
     add_lexer_rule(l, new_lexer_rule("f\"[^\"]*\""                  , TOKEN_FORMATTED_STRING, err), err) +
     add_lexer_rule(l, new_lexer_rule("@memoryDump"                  , TOKEN_MEMORY_DUMP, err), err) +
     add_lexer_rule(l, new_lexer_rule("@breakPoint"                  , TOKEN_BREAKPOINT, err), err) +
+    add_lexer_rule(l, new_lexer_rule("@functionDump"                , TOKEN_FUNCTION_DUMP, err), err) +
     add_lexer_rule(l, new_lexer_rule("//[^\n]*"                     , TOKEN_COMMENT, err), err) + // Single line comment
     add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/"   , TOKEN_COMMENT, err), err) // Multi line comment
     != 0) {
