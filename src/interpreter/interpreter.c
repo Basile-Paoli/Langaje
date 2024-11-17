@@ -37,8 +37,6 @@ var* subsituteValue(astNode* value, hmStack* stack, error *err){
 
 astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int valuesAmount, error *err){
     operator op = node->value.operator;
-    error err_op;
-    err_op.value = ERR_SUCCESS;
     int hasSubsituted = 0;
     var var1;
     
@@ -73,69 +71,68 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
             // Return error msg if array values not of same type
             if(var1.type == _array && var2.type == _array) {
                 if (var1.value._array->values[0].type != var2.value._array->values[0].type) {
-                    err_op.value = ERR_TYPE;
-                    assignErrorMessage(&err_op, "Elements array must be of same type");
+                    err->value = ERR_TYPE;
+                    assignErrorMessage(err, "Elements array must be of same type");
                     break;
                 }
             }
-
-            tmpNode->value.value =  add(&var1,&var2, &err_op);
+            tmpNode->value.value =  add(&var1,&var2, err);
             break;
         }
         case SUBTRACTION:{
-            tmpNode->value.value =  substract(&var1,&var2,&err_op);
+            tmpNode->value.value =  substract(&var1,&var2,err);
             break;
         }
         case MULTIPLICATION:{
-            tmpNode->value.value =  multiply(&var1,&var2,&err_op);
+            tmpNode->value.value =  multiply(&var1,&var2,err);
             break;
         }
         case DIVISION:{
-            tmpNode->value.value =  divide(&var1,&var2,&err_op);
+            tmpNode->value.value =  divide(&var1,&var2,err);
             break;
         }
         case MODULUS:{
-            tmpNode->value.value = modulo(&var1,&var2,&err_op);
+            tmpNode->value.value = modulo(&var1,&var2,err);
             break;
         }
         case EXPONENTIATION:{
-            tmpNode->value.value = power(&var1,&var2,&err_op);
+            tmpNode->value.value = power(&var1,&var2,err);
             break;
         }
         case EQUAL:{
-            tmpNode->value.value = isEqual(&var1,&var2,0,&err_op);
+            tmpNode->value.value = isEqual(&var1,&var2,0,err);
             break;
         }
         case NOT_EQUAL:{
-            tmpNode->value.value = isEqual(&var1,&var2,1,&err_op);
+            tmpNode->value.value = isEqual(&var1,&var2,1,err);
             break;
         }
         case GREATER:{
-            tmpNode->value.value = isGreater(&var1,&var2,1,&err_op);
+            tmpNode->value.value = isGreater(&var1,&var2,1,err);
             break;
         }
         case GREATER_EQUAL:{
-            tmpNode->value.value = isGreater(&var1,&var2,0,&err_op);
+            tmpNode->value.value = isGreater(&var1,&var2,0,err);
             break;
         }
         case LESS:{
-            tmpNode->value.value = isLesser(&var1,&var2,1,&err_op);
+            tmpNode->value.value = isLesser(&var1,&var2,1,err);
             break;
         }
         case LESS_EQUAL:{
-            tmpNode->value.value = isLesser(&var1,&var2,0,&err_op);
+            tmpNode->value.value = isLesser(&var1,&var2,0,err);
             break;
         }
         case OR:{
-            tmpNode->value.value = valueOr(&var1,&var2,&err_op);
+            tmpNode->value.value = valueOr(&var1,&var2,err);
             break;
         }
         case AND:{
-            tmpNode->value.value = valueAnd(&var1,&var2,&err_op);
+            tmpNode->value.value = valueAnd(&var1,&var2,err);
             break;
         }
         case NOT:{
-            tmpNode->value.value = valueReverse(&var1,&err_op);
+            tmpNode->value.value = valueReverse(&var1,err);
             break;
         }
         case SUBSCRIPT:{
@@ -162,7 +159,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
             break;
         }
         case UNARY_MINUS:{
-            tmpNode->value.value = unaryMinus(&var1,&err_op);
+            tmpNode->value.value = unaryMinus(&var1,err);
             break;
         }
         default:{
@@ -173,12 +170,10 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         }
     }
 
-    if(err_op.value != ERR_SUCCESS){
+    if(err->value != ERR_SUCCESS){
         // Get the error message if one of the basic function doesn't work
-        err->value = err_op.value;
-        err->message = malloc(strlen(err_op.message));
-        sprintf(err->message, "%s", err_op.message);
-        //return NULL;
+        assignErrorMessage(err, "Error in basic function");
+        return NULL;
     }
     return tmpNode;
 }
@@ -406,7 +401,6 @@ int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,Lexer* l, error* e
         hm* hashmap = hm_create();
         hmStackPush(stack,hashmap);
         if(runInstructionBlock(&instructions,stack,functionMap,l,err) != 0){
-            //printf("%s\n", err->message);
             hmStackPop(stack);
             return 1;
         }
@@ -729,12 +723,14 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         } else if(node->type == WHILE_LOOP){
             if(runWhileLoop(node,stack,functionMap,l,err) != 0){
                 free(values);
+                assignErrorMessage(err, "Error in while loop");
                 return NULL;
             };
             break;
         } else if(node->type == FOR_LOOP){
             if(runForLoop(node,stack,functionMap,l,err) != 0){
                 free(values);
+                assignErrorMessage(err, "Error in for loop");
                 return NULL;
             };
             break;
@@ -755,13 +751,13 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         if(values[0] == NULL || values[1] == NULL){
             //ERROR
             free(values);
+            assignErrorMessage(err, "Error in assignment");
             return NULL;
         }
         assignValueToHashmap(values[0], values[1], stack,functionMap, l, err);
         return node;
     } else if(node->type == OPERATOR && valuesAmount > 0){
         astNode* tmp = calculateNode(values, node, stack, valuesAmount, err);
-        
         free(values);
         return tmp;
     } else if (node->type == FUNCTION_DECLARATION){
@@ -819,8 +815,9 @@ int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionM
             return -1;
         };
         // Stop computing if there's an error
-        if(err->value != ERR_SUCCESS)
+        if(err->value != ERR_SUCCESS) {
             return 1;
+        }
     }
     
     //DEBUG PURPOSE / DEMO PURPOSE UNTIL WE HAVE PRINT FUNCTION

@@ -1,2 +1,11 @@
-@breakPoint
-@memoryDump
+func factorial(int n) int {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+def int number = 5;
+def int result = factorial(number);
+print(result + "\n");

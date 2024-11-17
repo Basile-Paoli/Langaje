@@ -15,7 +15,7 @@ astNode *parseIfInstruction(TokenList *tokenList, int *currentToken, error *err)
     ++*currentToken;
     if (tokenList->tokens[*currentToken].type != TOKEN_LPAREN) {
         err->value = ERR_SYNTAX;
-        err->message = strdup("Expected '(' after 'if'");
+        assignErrorMessage(err, "Expected '(' after 'if'");
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
