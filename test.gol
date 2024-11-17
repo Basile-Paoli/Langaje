@@ -1,2 +1,4 @@
-@breakPoint
-@memoryDump
+def string[2] a = ["b", "a"];
+def int d = 5;
+
+a = a + d;

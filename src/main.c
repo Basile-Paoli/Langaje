@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
     free(input);
     free(langFile);
 
-    print_tokenList(tl); // Print the token list
+    // print_tokenList(tl); // Print the token list
 
 
     /*---------- PARSER ----------*/
@@ -160,12 +160,13 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-     printInstructionBlock(pr, 0);
+    // printInstructionBlock(pr, 0);
     
     clock_t start, end;
     double cpu_time_used;
     start = clock();
     int runInstructionResult = runInstructionBlock(pr, stack, functionMap, l, err);
+    printf("END OF INTERPRETATION\n");
     end = clock();
     //displayHashmap(stack, err);
     hmStackPop(stack);

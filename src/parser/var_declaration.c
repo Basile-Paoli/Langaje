@@ -21,7 +21,7 @@ varType typeFromKeyword(const TokenType type, error *err) {
             return _string;
         default:
             err->value = ERR_SYNTAX;
-            err->message = strdup("Invalid type keyword");
+            assignErrorMessage(err, "Invalid type keyword");
             return _int;
     }
 }
@@ -65,7 +65,7 @@ initType parseType(TokenList *tokenList, int *currentToken, error *err) {
             ++*currentToken;
             if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
                 err->value = ERR_SYNTAX;
-                err->message = strdup("Expected ']'");
+                assignErrorMessage(err, "Expected ']'");
                 addPositionToError(err, tokenList->tokens[*currentToken]);
                 return type;
             }
@@ -75,7 +75,7 @@ initType parseType(TokenList *tokenList, int *currentToken, error *err) {
             ++*currentToken;
         } else {
             err->value = ERR_SYNTAX;
-            err->message = strdup("Invalid token after '['");
+            assignErrorMessage(err, "Invalid token after '['");
             addPositionToError(err, tokenList->tokens[*currentToken]);
             return type;
         }
@@ -101,7 +101,7 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
     if (tokenList->tokens[*currentToken].type == TOKEN_SEMICOLON) {
         if (initNode->value.initialization.typed == 0) {
             err->value = ERR_SYNTAX;
-            err->message = strdup("Cannot declare a variable without a type or an initialization");
+            assignErrorMessage(err, "Cannot declare a variable without a type or an initialization");
             freeAstNode(initNode);
             return addPositionToError(err, tokenList->tokens[*currentToken]);
         }
@@ -111,10 +111,10 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
 
     if (tokenList->tokens[*currentToken].type != TOKEN_EQUAL) {
         err->value = ERR_SYNTAX;
-        err->message = malloc(
-                strlen("Expected '=' or ';' , got ") + strlen(tokenList->tokens[*currentToken].value) + 1);
-        sprintf(err->message, "Expected '=' or ';' , got %s",
-                tokenList->tokens[*currentToken].value);
+        char *msg = strdup("Expected '=' or ';' , got ");
+        strcat(msg, tokenList->tokens[*currentToken].value);
+        assignErrorMessage(err, msg);
+        free(msg);
         freeAstNode(initNode);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
@@ -134,10 +134,10 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
 
     if (tokenList->tokens[*currentToken].type != TOKEN_SEMICOLON) {
         err->value = ERR_SYNTAX;
-        err->message = malloc(
-                strlen("Expected ';' , got ") + strlen(tokenList->tokens[*currentToken].value) + 1);
-        sprintf(err->message, "Expected ';' , got %s",
-                tokenList->tokens[*currentToken].value);
+        char *msg = strdup("Expected ';' , got ");
+        strcat(msg, tokenList->tokens[*currentToken].value);
+        assignErrorMessage(err, msg);
+        free(msg);
 
         freeAstNode(expression);
         freeAstNode(initNode);
@@ -176,10 +176,10 @@ astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err
 
     if (tokenList->tokens[*currentToken].type != TOKEN_IDENTIFIER) {
         err->value = ERR_SYNTAX;
-        err->message = malloc(
-                strlen("Expected an identifier, got ") + strlen(tokenList->tokens[*currentToken].value) + 1);
-        sprintf(err->message, "Expected an identifier, got %s",
-                tokenList->tokens[*currentToken].value);
+        char *msg = strdup("Expected an identifier, got ");
+        strcat(msg, tokenList->tokens[*currentToken].value);
+        assignErrorMessage(err, msg);
+        free(msg);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 
