@@ -22,7 +22,7 @@ Lexer *new_lexer(error *err) {
 
     // Default rules
     if (
-    add_lexer_rule(l, new_lexer_rule("#LANG_([A-Z])+"               , TOKEN_PREPROCESSEUR_LANG, err), err) +
+    add_lexer_rule(l, new_lexer_rule("#lang"                        , TOKEN_PREPROCESSEUR_LANG, err), err) +
     add_lexer_rule(l, new_lexer_rule("#include"                     , TOKEN_PREPROCESSEUR_INCLUDE, err), err) +
     add_lexer_rule(l, new_lexer_rule("[0-9_]+\\.[0-9_]+"            , TOKEN_FLOAT, err), err) +
     add_lexer_rule(l, new_lexer_rule("[0-9_]+"                      , TOKEN_INT, err), err) +
@@ -31,7 +31,7 @@ Lexer *new_lexer(error *err) {
     add_lexer_rule(l, new_lexer_rule("@memoryDump"                  , TOKEN_MEMORY_DUMP, err), err) +
     add_lexer_rule(l, new_lexer_rule("@breakPoint"                  , TOKEN_BREAKPOINT, err), err) +
     add_lexer_rule(l, new_lexer_rule("//[^\n]*"                     , TOKEN_COMMENT, err), err) + // Single line comment
-    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/"    , TOKEN_COMMENT, err), err) // Multi line comment
+    add_lexer_rule(l, new_lexer_rule("/\\*([^*]|\\*+[^*/])*\\*+/"   , TOKEN_COMMENT, err), err) // Multi line comment
     != 0) {
         free_lexer(l);
         assignErrorMessage(err, "Cannot add default rules to lexer");
@@ -56,8 +56,8 @@ char *get_lang(char *input, error *err) {
     }
     strcpy(temp, input);
     
-    if (strstr(temp, "#LANG_") != NULL) {
-        lang = calloc(10, sizeof(char));
+    if (strstr(temp, "#lang") != NULL) {
+        lang = calloc(100, sizeof(char));
         if (lang == NULL) {
             free(temp);
             err->value = ERR_MEMORY;
@@ -66,17 +66,15 @@ char *get_lang(char *input, error *err) {
         }
         size_t k = 0;
         while (*temp != '\n' && *temp != '\0') {
-            if (*temp == '#') {
-                while (*temp != '_') temp++;
+            // #lang "name"
+            if (*temp == '"') {
                 temp++;
-                while (*temp != '\n' && *temp != '\0') lang[k++] = *temp++;
+                while (*temp != '"') lang[k++] = *temp++;
                 break;
             }
             temp++;
         }
     }
-
-    free(temp);
 
     return lang;
 }
@@ -297,6 +295,14 @@ TokenList *tokenizer(char *input, Lexer *l, error *err) {
             // If the match is a comment, we skip it
             if (l->rules[ruleIndex].type == TOKEN_COMMENT) {
                 i += matchEndIndex;
+                continue;
+            }
+
+            // we skip the preprocessor whole line
+            if (l->rules[ruleIndex].type == TOKEN_PREPROCESSEUR_INCLUDE || l->rules[ruleIndex].type == TOKEN_PREPROCESSEUR_LANG) {
+                while (input[i] != '\n' && i < strlen(input)) i++;
+                nbLine++;
+                nbColon = 1;
                 continue;
             }
                 
