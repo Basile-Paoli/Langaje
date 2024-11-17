@@ -698,7 +698,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
 
 astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, error *err){
 
-    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL)){
+    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL && node->type != FUNCTION_DUMP)){
         return node; //Send the whole node back
     }   
 
@@ -814,6 +814,10 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         return node;
     } else if (node->type == BREAKPOINT){
         cliMode(l,stack,functionMap,err);
+        free(values);
+        return node;
+    } else if (node->type == FUNCTION_DUMP){
+        displayFunctionMap(functionMap,err);
         free(values);
         return node;
     } else {
