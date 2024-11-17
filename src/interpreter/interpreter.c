@@ -90,6 +90,14 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
             tmpNode->value.value =  divide(&var1,&var2,&err_op);
             break;
         }
+        case MODULUS:{
+            tmpNode->value.value = modulo(&var1,&var2,&err_op);
+            break;
+        }
+        case EXPONENTIATION:{
+            tmpNode->value.value = power(&var1,&var2,&err_op);
+            break;
+        }
         case EQUAL:{
             tmpNode->value.value = isEqual(&var1,&var2,0,&err_op);
             break;

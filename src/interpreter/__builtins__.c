@@ -31,20 +31,20 @@ void display__print(var* value, error* err, int level) {
     case _TMPString:
         char* str = getString(value,err);
         str = replace_str(str);
-        printf("%s\n", str);
+        printf("%s", str);
         free(str);
         break;
     case _int:
-        printf("%d\n", value->value._int);
+        printf("%d", value->value._int);
         break;
     case _float:
-        printf("%f\n", value->value._float);
+        printf("%f", value->value._float);
         break;
     case _char:
-        printf("%c\n", value->value._char);
+        printf("%c", value->value._char);
         break;
     case _string:
-        printf("%s\n", value->value._string);
+        printf("%s", value->value._string);
         break;
     case _array:
         for (int i = 0; i < value->value._array->length; i++) {
