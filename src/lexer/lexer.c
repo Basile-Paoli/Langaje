@@ -69,8 +69,6 @@ char *get_lang(char *input, error *err) {
         while (*temp != '\n' && *temp != '\0') {
             // #lang "name"
             if (*temp == '"') {
-            // #lang "name"
-            if (*temp == '"') {
                 temp++;
                 while (*temp != '"') {
                     if (k == langLength) {
