@@ -156,6 +156,8 @@ int cliMode(Lexer *l, hmStack *stack, hm* functionMap, error *err) {
 
     disableRawMode(&orig_termios);
 
+    printf("\n");
+
     return 0;
 
 }
