@@ -590,6 +590,14 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
             //Error binding doesnt work. need to fix ?
             return NULL;
         }
+    //Check if array forbidden declaration param
+    for(int i = 0; i < node->childrenCount; i++){
+        if(node->children[i]->type == ARRAY){
+            assignErrorMessage(err, "Can't declare a hardcoded array.");
+            err->value = ERR_SYNTAX;
+            return NULL;
+        }
+    }
     if(fun->isBuiltin == 1){
         //Run builtin function generate its own tmp node
         return runBuiltinFunction(node,stack,functionMap,fun,err);
@@ -607,6 +615,10 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
         hm* Fhashmap = hm_create();
         hmStack* functionStack = hmStackCreate(1);
         for(int i = 0; i < node->childrenCount; i++){
+            if(node->children[i]->type == ARRAY){
+                err->value = ERR_SYNTAX;
+                return NULL;
+            }
             astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
             var* tmp = malloc(sizeof(var));
             if(subNode->type == VARIABLE){
@@ -661,6 +673,10 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     for(int i = 0; i < node->childrenCount; i++){
         if(node->children[i] == NULL)continue;
         if(node->type == FUNCTION_CALL)break;
+        if(node->childrenCount == 1 && node->children[0] == ARRAY){
+            err->value = ERR_SYNTAX;
+            return NULL;
+        }
         valuesAmount++;
 
 
@@ -722,6 +738,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
         declareFunction(node,stack,functionMap,err);
         return node;
     } else if (node->type == FUNCTION_CALL) {
+        printf("__test__\n");
         return runFunction(node, stack, functionMap, err);
     } else if(node->type == RETURN){
         //IF VOID RETURN DONT DO THAT WHEN BASILE HAVE FIXED TODO
