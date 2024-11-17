@@ -1,0 +1,29 @@
+func join(string[] parts) string {
+    def string result = "";
+    for (s in len(parts)) {
+        result += parts[s];
+    }
+    return result;
+}
+
+def string[] parts = ["Path: ", "test.txt"];
+def string result = join(parts);
+print(join(parts) + "\n");
+
+func split(string str, string sep) string[] {
+    def string[] result = [];
+    def string part = "";
+    for (s in len(str)) {
+        if (str[s] == sep) {
+            result += part;
+            part = "";
+        } else {
+            part += str[s];
+        }
+    }
+    result += part;
+    return result;
+}
+
+def string str = "Path: test.txt";
+def string sep = ": ";

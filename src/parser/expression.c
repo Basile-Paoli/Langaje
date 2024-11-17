@@ -430,6 +430,7 @@ astNode *parseArray(TokenList *tokenList, int *currentToken, error *err) {
         return endOfInputError(err);
     }
     if (tokenList->tokens[*currentToken].type == TOKEN_RBRACKET) {
+        ++*currentToken;
         return newArrayNode(0, NULL);
     }
 
