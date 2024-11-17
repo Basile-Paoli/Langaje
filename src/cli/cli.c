@@ -20,7 +20,6 @@ int runCode(char *input, Lexer *l, hm* functionMap, hmStack* stack, error *err) 
     // Tokenize the input
     TokenList *tl = tokenizer(input, l, err);
     if (tl == NULL) {
-        free_tokenList(tl);
         assignErrorMessage(err, "Could not Tokenize");
         return 1;
     }
