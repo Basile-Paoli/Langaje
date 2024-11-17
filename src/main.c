@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     if (argc == 1) {
         int errCode = 0;
         
-        if (readLexerFile(l, "lang/CLASSIC.lang", err) != 0) {
+        if (readLexerFile(l, "lang/classic.lang", err) != 0) {
             assignErrorMessage(err, "Could not read lexer file");
             printError(err);
             errCode = 1;
