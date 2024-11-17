@@ -97,7 +97,8 @@ astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
     }
 
     astNode *operationNode = newBinaryOperatorNode(assignmenTToBinaryOperator(operator.type), node, right);
-    return newBinaryOperatorNode(TOKEN_EQUAL, node, operationNode);
+    astNode *left = copyAstNode(node);
+    return newBinaryOperatorNode(TOKEN_EQUAL, left, operationNode);
 }
 
 astNode *parseLogicalOr(TokenList *tokenList, int *currentToken, error *err) {

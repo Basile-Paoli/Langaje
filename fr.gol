@@ -9,3 +9,4 @@ fin Sinon Si parenthèse ouvrante b plus grand ou égale à 10.0 ou b plus a div
     print parenthèse ouvrante "Le calcul est exact" parenthèse fermante point virgule
 fin Sinon alors
     print parenthèse ouvrante "" parenthèse fermante point virgule
+fin

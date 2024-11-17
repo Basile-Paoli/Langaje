@@ -528,12 +528,20 @@ var isEqual(var* v, var* v2,int reversed, error* err){
             return result;
         }
         case _string:case _TMPString:{
-            if(v2->type != _TMPString){
-                result.value._int = 0;
-                return result;
+            char* str1;
+            char* str2;
+            if(v->type == _TMPString){
+                str1 = getString(v,err);
+            } else {
+                str1 = malloc(sizeof(char) * strlen(v->value._string) + 1);
+                strcpy(str1,v->value._string);
             }
-            char* str1 = getString(v,err);
-            char* str2 = getString(v2,err);
+            if(v2->type == _TMPString){
+                str2 = getString(v2,err);
+            } else {
+                str2 = malloc(sizeof(char) * strlen(v2->value._string) + 1);
+                strcpy(str2,v2->value._string);
+            }
             int res = strcmp(str1,str2);
             free(str1);free(str2);
             if(reversed == 1){

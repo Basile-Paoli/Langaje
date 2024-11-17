@@ -1,21 +1,41 @@
-# Langaje
+# Golmon
+
+Golmon is an interpreted language written in C.
+
+It allows you to modify the syntax of the language in order to create the most cursed language you can think of.
 
 ## How to run
+
 - Ensure you have [CMake](https://cmake.org) installed
-- Create a build directory and navigate into it
-```
-mkdir build
-cd build
-```
-- Run CMake to generate build files `cmake ..`
+- Run CMake to generate build files `cmake .`
 - Compile with the generated makefile `make`
-- Add any input file necessary to the build folder as well (ex: test.txt)
-- Profit `./langaje`
+- Profit `./golmon main.gol`
 
-[Doc Mathis & Maël](https://docs.google.com/document/d/1VsdduxMZETadTSWqghP0HkSKkw1Cz9yDXKlgbukrKjc/edit#heading=h.nz9gn4fvt66n)
+## Usage
 
-[Doc Basile](https://docs.google.com/document/d/1VzRkkxEQbSoI8ECCPc5HEXL5z2oAKIWc70UsFsiNCYg/edit#heading=h.844rviq6tix5)
+You can run the interpreter with a file as an argument. The file should contain the code you want to run.
 
-[Notion du projet](https://nospy.notion.site/Projet-Cr-ation-d-un-Interpr-teur-de-Langage-de-Programmation-e890d1624945429eafc4ce91cbcce315)
+```sh
+./golmon main.gol
+```
 
-[Grammaire](https://docs.google.com/document/d/1rd1pEMWuwWjkYAj2zaqezXZwYlBjGoyGMTFtVf_6ZBo/edit?usp=sharing)
+You can also run the interpreter without a file. This will let you execute code directly in the interpreter.
+
+```sh
+./golmon
+```
+
+If you want to exit the interpreter, you can use the `@exit` command.
+
+## Features
+
+You can find the syntax and features of the language in
+the [documentation](https://www.notion.so/Documentation-LANGAGE-13dfd7dfb4fe80d59eded7137ddf4451)
+
+## Custom syntax
+
+You can create your own syntax by writing a file in the `lang` directory. The file should contain definitions for all
+the tokens you want to use. Take a look at lang/classic.lang for an example.
+
+Once you have created your file, you can add the instruction `#lang "your_file_without_extension"` at the beginning of
+your source code.

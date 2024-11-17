@@ -575,10 +575,8 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
     if(err->value == ERR_SUCCESS) {
         var *returnValue = (var *) hm_get(Fhashmap, "!!$RETURNVALUE$!!");
         astNode *tmpNode = malloc(sizeof(astNode));
-
         tmpNode->value.value.type = returnValue->type;
         var2var(&tmpNode->value.value,returnValue,err);
-
         hmStackPop(functionStack);
         hmStackDestroy(functionStack);
         tmpNode->type = VALUE;
@@ -593,8 +591,8 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
 
     function* fun = (struct function*)hm_get(functionMap,node->value.functionCall.name);
     if(fun == NULL){
-            printf("FUN NOT FOUND\n");
-            //Error binding doesnt work. need to fix ?
+            err->value = ERR_NOT_FOUND;
+            assignErrorMessage(err,"Function not found");
             return NULL;
         }
     //Check if array forbidden declaration param
@@ -605,19 +603,22 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
             return NULL;
         }
     }
+    if(node->childrenCount < fun->parametersCount){
+        err->value = ERR_ARGS;
+        assignErrorMessage(err,"Too few args given to function");
+        //Too few args 
+        return NULL;
+    } else if (node->childrenCount > fun->parametersCount){
+        //Too many args
+        err->value = ERR_ARGS;
+        assignErrorMessage(err,"Too many args given to function");
+        return NULL;
+    }
     if(fun->isBuiltin == 1){
         //Run builtin function generate its own tmp node
         return runBuiltinFunction(node,stack,functionMap,fun,l,err);
     } else {
-        if(node->childrenCount < fun->parametersCount){
-            printf("__TOO FEW ARGS__\n");
-            //Too few args 
-            return NULL;
-        } else if (node->childrenCount > fun->parametersCount){
-            //Too many args
-            printf("__TOO MANY ARGS__\n");
-            return NULL;
-        }
+        
 
         hm* Fhashmap = hm_create();
         hmStack* functionStack = hmStackCreate(1);
