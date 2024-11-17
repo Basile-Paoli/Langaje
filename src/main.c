@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // printInstructionBlock(pr, 0);
+     printInstructionBlock(pr, 0);
 
     clock_t start, end;
     double cpu_time_used;
