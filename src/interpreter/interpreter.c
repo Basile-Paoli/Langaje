@@ -572,13 +572,14 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
         astNode *tmpNode = malloc(sizeof(astNode));
 
         tmpNode->value.value.type = returnValue->type;
-        tmpNode->value.value.value = returnValue->value;
+        var2var(&tmpNode->value.value,returnValue,err);
 
         hmStackPop(functionStack);
 
         tmpNode->type = VALUE;
         return tmpNode;
     }
+            
 
     return NULL;
 }

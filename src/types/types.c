@@ -455,12 +455,10 @@ char* getVarTypeName(varType type){
             return "float";
         case _char:
             return "char";
-        case _string:
+        case _TMPString:case _string:
             return "string";
         case _array:
             return "array";
-        case _TMPString:
-            return "TMPString";
         default:
             return "void";
     }

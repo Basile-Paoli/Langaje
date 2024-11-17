@@ -580,7 +580,6 @@ void call__append__(hmStack* fStack, error* err){
     var *tmp = newArrayVar(arrayLen + 1, arrayToAppend->value._array->type,err);
     for(int i = 0; i < arrayLen; i++){
         var2var(&tmp->value._array->values[i], &arrayToAppend->value._array->values[i], err);
-
     }
         
 
