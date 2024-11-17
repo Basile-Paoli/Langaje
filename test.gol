@@ -1,4 +1,2 @@
-#lang "classic"
-
-def string a = "HelloWorld!";
-print(type(a));
+@breakPoint
+@memoryDump
