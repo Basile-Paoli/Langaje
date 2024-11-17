@@ -30,8 +30,7 @@ astNode *newOperatorNode(operator operator) {
 astNode *newInitializationNode(char *name, int typed, initType type) {
     astNode *node = malloc(sizeof(astNode));
     node->type = INITIALIZATION;
-    node->value.initialization.name = malloc(sizeof(char) * (strlen(name) + 1));
-    strcpy(node->value.initialization.name, name);
+    node->value.initialization.name = strdup(name);
     node->value.initialization.typed = typed;
     node->value.initialization.type = type;
     node->children = NULL;
@@ -215,6 +214,9 @@ void freeAstNode(astNode *node) {
         freeAstNode(node->children[0]);
         freeAstNode(node->children[1]);
         freeAstNode(node->children[2]);
+    } else if (node->type == FOR_LOOP) {
+        free(node->value.variable);
+        node->value.variable = NULL;
     } else if (node->type == FUNCTION_DECLARATION) {
         free(node->value.functionDeclaration.name);
         node->value.functionDeclaration.name = NULL;
