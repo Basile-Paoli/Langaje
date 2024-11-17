@@ -675,8 +675,13 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
 
         hmStackPush(functionStack,Fhashmap);
         runInstructionBlock(fun->instructions, functionStack, functionMap,l, err);
-        
-        var* returnValue = (var*)hm_get(functionStack->stack[isInStackDownwards(functionStack, "!!$RETURNVALUE$!!")], "!!$RETURNVALUE$!!");
+        int hmI = isInStackDownwards(functionStack, "!!$RETURNVALUE$!!");
+        var* returnValue;
+        if(hmI > -1){
+            returnValue = (var*)hm_get(functionStack->stack[hmI], "!!$RETURNVALUE$!!");
+        } else {
+            return NULL;
+        }
         astNode* tmpNode = malloc(sizeof(astNode));
         if(returnValue != NULL){
             tmpNode->value.value.type = returnValue->type;
@@ -687,7 +692,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         }
         return tmpNode;
     }
-    
+    return NULL;
 
 }
 /**
@@ -698,7 +703,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
 
 astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, error *err){
 
-    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL && node->type != FUNCTION_DUMP)){
+    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL && node->type != FUNCTION_DUMP && node->type != RETURN)){
         return node; //Send the whole node back
     }   
 
@@ -793,8 +798,10 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         free(values);
         return runFunction(node, stack, functionMap,l, err);
     } else if(node->type == RETURN){
-        //IF VOID RETURN DONT DO THAT WHEN BASILE HAVE FIXED TODO
         var* returnValue = malloc(sizeof(var));
+        if(node->childrenCount == 0){
+            return NULL;
+        }
         if(values[0]->type == VARIABLE){
             var* tmpV = subsituteValue(values[0],stack,err);
             returnValue->type = tmpV->type;
