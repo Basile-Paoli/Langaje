@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 
     if (argc == 1) {
         int errCode = 0;
-        
+
         if (readLexerFile(l, "lang/classic.lang", err) != 0) {
             assignErrorMessage(err, "Could not read lexer file");
             printError(err);
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
     /*---------- LEXER ----------*/
 
     char *lang = get_lang(input, err); // Get the #LANG_
-    if (lang == NULL) lang = "CLASSIC"; // If none is found, we use the default one
+    if (lang == NULL) lang = "classic"; // If none is found, we use the default one
     if (err->value != ERR_SUCCESS) {
         assignErrorMessage(err, "Cannot get lang");
         printError(err);
