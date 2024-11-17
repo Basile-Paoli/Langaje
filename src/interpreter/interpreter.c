@@ -581,10 +581,8 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
     if(err->value == ERR_SUCCESS) {
         var *returnValue = (var *) hm_get(Fhashmap, "!!$RETURNVALUE$!!");
         astNode *tmpNode = malloc(sizeof(astNode));
-
         tmpNode->value.value.type = returnValue->type;
         var2var(&tmpNode->value.value,returnValue,err);
-
         hmStackPop(functionStack);
         hmStackDestroy(functionStack);
         tmpNode->type = VALUE;
