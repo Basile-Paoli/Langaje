@@ -32,6 +32,8 @@ int runCode(char *input, Lexer *l, hm* functionMap, hmStack* stack, error *err) 
         return 1;
     }
 
+    printf("\n");
+
     if (runInstructionBlock(pr, stack, functionMap, l, err)) {
         free_tokenList(tl);
         assignErrorMessage(err, "Could not run instruction");
