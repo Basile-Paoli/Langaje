@@ -411,6 +411,7 @@ int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,Lexer* l, error* e
         condition = *(node->children[0]);
         result = computeNode(&condition,stack,functionMap,l,err);
         shouldContinue = result->value.value.value._int;
+        free(result);
     }
     return 0;
 }
@@ -526,7 +527,7 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
 astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, function* fun, Lexer* l , error* err){
 
     hm* Fhashmap = hm_create();
-    hmStack* functionStack = hmStackCreate(1);
+    hmStack* functionStack = hmStackCreate(3);
     for(int i = 0; i < node->childrenCount; i++){
         astNode* subNode = computeNode(node->children[i],stack,functionMap,l,err);
         if (err->value != ERR_SUCCESS || subNode == NULL) {
@@ -546,6 +547,7 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
             var2var(tmp,subNode->value.referencedValue,err);
             hm_set(Fhashmap, fun->parameters[i].name , tmp);
         }
+        free(subNode);
     }
 
     hmStackPush(functionStack,Fhashmap);
@@ -583,7 +585,7 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
         var2var(&tmpNode->value.value,returnValue,err);
 
         hmStackPop(functionStack);
-
+        hmStackDestroy(functionStack);
         tmpNode->type = VALUE;
         return tmpNode;
     }
@@ -623,7 +625,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         }
 
         hm* Fhashmap = hm_create();
-        hmStack* functionStack = hmStackCreate(1);
+        hmStack* functionStack = hmStackCreate(3);
         for(int i = 0; i < node->childrenCount; i++){
             if(node->children[i]->type == ARRAY){
                 err->value = ERR_SYNTAX;
@@ -659,6 +661,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         var2var(&tmpNode->value.value, returnValue,err);
 
         hmStackPop(functionStack);
+        hmStackDestroy(functionStack);
         tmpNode->type = VALUE;
 
         return tmpNode;
@@ -681,8 +684,14 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
     astNode** values = malloc(sizeof(astNode*) * node->childrenCount + 1);
     int valuesAmount = 0;
     for(int i = 0; i < node->childrenCount; i++){
-        if(node->children[i] == NULL)continue;
-        if(node->type == FUNCTION_CALL)break;
+        if(node->children[i] == NULL){
+            free(values);
+            continue;
+        }
+        if(node->type == FUNCTION_CALL){
+            free(values);
+            break;
+        }
         
         valuesAmount++;
 
@@ -693,6 +702,10 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
                 if(runInstructionBlock(node->children[i]->value.block, stack, functionMap,l,err) != 0){
+                    for(int y = 0; y < valuesAmount; y++){
+                       free(values[y]);
+                    }
+                    free(values);
                     return NULL;
                 }
                 hmStackPop(stack);
@@ -706,6 +719,10 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
                 if(runInstructionBlock(node->children[i]->value.block, stack, functionMap, l, err) != 0){
+                    for(int y = 0; y < valuesAmount; y++){
+                        free(values[y]);
+                    }   
+                    free(values);
                     return NULL;
                 };
                 hmStackPop(stack);
@@ -715,17 +732,33 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
             i+=1;
         } else if(node->type == WHILE_LOOP){
             if(runWhileLoop(node,stack,functionMap,l,err) != 0){
+                free(node);
+                for(int y = 0; y < valuesAmount; y++){
+                    free(values[y]);
+                }
+                free(values);
                 return NULL;
             };
             break;
         } else if(node->type == FOR_LOOP){
             if(runForLoop(node,stack,functionMap,l,err) != 0){
+                free(node);
+                for(int y = 0; y < valuesAmount; y++){
+                    free(values[y]);
+                }
+                free(values);
                 return NULL;
             };
             break;
         } else{
             values[i] = computeNode(node->children[i], stack,functionMap,l, err);
-            if (err->value != ERR_SUCCESS) return NULL;
+            if (err->value != ERR_SUCCESS){
+                for(int y = 0; y < valuesAmount; y++){
+                    free(values[y]);
+                }
+                free(values);
+                return NULL;
+            } 
         }
     }
     
@@ -738,14 +771,26 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
             return NULL;
         }
         assignValueToHashmap(values[0], values[1], stack,functionMap, l, err);
+        for(int i = 0; i < valuesAmount; i++){
+            free(values[i]);
+        }
+        free(values);
+        return node;
     } else if(node->type == OPERATOR && valuesAmount > 0){
-        return calculateNode(values, node, stack, valuesAmount, err);
+        astNode* tmp = calculateNode(values, node, stack, valuesAmount, err);
+        for(int i = 0; i < valuesAmount; i++){
+            free(values[i]);
+        }
+        free(values);
+        return tmp;
        return node;
     } else if (node->type == FUNCTION_DECLARATION){
         declareFunction(node,stack,functionMap,err);
         return node;
     } else if (node->type == FUNCTION_CALL) {
-        return runFunction(node, stack, functionMap,l, err);
+        astNode* tmp = runFunction(node, stack, functionMap,l, err);
+        free(node);
+        return tmp;
     } else if(node->type == RETURN){
         //IF VOID RETURN DONT DO THAT WHEN BASILE HAVE FIXED TODO
         var* returnValue = malloc(sizeof(var));
@@ -762,6 +807,11 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         }
 
         hm_set(stack->stack[0], "!!$RETURNVALUE$!!", returnValue);
+        for(int i = 0; i < valuesAmount; i++){
+            free(values[i]);
+        }
+        free(values);
+        free(node);
         return NULL;
     } else if (node->type == MEMORY_DUMP){
         displayHashmap(stack,err);
@@ -783,9 +833,11 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
 
 int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionMap, Lexer* l, error *err){
     for(int i = 0; i < program->instructionsCount; i++){
-        if(computeNode(program->instructions[i], stack, functionMap,l,err) == NULL){
+        astNode* tmp = computeNode(program->instructions[i], stack, functionMap,l,err);
+        if(tmp == NULL){
             return -1;
         };
+        free(tmp);
         // Stop computing if there's an error
         if(err->value != ERR_SUCCESS)
             return 1;
