@@ -55,9 +55,10 @@ char *get_lang(char *input, error *err) {
         return NULL;
     }
     strcpy(temp, input);
+    int langLength = 10;
     
     if (strstr(temp, "#lang") != NULL) {
-        lang = calloc(100, sizeof(char));
+        lang = calloc(langLength, sizeof(char));
         if (lang == NULL) {
             free(temp);
             err->value = ERR_MEMORY;
@@ -69,7 +70,19 @@ char *get_lang(char *input, error *err) {
             // #lang "name"
             if (*temp == '"') {
                 temp++;
-                while (*temp != '"') lang[k++] = *temp++;
+                while (*temp != '"') {
+                    if (k == langLength) {
+                        lang = (char *)realloc(lang, langLength * 2);
+                        if (lang == NULL) {
+                            free(lang); free(temp);
+                            err->value = ERR_MEMORY;
+                            assignErrorMessage(err, "Cannot reallocate memory for lang");
+                            return NULL;
+                        }
+                        langLength *= 2;
+                    }
+                    lang[k++] = *temp++;
+                }
                 break;
             }
             temp++;
