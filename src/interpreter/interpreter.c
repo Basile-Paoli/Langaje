@@ -748,14 +748,12 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         } else if(node->type == WHILE_LOOP){
             if(runWhileLoop(node,stack,functionMap,l,err) != 0){
                 free(values);
-                assignErrorMessage(err, "Error in while loop");
                 return NULL;
             };
             break;
         } else if(node->type == FOR_LOOP){
             if(runForLoop(node,stack,functionMap,l,err) != 0){
                 free(values);
-                assignErrorMessage(err, "Error in for loop");
                 return NULL;
             };
             break;
