@@ -72,8 +72,8 @@ void __builtinToMap__(hm* functionMap, error* err){
         newFunctionPrototype("range",        _array,    __range__,      3, err, (fakeFunctionParam[]){{"start", _int}, {"end", _int}, {"step", _int}}),
         newFunctionPrototype("append",       _array,    __append__,     2, err, (fakeFunctionParam[]){{"array", _array}, {"toAdd", _void}}),
         newFunctionPrototype("pop",          _array,    __pop__,        1, err, (fakeFunctionParam[]){{"array", _array}}),
-        newFunctionPrototype("type",         _string,   __type__,       1, err, (fakeFunctionParam[]){{"entry", _void}})
-
+        newFunctionPrototype("type",         _string,   __type__,       1, err, (fakeFunctionParam[]){{"entry", _void}}),
+        newFunctionPrototype("ord",          _int,      __ord__,        1, err, (fakeFunctionParam[]){{"entry", _char}})
     };
 
 
@@ -629,4 +629,42 @@ void call__type__(hmStack *fStack, error *err) {
 
     newVar->value._string = strdup(getVarTypeName(entry->type));
     newVar->type = _string;
+}
+
+void call__ord__(hmStack *fStack, error *err) {
+    var *newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
+
+    newVar->type = _int;
+    newVar->value._int = -1;
+    hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
+
+    var *entry = (var *) hm_get(fStack->stack[0], "entry");
+
+    if (entry->type != _TMPString) {
+        err->value = ERR_TYPE;
+        char *str = strdup("ord function expect 1 parameter: entry(string). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(entry->type) + 1));
+        strcat(str, getVarTypeName(entry->type));
+        assignErrorMessage(err, str);
+        free(str);
+        return;
+    }
+    
+    char* str = getString(entry,err);
+    str = replace_str(str);
+    
+    if (strlen(str) != 1) {
+        err->value = ERR_TYPE;
+        assignErrorMessage(err, "ord function expect a string of length 1\n");
+        return;
+    }
+
+    newVar->value._int = str[0];
+
+    free(str);
 }

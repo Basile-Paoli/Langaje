@@ -16,12 +16,3 @@ func joinWith(string[] parts, string sep) string {
     }
     return result;
 }
-
-def string[] parts = ["Path: ", "test.txt"];
-def string result = join(parts);
-print(join(parts) + "\n");
-
-
-def string str = "Path: test.txt";
-def string sep = ": ";
-print(joinWith(split(str, sep),"-> ") + "\n");

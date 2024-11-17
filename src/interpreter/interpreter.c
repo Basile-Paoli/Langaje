@@ -592,7 +592,8 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
         [__range__]         = call__range__,
         [__append__]        = call__append__,
         [__pop__]           = call__pop__,
-        [__type__]          = call__type__
+        [__type__]          = call__type__,
+        [__ord__]           = call__ord__
     };
 
     builtinFunctions[fun->__builtinIdentifier__](functionStack, err);
