@@ -28,12 +28,5 @@ typedef enum {
 
 int cliMode(Lexer *l, hmStack *stack, hm* functionMap, error *err);
 
-int countUnbalancedBrackets(const char *input);
-void handleArrowKeys(int *cursor_pos, int len);
-int handleEnterKey(char *input, char *final_input, int *len, int cursor_pos);
-void resetInputBuffer(char *input, int *len, int *cursor_pos);
-void handleCharacterInput(char *input, int *len, int *cursor_pos, char c);
-void handleDelete(char *input, int *len, int *cursor_pos);
-void handleBackspace(char *input, int *len, int *cursor_pos);
 
 #endif //LANGAJE_ERRORS_H
