@@ -18,7 +18,7 @@ var* subsituteValue(astNode* value, hmStack* stack, error *err){
         free(msg);
 
         printf("Value not found : %s\n",value->value.variable);
-        
+        return NULL;
     } else {
         var* tmp = malloc(sizeof(var));
         var tmp2 = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
@@ -42,6 +42,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     
     if(values[0]->type == VARIABLE){   
         var* t = subsituteValue(values[0],stack, err);
+        if(t == NULL)return NULL;
         var1 = *t;
         free(t);
         hasSubsituted = 1;
@@ -54,6 +55,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     if(valuesAmount > 1){
         if(values[1]->type == VARIABLE){
             var* t = subsituteValue(values[1],stack,err);
+            if(t == NULL)return NULL;
             var2 = *t;
             free(t);
         } else if(values[1]->type == VALUE){
@@ -491,6 +493,12 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, Lexer* l, error *
         }
     }
     
+    for(int i = 0; i < stack->stack[stack->length-1]->capacity; i++){
+        if (stack->stack[stack->length-1]->entries[i].value != NULL && !strcmp((char*)stack->stack[stack->length-1]->entries[i].key,node->value.variable)){
+            destroyVar((struct var*)stack->stack[stack->length-1]->entries[i].value);
+            free((char*)stack->stack[stack->length-1]->entries[i].key);
+        }
+    }
 
     return 0;
 }
