@@ -88,7 +88,6 @@ int main(int argc, char **argv) {
     if (mainFile == NULL) {
         free_lexer(l);
         free(mainFile);
-        assignErrorMessage(err, "Cannot read file");
         printError(err);
         return 1;
     }
@@ -164,7 +163,7 @@ int main(int argc, char **argv) {
     }
 
      printInstructionBlock(pr, 0);
-
+    
     clock_t start, end;
     double cpu_time_used;
     start = clock();
