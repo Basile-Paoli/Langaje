@@ -157,12 +157,12 @@ astNode *newBreakpointNode();
 
 void freeAstNode(astNode *node);
 
-void testPrintAst();
-
 InstructionBlock *newInstructionBlock(int capacity);
 
 InstructionBlock *appendInstruction(InstructionBlock *parseResult, astNode *instruction);
 
 void freeInstructionBlock(InstructionBlock *block);
+
+astNode *copyAstNode(astNode *node);
 
 #endif

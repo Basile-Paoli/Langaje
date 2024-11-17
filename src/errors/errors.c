@@ -9,7 +9,7 @@
 
 void *endOfInputError(error *err) {
     err->value = ERR_END_OF_INPUT;
-    err->message = strdup("Unexpected end of input");
+    assignErrorMessage(err, "The input has ended unexpectedly");
     return NULL;
 }
 
@@ -21,10 +21,10 @@ void *endOfInputError(error *err) {
  *
  * */
 int assignErrorMessage(error *err, char *msg) {
-  err->message = malloc(sizeof(char) * (strlen(getNameTypeError(err->value)) + strlen(msg) + 50));
-    
-//    err->message = (char *)realloc(err->message, strlen(getNameTypeError(err->value)) + strlen(msg) + strlen(err->message) + 1);
-    strcpy(err->message,"");
+    //err->message = malloc(sizeof(char) * (strlen(getNameTypeError(err->value)) + strlen(msg) + 50));
+
+    err->message = (char *)realloc(err->message, strlen(getNameTypeError(err->value)) + strlen(msg) + strlen(err->message) + 1);
+    //strcpy(err->message,"");
     strcat(err->message, getNameTypeError(err->value));
     strcat(err->message, msg);
     strcat(err->message, "\n");

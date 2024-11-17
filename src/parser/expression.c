@@ -20,9 +20,10 @@ astNode *parseExpressionInstruction(TokenList *tokenList, int *currentToken, err
 
     if (tokenList->tokens[*currentToken].type != TOKEN_SEMICOLON) {
         err->value = ERR_SYNTAX;
-        err->message = malloc(
-                strlen("Expected semicolon, found ") + strlen(tokenList->tokens[*currentToken].value) + 1);
-        sprintf(err->message, "Expected semicolon, found %s", tokenList->tokens[*currentToken].value);
+        char *msg = strdup("Expected semicolon, found ");
+        strcat(msg, tokenList->tokens[*currentToken].value);
+        assignErrorMessage(err, msg);
+        free(msg);
         freeAstNode(node);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
@@ -75,7 +76,7 @@ astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
 
     if (node->type != VARIABLE && node->type != OPERATOR && node->value.operator != SUBSCRIPT) {
         err->value = ERR_SYNTAX;
-        err->message = strdup("Invalid left-hand side in assignment");
+        assignErrorMessage(err, "Invalid left-hand side in assignment");
         freeAstNode(node);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
@@ -96,7 +97,8 @@ astNode *parseExpression(TokenList *tokenList, int *currentToken, error *err) {
     }
 
     astNode *operationNode = newBinaryOperatorNode(assignmenTToBinaryOperator(operator.type), node, right);
-    return newBinaryOperatorNode(TOKEN_EQUAL, node, operationNode);
+    astNode *left = copyAstNode(node);
+    return newBinaryOperatorNode(TOKEN_EQUAL, left, operationNode);
 }
 
 astNode *parseLogicalOr(TokenList *tokenList, int *currentToken, error *err) {
@@ -350,8 +352,10 @@ astNode *parsePrimary(TokenList *tokenList, int *currentToken, error *err) {
         }
         default: {
             err->value = ERR_SYNTAX;
-            err->message = malloc(strlen("Unexpected token ") + strlen(tokenList->tokens[*currentToken].value) + 1);
-            sprintf(err->message, "Unexpected token %s", tokenList->tokens[*currentToken].value);
+            char *msg = strdup("Unexpected token ");
+            strcat(msg, tokenList->tokens[*currentToken].value);
+            assignErrorMessage(err, msg);
+            free(msg);
             return addPositionToError(err, tokenList->tokens[*currentToken]);
         }
     }
@@ -371,11 +375,10 @@ astNode *parseParenthesisExpression(TokenList *tokenList, int *currentToken, err
 
     if (tokenList->tokens[*currentToken].type != TOKEN_RPAREN) {
         err->value = ERR_SYNTAX;
-        err->message = malloc(
-                strlen("Expected closing parenthesis, found ") +
-                strlen(tokenList->tokens[*currentToken].value) + 1);
-        sprintf(err->message, "Expected closing parenthesis, found %s",
-                tokenList->tokens[*currentToken].value);
+        char *msg = strdup("Expected closing parenthesis, found ");
+        strcat(msg, tokenList->tokens[*currentToken].value);
+        assignErrorMessage(err, msg);
+        free(msg);
         freeAstNode(node);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
@@ -400,11 +403,10 @@ astNode *parseBracketExpression(TokenList *tokenList, int *currentToken, error *
 
     if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
         err->value = ERR_SYNTAX;
-        err->message = malloc(
-                strlen("Expected closing bracket, found ") +
-                strlen(tokenList->tokens[*currentToken].value) + 1);
-        sprintf(err->message, "Expected closing bracket, found %s",
-                tokenList->tokens[*currentToken].value);
+        char *msg = strdup("Expected closing bracket, found ");
+        strcat(msg, tokenList->tokens[*currentToken].value);
+        assignErrorMessage(err, msg);
+        free(msg);
         freeAstNode(node);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
@@ -454,7 +456,7 @@ astNode *parseArray(TokenList *tokenList, int *currentToken, error *err) {
     }
     if (tokenList->tokens[*currentToken].type != TOKEN_RBRACKET) {
         err->value = ERR_SYNTAX;
-        err->message = strdup("Expected ']' at the end of array expression");
+        assignErrorMessage(err, "Expected ']' at the end of array expression");
         freeChildren(values, valueCount);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
@@ -518,11 +520,10 @@ astNode *parseFunctionCall(TokenList *tokenList, int *currentToken, error *err) 
     if (tokenList->tokens[*currentToken].type != TOKEN_RPAREN) {
         freeChildren(args, nbArgs);
         err->value = ERR_SYNTAX;
-        err->message = malloc(
-                strlen("Expected closing parenthesis, found ") +
-                strlen(tokenList->tokens[*currentToken].value) + 1);
-        sprintf(err->message, "Expected closing parenthesis, found %s",
-                tokenList->tokens[*currentToken].value);
+        char *msg = strdup("Expected closing parenthesis, found ");
+        strcat(msg, tokenList->tokens[*currentToken].value);
+        assignErrorMessage(err, msg);
+        free(msg);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
 

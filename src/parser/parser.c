@@ -10,10 +10,10 @@
 #include "function_declaration.h"
 
 void *addPositionToError(error *err, Token token) {
-    char *newMessage = malloc(strlen(err->message) + 100);
+    char *newMessage = strdup("");
     sprintf(newMessage, "%s (line %d, column %d)", err->message, token.line, token.column);
-    free(err->message);
-    err->message = newMessage;
+    assignErrorMessage(err, newMessage);
+    free(newMessage);
     return NULL;
 }
 
@@ -58,7 +58,7 @@ InstructionBlock *parseInstructionBlockWithBraces(TokenList *tokenList, int *cur
     }
     if (tokenList->tokens[*currentToken].type != TOKEN_RBRACE) {
         err->value = ERR_SYNTAX;
-        err->message = strdup("Expected '}'");
+        assignErrorMessage(err, "Expected '}'");
         freeInstructionBlock(block);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
     }
