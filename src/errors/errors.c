@@ -9,7 +9,7 @@
 
 void *endOfInputError(error *err) {
     err->value = ERR_END_OF_INPUT;
-    assignErrorMessage(err, "Unexpected end of input");
+    assignErrorMessage(err, "The input has ended unexpectedly");
     return NULL;
 }
 
