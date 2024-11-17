@@ -22,12 +22,7 @@ var* subsituteValue(astNode* value, hmStack* stack, error *err){
         var* tmp = malloc(sizeof(var));
         var tmp2 = *(var*)hm_get(stack->stack[hmIndex],value->value.variable);
         tmp->type = tmp2.type;
-        if(tmp->type != _string){
-            tmp->value = tmp2.value;
-        } else {
-            assignString(tmp, tmp2.value._string);
-        }
-        
+        tmp->value = tmp2.value;
         return tmp;
     }
 
@@ -66,7 +61,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
     }
     astNode* tmpNode = malloc(sizeof(astNode));
     tmpNode->type = VALUE;
-    
+
 
     switch(op){
         case ADDITION:{
@@ -133,7 +128,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         case SUBSCRIPT:{
             //If it has substituted means value is in &var1 else it's in values[0].value.referencedValue 
             //We work with pointer because we go edit directly the memory of the array.
-            if(var1.type == _string){
+            if(var1.type == _TMPString){
                 if(hasSubsituted == 1){
                    tmpNode->value.referencedValue = getCharValueFromString(&var1,var2.value._int,err);
                 } else {
@@ -172,7 +167,6 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
         sprintf(err->message, "%s", err_op.message);
         //return NULL;
     }
-
     return tmpNode;
 }
 
@@ -198,7 +192,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap
             return NULL;
         }
         //Declare array (types.c)
-        var* arr = newArrayVar(node->childrenCount, type->elementsType->type);
+        var* arr = newArrayVar(node->childrenCount, type->elementsType->type,err);
         for(int i = 0; i < node->childrenCount; i++){
             //For each children call the function recursively
             var* subVar = declareArray(node->children[i],type->elementsType, stack, functionMap, err);
@@ -206,13 +200,16 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap
 
             astNode* tmp = computeNode(node->children[i],stack,functionMap,err);
             
+
             if(tmp->type == POINTER){
                 subVar->type = tmp->value.referencedValue->type;   
                 var2var(subVar,tmp->value.referencedValue,err);
             } else if (tmp->type == VALUE){
                 subVar->type = tmp->value.value.type;   
+                
                 var2var(subVar, &tmp->value.value,err);
             }
+
             if(subVar->type != arr->value._array->type){
                 err->value = ERR_TYPE;
 
@@ -224,6 +221,7 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap
                 return NULL;
             }
             //Assign the subvar to the array slot  (either NODE so value OR Subarray)
+
             var2var(&arr->value._array->values[i],subVar, err);
         }
         arr->type = type->type;
@@ -238,7 +236,7 @@ var* declareEmptyArray(astNode* node, error *err){
     initType* curr = &node->value.initialization.type;
     
     //Declare main array
-    var* arr = newArrayVar(node->value.initialization.type.arraySize, node->value.initialization.type.elementsType->type);
+    var* arr = newArrayVar(node->value.initialization.type.arraySize, node->value.initialization.type.elementsType->type,err);
 
     //Go to next subarray if there's one
     initType oldCurr = *curr;
@@ -247,7 +245,7 @@ var* declareEmptyArray(astNode* node, error *err){
     while(curr->type == _array){
         var* newArr;
         for(int i = 0; i < oldCurr.arraySize; i++){
-            newArr = newArrayVar(curr->arraySize,curr->elementsType->type);
+            newArr = newArrayVar(curr->arraySize,curr->elementsType->type,err);
             newArr->type = oldCurr.type;
 
             var2var(&currArray->value._array->values[i],newArr, err);
@@ -276,7 +274,8 @@ var* declareVar(astNode* node, error *err){
             break;
         }
         case _string:{
-            assignString(newVar,"");
+            //assignString(newVar,"");
+            declareString(newVar,1);
             break;
         }
         default:
@@ -424,19 +423,37 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
     newVar->value._int = 0;
     //If we have more than 2 children, compute the start value
     if(node->childrenCount > 2){
-        newVar->value._int = computeNode(node->children[0],stack,functionMap,err)->value.value.value._int;
+        astNode* tmp = computeNode(node->children[0],stack,functionMap,err);
+        if(tmp->type == VARIABLE){
+            newVar->value._int = (subsituteValue(tmp,stack,err))->value._int;
+        } else {
+            newVar->value._int = tmp->value.value.value._int;
+        }
+        
     }
     hm_set(stack->stack[stack->length-1],node->value.variable,newVar);
     int hmIndex = stack->length-1;
     
     //If we have 4 children, means we have a different increment value
     if(node->childrenCount == 4){
-        incrementValue = computeNode(node->children[node->childrenCount-2],stack,functionMap,err)->value.value.value._int;
+        astNode* tmp = computeNode(node->children[node->childrenCount-2],stack,functionMap,err);
+        if(tmp->type == VARIABLE){
+            incrementValue = (subsituteValue(tmp,stack,err))->value._int;
+        } else {
+            incrementValue = tmp->value.value.value._int;
+        }
     }
+
     //Ternary to know which child to select
     astNode conditionNode = node->childrenCount == 4 ? *node->children[node->childrenCount-3] : *node->children[node->childrenCount-2];
-    int conditionValue = computeNode(&conditionNode,stack,functionMap,err)->value.value.value._int;
-     
+    int conditionValue;
+
+    astNode* tmp = computeNode(&conditionNode,stack,functionMap,err);
+    if(tmp->type == VARIABLE){
+        conditionValue = (subsituteValue(tmp,stack,err))->value._int;
+    } else {
+        conditionValue = tmp->value.value.value._int;
+    }
     
     int loopIndexValue = newVar->value._int;
     
@@ -503,6 +520,9 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
     hmStack* functionStack = hmStackCreate(1);
     for(int i = 0; i < node->childrenCount; i++){
         astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
+        if (err->value != ERR_SUCCESS || subNode == NULL) {
+            return NULL;
+        }
         var* tmp = malloc(sizeof(var));
         if(subNode->type == VARIABLE){
             tmp = subsituteValue(subNode, stack, err);
@@ -529,8 +549,7 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
 
     void (*builtinFunctions[])(hmStack*, error*) = {
         [__print__]         = call__print__,
-        [__strlen__]        = call__strlen__,
-        [__arrlen__]        = call__arrlen__,
+        [__len__]           = call__len__,
         [__randint__]       = call__randint__,
         [__randfloat__]     = call__randfloat__,
         [__system__]        = call__system__,
@@ -541,7 +560,8 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
         [__split__]         = call__split__,
         [__range__]         = call__range__,
         [__append__]        = call__append__,
-        [__pop__]           = call__pop__
+        [__pop__]           = call__pop__,
+        [__type__]          = call__type__
     };
 
     builtinFunctions[fun->__builtinIdentifier__](functionStack, err);
@@ -632,7 +652,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
 
 astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err){
 
-    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT)){
+    if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL)){
         return node; //Send the whole node back
     }   
 
@@ -682,6 +702,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
             break;
         } else{
             values[i] = computeNode(node->children[i], stack,functionMap, err);
+            if (err->value != ERR_SUCCESS) return NULL;
         }
     }
     
@@ -696,7 +717,6 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
         assignValueToHashmap(values[0], values[1], stack,functionMap, err);
     } else if(node->type == OPERATOR && valuesAmount > 0){
         return calculateNode(values, node, stack, valuesAmount, err);
-        free(values);
        return node;
     } else if (node->type == FUNCTION_DECLARATION){
         declareFunction(node,stack,functionMap,err);

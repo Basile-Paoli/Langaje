@@ -51,6 +51,14 @@ var add(var *var1, var *var2, error *err){
     var result;
     result.type = _int;
     char buffer[20];
+    if(var1->type == _TMPString){
+        var1->type = _string;
+        var1->value._string = getString(var1,err);
+    }
+    if(var2->type == _TMPString){
+        var2->type = _string;
+        var2->value._string = getString(var2,err);
+    }
     // Define the type of var to return
     switch (var1->type) {
         case _int:
@@ -162,7 +170,7 @@ var add(var *var1, var *var2, error *err){
             }
             int newArraySize = var1->value._array->length + var2->value._array->length;
 
-            var *tmp = newArrayVar(newArraySize, var1->value._array->values[0].type);
+            var *tmp = newArrayVar(newArraySize, var1->value._array->values[0].type,err);
             result = *tmp;
 
            
@@ -519,12 +527,15 @@ var isEqual(var* v, var* v2,int reversed, error* err){
             
             return result;
         }
-        case _string:{
-            if(v2->type != _string){
+        case _string:case _TMPString:{
+            if(v2->type != _TMPString){
                 result.value._int = 0;
                 return result;
             }
-            int res = strcmp(v->value._string,v2->value._string);
+            char* str1 = getString(v,err);
+            char* str2 = getString(v2,err);
+            int res = strcmp(str1,str2);
+            free(str1);free(str2);
             if(reversed == 1){
                 result.value._int = res == 0 ? 0 : 1;
             } else {

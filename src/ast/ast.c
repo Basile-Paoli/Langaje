@@ -186,26 +186,57 @@ astNode *newBreakpointNode() {
     return node;
 }
 
+void freeInitType(initType type) {
+    if (type.type == _array) {
+        freeInitType(*type.elementsType);
+        free(type.elementsType);
+        type.elementsType = NULL;
+    }
+}
+
+void freeFunctionParameter(functionParameter parameter) {
+    free(parameter.name);
+    parameter.name = NULL;
+    freeInitType(parameter.type);
+}
+
 void freeAstNode(astNode *node) {
     if (node == NULL) return;
 
     if (node->type == VARIABLE) {
         free(node->value.variable);
+        node->value.variable = NULL;
     } else if (node->type == INITIALIZATION) {
         free(node->value.initialization.name);
+        node->value.initialization.name = NULL;
     } else if (node->type == VALUE && node->value.value.type == _string) {
         free(node->value.value.value._string);
+        node->value.value.value._string = NULL;
     } else if (node->type == BLOCK) {
         freeInstructionBlock(node->value.block);
+        node->value.block = NULL;
     } else if (node->type == CONDITION) {
         freeAstNode(node->children[0]);
         freeAstNode(node->children[1]);
         freeAstNode(node->children[2]);
+    } else if (node->type == FUNCTION_DECLARATION) {
+        free(node->value.functionDeclaration.name);
+        node->value.functionDeclaration.name = NULL;
+        for (int i = 0; i < node->value.functionDeclaration.parametersCount; i++) {
+            freeFunctionParameter(node->value.functionDeclaration.parameters[i]);
+        }
+        free(node->value.functionDeclaration.parameters);
+        node->value.functionDeclaration.parameters = NULL;
+    } else if (node->type == FUNCTION_CALL) {
+        free(node->value.functionCall.name);
+        node->value.functionCall.name = NULL;
     }
     for (int i = 0; i < node->childrenCount; i++) {
         freeAstNode(node->children[i]);
+        node->children[i] = NULL;
     }
     free(node->children);
+    node->children = NULL;
     free(node);
 }
 
@@ -445,10 +476,13 @@ InstructionBlock *appendInstruction(InstructionBlock *parseResult, astNode *inst
     return parseResult;
 }
 
-void freeInstructionBlock(InstructionBlock *parseResult) {
-    for (int i = 0; i < parseResult->instructionsCount; i++) {
-        freeAstNode(parseResult->instructions[i]);
+void freeInstructionBlock(InstructionBlock *block) {
+    if (block == NULL) return;
+    for (int i = 0; i < block->instructionsCount; i++) {
+        freeAstNode(block->instructions[i]);
+        block->instructions[i] = NULL;
     }
-    free(parseResult->instructions);
-    free(parseResult);
+    free(block->instructions);
+    block->instructions = NULL;
+    free(block);
 }
