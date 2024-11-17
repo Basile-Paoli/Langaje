@@ -10,7 +10,7 @@
 #include "function_declaration.h"
 
 void *addPositionToError(error *err, Token token) {
-    char *newMessage = strdup("");
+    char *newMessage = malloc(strlen(err->message) + 100);
     sprintf(newMessage, "%s (line %d, column %d)", err->message, token.line, token.column);
     assignErrorMessage(err, newMessage);
     free(newMessage);

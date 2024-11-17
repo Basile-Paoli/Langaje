@@ -111,8 +111,10 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
 
     if (tokenList->tokens[*currentToken].type != TOKEN_EQUAL) {
         err->value = ERR_SYNTAX;
-        char *msg = strdup("Expected '=' or ';' , got ");
-        strcat(msg, tokenList->tokens[*currentToken].value);
+        char *msg = malloc(
+                strlen("Expected '=' or ';' , got ") + strlen(tokenList->tokens[*currentToken].value) + 1);
+        sprintf(msg, "Expected '=' or ';' , got %s",
+                tokenList->tokens[*currentToken].value);
         assignErrorMessage(err, msg);
         free(msg);
         freeAstNode(initNode);
@@ -134,8 +136,10 @@ astNode *parseVarDeclarationInstruction(TokenList *tokenList, int *currentToken,
 
     if (tokenList->tokens[*currentToken].type != TOKEN_SEMICOLON) {
         err->value = ERR_SYNTAX;
-        char *msg = strdup("Expected ';' , got ");
-        strcat(msg, tokenList->tokens[*currentToken].value);
+        char *msg = malloc(
+                strlen("Expected ';' , got ") + strlen(tokenList->tokens[*currentToken].value) + 1);
+        sprintf(msg, "Expected ';' , got %s",
+                tokenList->tokens[*currentToken].value);
         assignErrorMessage(err, msg);
         free(msg);
 
@@ -176,8 +180,10 @@ astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err
 
     if (tokenList->tokens[*currentToken].type != TOKEN_IDENTIFIER) {
         err->value = ERR_SYNTAX;
-        char *msg = strdup("Expected an identifier, got ");
-        strcat(msg, tokenList->tokens[*currentToken].value);
+        char *msg = malloc(
+                strlen("Expected an identifier, got ") + strlen(tokenList->tokens[*currentToken].value) + 1);
+        sprintf(msg, "Expected an identifier, got %s",
+                tokenList->tokens[*currentToken].value);
         assignErrorMessage(err, msg);
         free(msg);
         return addPositionToError(err, tokenList->tokens[*currentToken]);
@@ -186,6 +192,7 @@ astNode *parseVarDeclaration(TokenList *tokenList, int *currentToken, error *err
     char *name = strdup(tokenList->tokens[*currentToken].value);
     ++*currentToken;
     astNode *initNode = newInitializationNode(name, typed, type);
+    free(name);
 
     return initNode;
 }
