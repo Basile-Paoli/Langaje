@@ -1,0 +1,27 @@
+#lang "fr"
+Fonction joindre parenthèse ouvrante chaine de charactère crochet ouvrant crochet femant parties parenthèse fermante  chaine de charactère  alors
+    Définition d'une variable chaine de charactère resultat  dont la valeur est égale à  "" point virgule
+    Pour  parenthèse ouvrante s dans len parenthèse ouvrante parties parenthèse fermante  parenthèse fermante   alors
+        resultat plus égale à parties crochet ouvrants crochet femant point virgule
+     fin
+    Retourne resultat point virgule
+ fin
+
+Fonction joindreAvec parenthèse ouvrante chaine de charactère crochet ouvrant crochet femant parties virgule  chaine de charactère sep parenthèse fermante  chaine de charactère  alors
+    Définition d'une variable chaine de charactère resultat  dont la valeur est égale à  "" point virgule
+    Pour  parenthèse ouvrante s dans len parenthèse ouvrante parties parenthèse fermante  parenthèse fermante   alors
+        resultat plus égale à parties crochet ouvrants crochet femant point virgule
+        Si  parenthèse ouvrante s plus petit que  parenthèse ouvrante len parenthèse ouvrante parties parenthèse fermante  moins 1 parenthèse fermante  parenthèse fermante   alors
+            resultat plus égale à sep point virgule
+         fin
+     fin
+    Retourne resultat point virgule
+ fin
+
+Définition d'une variable chaine de charactère crochet ouvrant crochet femant parties  dont la valeur est égale à   crochet ouvrant"Path: " virgule  "test.txt" crochet femant point virgule
+Définition d'une variable chaine de charactère resultat  dont la valeur est égale à  joindre parenthèse ouvrante parties parenthèse fermante  point virgule
+print parenthèse ouvrante joindre parenthèse ouvrante parties parenthèse fermante  plus "\n" parenthèse fermante  point virgule
+
+Définition d'une variable chaine de charactère str  dont la valeur est égale à  "Path: test.txt" point virgule
+Définition d'une variable chaine de charactère sep  dont la valeur est égale à  ": " point virgule
+print parenthèse ouvrante joindreAvec parenthèse ouvrante split parenthèse ouvrante str virgule  sep parenthèse fermante  virgule "-> " parenthèse fermante  plus "\n" parenthèse fermante  point virgule
