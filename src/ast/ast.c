@@ -1,7 +1,3 @@
-//
-// Created by Basile on 02/10/2024.
-//
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -440,21 +436,6 @@ void printAST(astNode *root, int depth) {
     }
 }
 
-void testPrintAst() {
-    astNode *root = newOperatorNode(ADDITION);
-    root->children = malloc(sizeof(astNode *) * 2);
-    root->children[0] = newVariableNode("a");
-    astNode *mul = newOperatorNode(MULTIPLICATION);
-    mul->children = malloc(sizeof(astNode *) * 2);
-    mul->children[0] = newVariableNode("b");
-    mul->children[1] = newVariableNode("c");
-    mul->childrenCount = 2;
-    root->children[1] = mul;
-    root->childrenCount = 2;
-    printAST(root, 0);
-    freeAstNode(root);
-}
-
 InstructionBlock *newInstructionBlock(int capacity) {
     assert(capacity > 0);
     InstructionBlock *parseResult = malloc(sizeof(InstructionBlock));
@@ -485,4 +466,47 @@ void freeInstructionBlock(InstructionBlock *block) {
     free(block->instructions);
     block->instructions = NULL;
     free(block);
+}
+
+/*
+* copyAstNode is a recursive function that copies an astNode and all its children.
+* It is only used to copy nodes part of an expression, so it does not handle other
+* cases like blocks or function declarations.
+*/
+astNode *copyAstNode(astNode *node) {
+    if (node == NULL) return NULL;
+    astNode *copy = malloc(sizeof(astNode));
+    copy->type = node->type;
+    copy->childrenCount = node->childrenCount;
+    switch (node->type) {
+        case VARIABLE:
+            copy->value.variable = strdup(node->value.variable);
+            break;
+        case OPERATOR:
+            copy->value.operator = node->value.operator;
+            break;
+        case VALUE:
+            copy->value.value = node->value.value;
+            break;
+        case INITIALIZATION:
+            copy->value.initialization.name = strdup(node->value.initialization.name);
+            copy->value.initialization.typed = node->value.initialization.typed;
+            copy->value.initialization.type = node->value.initialization.type;
+            break;
+        case FUNCTION_CALL:
+            copy->value.functionCall.name = strdup(node->value.functionCall.name);
+            break;
+        default:
+            //This function is only used in the case of expressions so other cases are not handled
+            break;
+    }
+    if (node->childrenCount > 0) {
+        copy->children = malloc(sizeof(astNode *) * node->childrenCount);
+        for (int i = 0; i < node->childrenCount; i++) {
+            copy->children[i] = copyAstNode(node->children[i]);
+        }
+    } else {
+        copy->children = NULL;
+    }
+    return copy;
 }
