@@ -675,8 +675,8 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
 
         hmStackPush(functionStack,Fhashmap);
         runInstructionBlock(fun->instructions, functionStack, functionMap,l, err);
-
-        var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
+        
+        var* returnValue = (var*)hm_get(functionStack->stack[isInStackDownwards(functionStack, "!!$RETURNVALUE$!!")], "!!$RETURNVALUE$!!");
         astNode* tmpNode = malloc(sizeof(astNode));
         if(returnValue != NULL){
             tmpNode->value.value.type = returnValue->type;
@@ -804,12 +804,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
             returnValue->type = values[0]->value.referencedValue->type;
             var2var(returnValue,values[0]->value.referencedValue,err);
         }
-
         hm_set(stack->stack[0], "!!$RETURNVALUE$!!", returnValue);
-        for(int j = 0; j < valuesAmount; j++){
-            free(values[j]);
-        }
-        free(values);
         return NULL;
     } else if (node->type == MEMORY_DUMP){
         displayHashmap(stack,err);
