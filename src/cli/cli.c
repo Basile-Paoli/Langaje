@@ -116,11 +116,14 @@ int cliMode(Lexer *l, hmStack *stack, hm* functionMap, error *err) {
 
 
             input[len] = '\0';
+            disableRawMode(&orig_termios);
             if (strcmp(input, "@exit") == 0) break;
             if (runCode(input, l, functionMap, stack, err)) { // If an error occured
                 disableRawMode(&orig_termios);
                 return 1;
             }
+            enableRawMode(&orig_termios);
+            
             len = 0;
             cursor_pos = 0;
             for (int i = 0; i < MAX_INPUT; i++) {
