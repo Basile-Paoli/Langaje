@@ -328,7 +328,7 @@ var* newArrayVar(int size, varType type,error* err) {
     var* res = malloc(sizeof(var));
     res->value._array = malloc(sizeof(array));
 
-    res->value._array->capacity = size == 0 ? 1 : size;
+    res->value._array->capacity = size;
     res->value._array->values = malloc(size * sizeof(var));
     res->value._array->length = size;
     res->value._array->type = type;

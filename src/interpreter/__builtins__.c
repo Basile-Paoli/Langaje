@@ -603,9 +603,12 @@ void call__pop__(hmStack* fStack, error* err){
 
     int arrayLen = arrayToPop->value._array->length -1 ;
     var *tmp = newArrayVar(arrayLen, arrayToPop->value._array->type,err);
-
-    for(int i = 0; i < arrayLen; i++)
+    
+    for(int i = 0; i < arrayLen; i++){
         var2var(&tmp->value._array->values[i], &arrayToPop->value._array->values[i], err);
+    }
+    
+    
 
     hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", tmp);
 }
