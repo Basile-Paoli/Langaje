@@ -2,7 +2,7 @@
 Fonction joindre parenthèse ouvrante chaine de charactère crochet ouvrant crochet femant parties parenthèse fermante  chaine de charactère  alors
     Définition d'une variable chaine de charactère resultat  dont la valeur est égale à  "" point virgule
     Pour  parenthèse ouvrante s dans len parenthèse ouvrante parties parenthèse fermante  parenthèse fermante   alors
-        resultat plus égale à parties crochet ouvrants crochet femant point virgule
+        resultat plus égale à parties crochet ouvrant s crochet femant point virgule
      fin
     Retourne resultat point virgule
  fin
@@ -10,7 +10,7 @@ Fonction joindre parenthèse ouvrante chaine de charactère crochet ouvrant croc
 Fonction joindreAvec parenthèse ouvrante chaine de charactère crochet ouvrant crochet femant parties virgule  chaine de charactère sep parenthèse fermante  chaine de charactère  alors
     Définition d'une variable chaine de charactère resultat  dont la valeur est égale à  "" point virgule
     Pour  parenthèse ouvrante s dans len parenthèse ouvrante parties parenthèse fermante  parenthèse fermante   alors
-        resultat plus égale à parties crochet ouvrants crochet femant point virgule
+        resultat plus égale à parties crochet ouvrant s crochet femant point virgule
         Si  parenthèse ouvrante s plus petit que  parenthèse ouvrante len parenthèse ouvrante parties parenthèse fermante  moins 1 parenthèse fermante  parenthèse fermante   alors
             resultat plus égale à sep point virgule
          fin
