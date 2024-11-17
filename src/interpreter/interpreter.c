@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "../cli/cli.h"
 
 /**
 * Function that replace the value of the variable in a node by its value in the hashmaps stack.
@@ -175,7 +176,7 @@ astNode* calculateNode(astNode** values, astNode* node,hmStack* stack, int value
 * Function that declare an array based on a ARRAY node in the AST.
 * Returns the array
 */
-var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap, error *err){
+var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap, Lexer* l, error *err){
     if(type->type !=  _array){
         return &node->value.value;
     } else {
@@ -195,10 +196,10 @@ var* declareArray(astNode* node, initType* type, hmStack* stack, hm* functionMap
         var* arr = newArrayVar(node->childrenCount, type->elementsType->type,err);
         for(int i = 0; i < node->childrenCount; i++){
             //For each children call the function recursively
-            var* subVar = declareArray(node->children[i],type->elementsType, stack, functionMap, err);
+            var* subVar = declareArray(node->children[i],type->elementsType, stack, functionMap,l, err);
             if(subVar == NULL)return NULL;
 
-            astNode* tmp = computeNode(node->children[i],stack,functionMap,err);
+            astNode* tmp = computeNode(node->children[i],stack,functionMap,l,err);
             
 
             if(tmp->type == POINTER){
@@ -293,11 +294,11 @@ var* declareVar(astNode* node, error *err){
 * Return 1 on success, 0 on failure.
 */
 
-int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, hm* functionMap, error *err){
+int assignValueToHashmap(astNode* nodeToAssign, astNode* valueToAssign, hmStack* stack, hm* functionMap, Lexer* l, error *err){
 
     if(nodeToAssign->type == VARIABLE || nodeToAssign->type == INITIALIZATION){
         if(valueToAssign->type == ARRAY){
-            var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack,functionMap, err);
+            var* newArr = declareArray(valueToAssign, &nodeToAssign->value.initialization.type, stack,functionMap,l, err);
 
             if(newArr == NULL){
                 //RAISE ERROR MAYBE?
@@ -382,25 +383,25 @@ int initializeValueInHM(astNode* node,hmStack* stack, error *err){
 
 }
 
-int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,error* err){
+int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,Lexer* l, error* err){
     astNode condition = *node->children[0];
 
     InstructionBlock instructions = *(node->children[1]->value.block);
     astNode* result;
 
-    result = computeNode(&condition,stack,functionMap, err);
+    result = computeNode(&condition,stack,functionMap, l,err);
     int shouldContinue = result->value.value.value._int;
     while(shouldContinue == 1){
         hm* hashmap = hm_create();
         hmStackPush(stack,hashmap);
-        if(runInstructionBlock(&instructions,stack,functionMap,err) != 0){
+        if(runInstructionBlock(&instructions,stack,functionMap,l,err) != 0){
             //printf("%s\n", err->message);
             hmStackPop(stack);
             return 1;
         }
         hmStackPop(stack);
         condition = *(node->children[0]);
-        result = computeNode(&condition,stack,functionMap,err);
+        result = computeNode(&condition,stack,functionMap,l,err);
         shouldContinue = result->value.value.value._int;
     }
     return 0;
@@ -410,7 +411,7 @@ int runWhileLoop(astNode* node,hmStack* stack,hm* functionMap,error* err){
 /**
  * Run for loop condition
  */
-int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
+int runForLoop(astNode *node, hmStack *stack, hm* functionMap, Lexer* l, error *err) {
     //Copy instruction block to run 
     InstructionBlock instructions = *(node->children[node->childrenCount-1]->value.block);
 
@@ -423,7 +424,7 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
     newVar->value._int = 0;
     //If we have more than 2 children, compute the start value
     if(node->childrenCount > 2){
-        astNode* tmp = computeNode(node->children[0],stack,functionMap,err);
+        astNode* tmp = computeNode(node->children[0],stack,functionMap,l,err);
         if(tmp->type == VARIABLE){
             newVar->value._int = (subsituteValue(tmp,stack,err))->value._int;
         } else {
@@ -436,7 +437,7 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
     
     //If we have 4 children, means we have a different increment value
     if(node->childrenCount == 4){
-        astNode* tmp = computeNode(node->children[node->childrenCount-2],stack,functionMap,err);
+        astNode* tmp = computeNode(node->children[node->childrenCount-2],stack,functionMap,l,err);
         if(tmp->type == VARIABLE){
             incrementValue = (subsituteValue(tmp,stack,err))->value._int;
         } else {
@@ -448,7 +449,7 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
     astNode conditionNode = node->childrenCount == 4 ? *node->children[node->childrenCount-3] : *node->children[node->childrenCount-2];
     int conditionValue;
 
-    astNode* tmp = computeNode(&conditionNode,stack,functionMap,err);
+    astNode* tmp = computeNode(&conditionNode,stack,functionMap,l,err);
     if(tmp->type == VARIABLE){
         conditionValue = (subsituteValue(tmp,stack,err))->value._int;
     } else {
@@ -461,7 +462,7 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
         while (loopIndexValue > conditionValue) {
             hm* hashmap = hm_create();
             hmStackPush(stack,hashmap);        
-            if(runInstructionBlock(&instructions, stack, functionMap,err) != 0){
+            if(runInstructionBlock(&instructions, stack, functionMap,l,err) != 0){
                 hmStackPop(stack);
                 return 1;
             };
@@ -474,7 +475,7 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, error *err) {
         while (loopIndexValue < conditionValue) {
             hm* hashmap = hm_create();
             hmStackPush(stack,hashmap);
-            if(runInstructionBlock(&instructions, stack, functionMap,err) != 0){
+            if(runInstructionBlock(&instructions, stack, functionMap,l,err) != 0){
                 hmStackPop(stack);
                 return 1;
             };
@@ -514,12 +515,12 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
     return 1;
 }
 
-astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, function* fun, error* err){
+astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, function* fun, Lexer* l , error* err){
 
     hm* Fhashmap = hm_create();
     hmStack* functionStack = hmStackCreate(1);
     for(int i = 0; i < node->childrenCount; i++){
-        astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
+        astNode* subNode = computeNode(node->children[i],stack,functionMap,l,err);
         if (err->value != ERR_SUCCESS || subNode == NULL) {
             return NULL;
         }
@@ -582,7 +583,7 @@ astNode* runBuiltinFunction(astNode* node, hmStack* stack, hm* functionMap, func
     return NULL;
 }
 
-astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err){
+astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, error* err){
 
     function* fun = (struct function*)hm_get(functionMap,node->value.functionCall.name);
     if(fun == NULL){
@@ -600,7 +601,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
     }
     if(fun->isBuiltin == 1){
         //Run builtin function generate its own tmp node
-        return runBuiltinFunction(node,stack,functionMap,fun,err);
+        return runBuiltinFunction(node,stack,functionMap,fun,l,err);
     } else {
         if(node->childrenCount < fun->parametersCount){
             printf("__TOO FEW ARGS__\n");
@@ -619,7 +620,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
                 err->value = ERR_SYNTAX;
                 return NULL;
             }
-            astNode* subNode = computeNode(node->children[i],stack,functionMap,err);
+            astNode* subNode = computeNode(node->children[i],stack,functionMap,l,err);
             var* tmp = malloc(sizeof(var));
             if(subNode->type == VARIABLE){
                 var* tmpV = subsituteValue(subNode, stack, err);
@@ -639,7 +640,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
         }
 
         hmStackPush(functionStack,Fhashmap);
-        runInstructionBlock(fun->instructions, functionStack, functionMap, err);
+        runInstructionBlock(fun->instructions, functionStack, functionMap,l, err);
         
 
         var* returnValue = (var*)hm_get(Fhashmap, "!!$RETURNVALUE$!!");
@@ -662,7 +663,7 @@ astNode* runFunction(astNode* node, hmStack* stack, hm* functionMap, error* err)
 * Call a new runInstructionBlock if a block of code is found in the AST.
 */
 
-astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err){
+astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, error *err){
 
     if(node->childrenCount == 0 && (node->type != INITIALIZATION && node->type != MEMORY_DUMP && node->type != BREAKPOINT && node->type != FUNCTION_CALL)){
         return node; //Send the whole node back
@@ -685,7 +686,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
             if(node->children[i]->type == BLOCK){
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
-                if(runInstructionBlock(node->children[i]->value.block, stack, functionMap,err) != 0){
+                if(runInstructionBlock(node->children[i]->value.block, stack, functionMap,l,err) != 0){
                     return NULL;
                 }
                 hmStackPop(stack);
@@ -698,7 +699,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
                 
                 hm* hashmap = hm_create();
                 hmStackPush(stack,hashmap);
-                if(runInstructionBlock(node->children[i]->value.block, stack, functionMap,err) != 0){
+                if(runInstructionBlock(node->children[i]->value.block, stack, functionMap, l, err) != 0){
                     return NULL;
                 };
                 hmStackPop(stack);
@@ -707,17 +708,17 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
 
             i+=1;
         } else if(node->type == WHILE_LOOP){
-            if(runWhileLoop(node,stack,functionMap,err) != 0){
+            if(runWhileLoop(node,stack,functionMap,l,err) != 0){
                 return NULL;
             };
             break;
         } else if(node->type == FOR_LOOP){
-            if(runForLoop(node,stack,functionMap,err) != 0){
+            if(runForLoop(node,stack,functionMap,l,err) != 0){
                 return NULL;
             };
             break;
         } else{
-            values[i] = computeNode(node->children[i], stack,functionMap, err);
+            values[i] = computeNode(node->children[i], stack,functionMap,l, err);
             if (err->value != ERR_SUCCESS) return NULL;
         }
     }
@@ -730,7 +731,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
             //ERROR
             return NULL;
         }
-        assignValueToHashmap(values[0], values[1], stack,functionMap, err);
+        assignValueToHashmap(values[0], values[1], stack,functionMap, l, err);
     } else if(node->type == OPERATOR && valuesAmount > 0){
         return calculateNode(values, node, stack, valuesAmount, err);
        return node;
@@ -738,8 +739,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
         declareFunction(node,stack,functionMap,err);
         return node;
     } else if (node->type == FUNCTION_CALL) {
-        printf("__test__\n");
-        return runFunction(node, stack, functionMap, err);
+        return runFunction(node, stack, functionMap,l, err);
     } else if(node->type == RETURN){
         //IF VOID RETURN DONT DO THAT WHEN BASILE HAVE FIXED TODO
         var* returnValue = malloc(sizeof(var));
@@ -760,6 +760,9 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
     } else if (node->type == MEMORY_DUMP){
         displayHashmap(stack,err);
         return node;
+    } else if (node->type == BREAKPOINT){
+        cliMode(l,stack,functionMap,err);
+        return node;
     } else {
         return node;
     }
@@ -772,9 +775,9 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, error *err)
 * After the run, pop the hashmap on top of the stack.
 */
 
-int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionMap, error *err){
+int runInstructionBlock(InstructionBlock* program, hmStack* stack, hm* functionMap, Lexer* l, error *err){
     for(int i = 0; i < program->instructionsCount; i++){
-        if(computeNode(program->instructions[i], stack, functionMap,err) == NULL){
+        if(computeNode(program->instructions[i], stack, functionMap,l,err) == NULL){
             return -1;
         };
         // Stop computing if there's an error

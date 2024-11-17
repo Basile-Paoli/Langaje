@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
     clock_t start, end;
     double cpu_time_used;
     start = clock();
-    int runInstructionResult = runInstructionBlock(pr, stack, functionMap, err);
+    int runInstructionResult = runInstructionBlock(pr, stack, functionMap, l, err);
     end = clock();
     //displayHashmap(stack, err);
     hmStackPop(stack);
