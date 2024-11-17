@@ -1,89 +1,50 @@
 #include "cli.h"
 
-// Constants for bracket types
-#define PARENTHESES 0
-#define BRACKETS 1
-#define CURLY_BRACKETS 2
-
-// Enable raw terminal mode
 void enableRawMode(struct termios *orig_termios) {
     struct termios raw = *orig_termios;
-    raw.c_lflag &= ~(ECHO | ICANON); // Disable echo and canonical mode
+    raw.c_lflag &= ~(ECHO | ICANON);
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
-// Restore the terminal to its original state
 void disableRawMode(struct termios *orig_termios) {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, orig_termios);
 }
 
 void printPrompt(const char *input, int cursor_pos) {
-    printf("\r\033[K");  // Clear the current line
-
-    // Display '...' prompt if brackets are unbalanced
-    if (countUnbalancedBrackets(input) > 0) {
-        printf("... ");
-    } else {
-        printf(">>> ");  // Default prompt
-    }
-
-    printf("%s", input);  // Print the input
-    // Move cursor to the correct position (add 5 to the prompt length)
-    printf("\033[%dG", cursor_pos + 5);
+    printf("\r\033[K>>> %s", input); // Clear the line before printing
+    printf("\033[%dG", cursor_pos + 5); // Move cursor to the correct position
     fflush(stdout);
 }
 
-// Tokenize and execute the input code
-int executeCode(char *input, Lexer *l, hm* functionMap, hmStack* stack, error *err) {
+int runCode(char *input, Lexer *l, hm* functionMap, hmStack* stack, error *err) {
     // Tokenize the input
-    TokenList *tokens = tokenizer(input, l, err);
-    if (!tokens) {
-        assignErrorMessage(err, "Tokenization failed");
+    TokenList *tl = tokenizer(input, l, err);
+    if (tl == NULL) {
+        free_tokenList(tl);
+        assignErrorMessage(err, "Could not Tokenize");
         return 1;
     }
 
-    // Parse the tokens into an instruction block
-    InstructionBlock *instructions = parse(tokens, err);
+    InstructionBlock *pr = parse(tl, err);
     if (err->value != ERR_SUCCESS) {
-        free_tokenList(tokens);
-        assignErrorMessage(err, "Parsing failed");
+        free_tokenList(tl);
+        assignErrorMessage(err, "Could not parse");
         return 1;
     }
 
-    // Execute the instructions
-    if (runInstructionBlock(instructions, stack, functionMap, l, err)) {
-        free_tokenList(tokens);
-        assignErrorMessage(err, "Execution failed");
+    if (runInstructionBlock(pr, stack, functionMap, l, err)) {
+        free_tokenList(tl);
+        assignErrorMessage(err, "Could not run instruction");
         return 1;
     }
 
-    free_tokenList(tokens);
+    free_tokenList(tl);
+
     return 0;
 }
 
-// Count unbalanced brackets in the input string
-int countUnbalancedBrackets(const char *input) {
-    int counts[3] = {0}; // PARENTHESES, BRACKETS, CURLY_BRACKETS
-    for (int i = 0; input[i] != '\0'; i++) {
-        switch (input[i]) {
-            case '(': counts[PARENTHESES]++; break;
-            case ')': counts[PARENTHESES]--; break;
-            case '[': counts[BRACKETS]++; break;
-            case ']': counts[BRACKETS]--; break;
-            case '{': counts[CURLY_BRACKETS]++; break;
-            case '}': counts[CURLY_BRACKETS]--; break;
-        }
-    }
-    return counts[PARENTHESES] + counts[BRACKETS] + counts[CURLY_BRACKETS];
-}
-
-// Check if the input is "@exit" and exit the program if true
-int checkExitCondition(const char *input) {
-    return strcmp(input, "@exit") == 0;
-}
-
-// Main interactive CLI loop
 int cliMode(Lexer *l, hmStack *stack, hm* functionMap, error *err) {
+
     struct termios orig_termios;
     tcgetattr(STDIN_FILENO, &orig_termios);
     enableRawMode(&orig_termios);
@@ -92,139 +53,110 @@ int cliMode(Lexer *l, hmStack *stack, hm* functionMap, error *err) {
     char final_input[MAX_INPUT] = {0};
     int cursor_pos = 0;
     int len = 0;
+    
+    printf(">>> ");
 
-    // Track whether to display '...' or '>>>'
-    int isParenOpen = 0;
+    int nb_brackets[3] = {0};
 
-    printf(">>> ");  // Initial prompt
-
-    int running = 1;
-    while (running) {
+    while (1) {
         char c = getchar();
-        switch (c) {
-            case 27:  // Escape sequence (arrow keys)
-                handleArrowKeys(&cursor_pos, len);
-                break;
-            case 10:  // Enter key
-                if (handleEnterKey(input, final_input, &len, cursor_pos)) {
-                    continue;  // Skip to the next iteration if still gathering input
+        if (c == 27) { // Escape sequence
+            getchar(); // Skip the '['
+            switch (getchar()) {
+                case 'C': // Right arrow
+                    if (cursor_pos < len) cursor_pos++;
+                    break;
+                case 'D': // Left arrow
+                    if (cursor_pos > 0) cursor_pos--;
+                    break;
+                case 'A': // Up arrow
+                case 'B': // Down arrow
+                    break;
+            }
+        } else if (c == 10) { // Enter key
+            if (len == 0) {
+                printf("\n>>> ");
+                continue;
+            }
+
+            // foreach char, we count the number of brackets
+            for (int i = 0; i < len; i++) {
+                if (input[i] == '(') nb_brackets[PARENTHESES]++;
+                if (input[i] == ')') nb_brackets[PARENTHESES]--;
+                if (input[i] == '[') nb_brackets[BRACKETS]++;
+                if (input[i] == ']') nb_brackets[BRACKETS]--;
+                if (input[i] == '{') nb_brackets[CURLY_BRACKETS]++;
+                if (input[i] == '}') nb_brackets[CURLY_BRACKETS]--;
+            }
+
+            // Check if there are any unclosed brackets
+            int unclosed_brackets = 0;
+            for (int i = 0; i < 3; i++) {
+                unclosed_brackets += nb_brackets[i];
+            }
+
+            if (unclosed_brackets > 0) {
+                strcat(final_input, input);
+                strcat(final_input, "\n");
+                input[0] = 0;
+                len = 0;
+                cursor_pos = 0;
+                for (int i = 0; i < MAX_INPUT; i++) {
+                    input[i] = 0;
                 }
+                printf("\n>>> ");
+                continue;
+            } else {
+                strcat(final_input, input);
+                strcpy(input, final_input);
+                memset(final_input, 0, sizeof(final_input));
+                len = strlen(input);
+            }
 
-                // Check for "@exit" and break the loop if found
-                if (checkExitCondition(input)) {
-                    running = 0;
-                    break;  // Exit the loop and program
+
+            input[len] = '\0';
+            if (strcmp(input, "@exit") == 0) break;
+            if (runCode(input, l, functionMap, stack, err)) { // If an error occured
+                disableRawMode(&orig_termios);
+                return 1;
+            }
+            len = 0;
+            cursor_pos = 0;
+            for (int i = 0; i < MAX_INPUT; i++) {
+                input[i] = 0;
+            }
+            printf("\n>>> ");
+        } else if (c == 127) { // Backspace key
+            if (cursor_pos > 0) {
+                for (int i = cursor_pos - 1; i < len - 1; i++) {
+                    input[i] = input[i + 1];
                 }
-
-                // Execute the code if the input is not "@exit"
-                if (executeCode(input, l, functionMap, stack, err)) {
-                    printf("\n");
-                    assignErrorMessage(err, "Error executing code");
-                    disableRawMode(&orig_termios);
-                    return 1;  // Error occurred during code execution
+                input[--len] = '\0';
+                cursor_pos--;
+                printPrompt(input, cursor_pos);
+                continue;
+            }
+        } else if (c == 126) { // Delete key
+            if (cursor_pos < len) {
+                for (int i = cursor_pos; i < len - 1; i++) {
+                    input[i] = input[i + 1];
                 }
-
-                // Reset the input buffer
-                resetInputBuffer(input, &len, &cursor_pos);
-
-                // Reset prompt condition after processing
-                isParenOpen = 0; // Reset after input is processed
-                break;
-            case 127:  // Backspace key
-                handleBackspace(input, &len, &cursor_pos);
-                break;
-            case 126:  // Delete key
-                handleDelete(input, &len, &cursor_pos);
-                break;
-            default:
-                // Handle regular character input
-                handleCharacterInput(input, &len, &cursor_pos, c);
+                input[--len] = '\0';
+                printPrompt(input, cursor_pos);
+                continue;
+            }
+        } else {
+            for (int i = len; i > cursor_pos; i--) {
+                input[i] = input[i - 1];
+            }
+            input[cursor_pos++] = c;
+            len++;
         }
-
-        if (!running) break;  // Exit the loop if running is false
-
-        // Print the appropriate prompt based on whether "(" was entered or brackets are unbalanced
         printPrompt(input, cursor_pos);
-
     }
 
     disableRawMode(&orig_termios);
+
     return 0;
-}
 
-void handleArrowKeys(int *cursor_pos, int len) {
-    char direction[3]; // Store the full escape sequence
-    direction[0] = getchar();  // First byte (Escape, 27)
-    direction[1] = getchar();  // Second byte ([)
-    direction[2] = getchar();  // Third byte (Arrow code: 'C' for right, 'D' for left)
-    
-    if (direction[0] == 27 && direction[1] == 91) {
-        if (direction[2] == 'C' && *cursor_pos < len) {
-            (*cursor_pos)++;  // Right arrow
-        } else if (direction[2] == 'D' && *cursor_pos > 0) {
-            (*cursor_pos)--;  // Left arrow
-        }
-    }
-}
-
-
-int handleEnterKey(char *input, char *final_input, int *len, int cursor_pos) {
-    // Count unbalanced brackets
-    if (countUnbalancedBrackets(input) > 0) {
-        //strcat(final_input, input);
-        strcat(final_input, "\n");
-        printf("\n... ");
-        return 1;  // Continue gathering input if brackets are unbalanced
-    }
-
-    if (strlen(input) == 0 || strspn(input, " \t\n") == strlen(input)) {
-        printf("\n>>> ");
-        return 1;  // Skip processing if input is empty or only whitespace
-    }
-
-    // Otherwise, process the complete input
-    strcat(final_input, input);
-    strcpy(input, final_input);
-    memset(final_input, 0, sizeof(final_input));
-    *len = strlen(input);
-    return 0;
-}
-
-// Reset the input buffer after each input processing
-void resetInputBuffer(char *input, int *len, int *cursor_pos) {
-    *len = 0;
-    *cursor_pos = 0;
-    memset(input, 0, MAX_INPUT);
-    printf("\n>>> ");  // Prompt for new input
-}
-
-// Handle backspace key input
-void handleBackspace(char *input, int *len, int *cursor_pos) {
-    if (*cursor_pos > 0) {
-        for (int i = *cursor_pos - 1; i < *len - 1; i++) {
-            input[i] = input[i + 1];
-        }
-        input[--(*len)] = '\0';
-        (*cursor_pos)--;
-    }
-}
-
-// Handle delete key input
-void handleDelete(char *input, int *len, int *cursor_pos) {
-    if (*cursor_pos < *len) {
-        for (int i = *cursor_pos; i < *len - 1; i++) {
-            input[i] = input[i + 1];
-        }
-        input[--(*len)] = '\0';
-    }
-}
-
-// Handle character input (add character at cursor position)
-void handleCharacterInput(char *input, int *len, int *cursor_pos, char c) {
-    for (int i = *len; i > *cursor_pos; i--) {
-        input[i] = input[i - 1];
-    }
-    input[*cursor_pos] = c;
-    (*len)++;
-    (*cursor_pos)++;
 }
