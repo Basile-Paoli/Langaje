@@ -73,7 +73,8 @@ void __builtinToMap__(hm* functionMap, error* err){
         newFunctionPrototype("append",       _array,    __append__,     2, err, (fakeFunctionParam[]){{"array", _array}, {"toAdd", _void}}),
         newFunctionPrototype("pop",          _array,    __pop__,        1, err, (fakeFunctionParam[]){{"array", _array}}),
         newFunctionPrototype("type",         _string,   __type__,       1, err, (fakeFunctionParam[]){{"entry", _void}}),
-        newFunctionPrototype("ord",          _int,      __ord__,        1, err, (fakeFunctionParam[]){{"entry", _char}})
+        newFunctionPrototype("ord",          _int,      __ord__,        1, err, (fakeFunctionParam[]){{"entry", _char}}),
+        newFunctionPrototype("char",         _char,     __char__,       1, err, (fakeFunctionParam[]){{"entry", _int}})
     };
 
 
@@ -667,4 +668,34 @@ void call__ord__(hmStack *fStack, error *err) {
     newVar->value._int = str[0];
 
     free(str);
+}
+
+void call__char__(hmStack *fStack, error *err) {
+    var *newVar = malloc(sizeof(var));
+    if (newVar == NULL) {
+        err->value = ERR_MEMORY;
+        assignErrorMessage(err, "Memory allocation error\n");
+        return;
+    }
+
+    newVar->type = _int;
+    newVar->value._int = -1;
+    hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", newVar);
+
+    var *entry = (var *) hm_get(fStack->stack[0], "entry");
+
+    if (entry->type != _int) {
+        err->value = ERR_TYPE;
+        char *str = strdup("char function expect 1 parameter: entry(int). Got -> ");
+        str = realloc(str, strlen(str) + strlen(getVarTypeName(entry->type) + 1));
+        strcat(str, getVarTypeName(entry->type));
+        assignErrorMessage(err, str);
+        free(str);
+        return;
+    }
+
+    newVar->value._string = (char*)malloc(2);
+    newVar->value._string[0] = entry->value._int;
+    newVar->value._string[1] = '\0';
+    newVar->type = _string;
 }

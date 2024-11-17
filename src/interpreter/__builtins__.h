@@ -26,5 +26,6 @@ void call__append__(hmStack* fStack, error* err);
 void call__pop__(hmStack* fStack, error* err);
 void call__type__(hmStack* fStack, error* err);
 void call__ord__(hmStack* fStack, error* err);
+void call__char__(hmStack* fStack, error* err);
 
 #endif
