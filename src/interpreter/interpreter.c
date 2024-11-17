@@ -523,7 +523,7 @@ int declareFunction(astNode* node,hmStack* stack,hm* functionMap,error* err){
     functionDeclarationNode fun = node->value.functionDeclaration;
     if((struct function*)hm_get(functionMap,fun.name) != NULL){
         err->value = ERR_ALREADY_EXISTS;
-        assignErrorMessage(err,strcat("Function redefinition : ", fun.name));
+        assignErrorMessage(err,"Function redefinition");
         return 0;
     }
     function* funTmp = malloc(sizeof(function));
@@ -784,7 +784,9 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
         free(values);
         return tmp;
     } else if (node->type == FUNCTION_DECLARATION){
-        declareFunction(node,stack,functionMap,err);
+        if(declareFunction(node,stack,functionMap,err) == 0){
+            return NULL;
+        }
         free(values);
         return node;
     } else if (node->type == FUNCTION_CALL) {
