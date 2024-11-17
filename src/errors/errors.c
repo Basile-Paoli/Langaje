@@ -21,8 +21,10 @@ void *endOfInputError(error *err) {
  *
  * */
 int assignErrorMessage(error *err, char *msg) {
-    //err->message = malloc(strlen(getNameTypeError(err->value)) + strlen(msg) + 1);
-    err->message = (char *)realloc(err->message, strlen(getNameTypeError(err->value)) + strlen(msg) + strlen(err->message) + 1);
+  err->message = malloc(sizeof(char) * (strlen(getNameTypeError(err->value)) + strlen(msg) + 50));
+    
+//    err->message = (char *)realloc(err->message, strlen(getNameTypeError(err->value)) + strlen(msg) + strlen(err->message) + 1);
+    strcpy(err->message,"");
     strcat(err->message, getNameTypeError(err->value));
     strcat(err->message, msg);
     strcat(err->message, "\n");
