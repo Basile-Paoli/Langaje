@@ -118,6 +118,9 @@ int cliMode(Lexer *l, hmStack *stack, hm* functionMap, error *err) {
 
                 // Execute the code if the input is not "@exit"
                 if (executeCode(input, l, functionMap, stack, err)) {
+                    printf("\n");
+                    assignErrorMessage(err, "Error executing code");
+                    disableRawMode(&orig_termios);
                     return 1;  // Error occurred during code execution
                 }
 
