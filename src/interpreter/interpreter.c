@@ -509,6 +509,8 @@ int runForLoop(astNode *node, hmStack *stack, hm* functionMap, Lexer* l, error *
         if (stack->stack[stack->length-1]->entries[i].value != NULL && !strcmp((char*)stack->stack[stack->length-1]->entries[i].key,node->value.variable)){
             destroyVar((struct var*)stack->stack[stack->length-1]->entries[i].value);
             free((char*)stack->stack[stack->length-1]->entries[i].key);
+            stack->stack[stack->length-1]->entries[i].key = NULL;
+            stack->stack[stack->length-1]->entries[i].value = NULL;
         }
     }
 
