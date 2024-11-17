@@ -69,6 +69,8 @@ char *get_lang(char *input, error *err) {
         while (*temp != '\n' && *temp != '\0') {
             // #lang "name"
             if (*temp == '"') {
+            // #lang "name"
+            if (*temp == '"') {
                 temp++;
                 while (*temp != '"') {
                     if (k == langLength) {
@@ -481,8 +483,10 @@ char *read_file(char *filename, error *err) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         err->value = ERR_FILE;
-        assignErrorMessage(err, "Cannot open file :");
-        assignErrorMessage(err, filename);
+        char* errMsg = malloc(sizeof(char)*(strlen("Cannot open file : ") + strlen(filename)));
+        strcat(errMsg,"Cannot open file :");
+        strcat(errMsg,filename);
+        assignErrorMessage(err, errMsg);
         return NULL;
     }
 

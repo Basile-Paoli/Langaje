@@ -32,7 +32,7 @@ int runCode(char *input, Lexer *l, hm* functionMap, hmStack* stack, error *err) 
         return 1;
     }
 
-    if (runInstructionBlock(pr, stack, functionMap, err)) {
+    if (runInstructionBlock(pr, stack, functionMap, l, err)) {
         free_tokenList(tl);
         assignErrorMessage(err, "Could not run instruction");
         return 1;
@@ -155,6 +155,8 @@ int cliMode(Lexer *l, hmStack *stack, hm* functionMap, error *err) {
     }
 
     disableRawMode(&orig_termios);
+
+    printf("\n");
 
     return 0;
 

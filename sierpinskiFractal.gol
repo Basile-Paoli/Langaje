@@ -1,0 +1,33 @@
+func hasBinaryOverlap(int x, int y) {
+    while (x > 0 and y > 0) {
+        
+        if (x % 2 == 1 and y % 2 == 1) {
+            return 1; 
+        }
+        x /= 2; 
+        y /= 2; 
+    }
+    return 0; 
+}
+
+func printSierpinski(int n) {
+    for (y in (n-1),-1,-1){
+        for(i in 0,y){
+            print(" ");
+        }
+        def int x = 0;
+        while((x + y) < n){
+            if(hasBinaryOverlap(x,y)){
+                print("  ");
+            } else {
+                print("* ");
+            }
+
+            x += 1;
+        }
+        print("\n");
+    }
+    return 0;
+}
+
+printSierpinski(64);

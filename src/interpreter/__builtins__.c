@@ -31,20 +31,20 @@ void display__print(var* value, error* err, int level) {
     case _TMPString:
         char* str = getString(value,err);
         str = replace_str(str);
-        printf("%s\n", str);
+        printf("%s", str);
         free(str);
         break;
     case _int:
-        printf("%d\n", value->value._int);
+        printf("%d", value->value._int);
         break;
     case _float:
-        printf("%f\n", value->value._float);
+        printf("%f", value->value._float);
         break;
     case _char:
-        printf("%c\n", value->value._char);
+        printf("%c", value->value._char);
         break;
     case _string:
-        printf("%s\n", value->value._string);
+        printf("%s", value->value._string);
         break;
     case _array:
         for (int i = 0; i < value->value._array->length; i++) {
@@ -580,7 +580,6 @@ void call__append__(hmStack* fStack, error* err){
     var *tmp = newArrayVar(arrayLen + 1, arrayToAppend->value._array->type,err);
     for(int i = 0; i < arrayLen; i++){
         var2var(&tmp->value._array->values[i], &arrayToAppend->value._array->values[i], err);
-
     }
         
 
@@ -604,9 +603,12 @@ void call__pop__(hmStack* fStack, error* err){
 
     int arrayLen = arrayToPop->value._array->length -1 ;
     var *tmp = newArrayVar(arrayLen, arrayToPop->value._array->type,err);
-
-    for(int i = 0; i < arrayLen; i++)
+    
+    for(int i = 0; i < arrayLen; i++){
         var2var(&tmp->value._array->values[i], &arrayToPop->value._array->values[i], err);
+    }
+    
+    
 
     hm_set(fStack->stack[0], "!!$RETURNVALUE$!!", tmp);
 }
