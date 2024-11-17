@@ -674,10 +674,7 @@ astNode* computeNode(astNode* node, hmStack* stack, hm* functionMap, Lexer* l, e
     for(int i = 0; i < node->childrenCount; i++){
         if(node->children[i] == NULL)continue;
         if(node->type == FUNCTION_CALL)break;
-        if(node->childrenCount == 1 && node->children[0] == ARRAY){
-            err->value = ERR_SYNTAX;
-            return NULL;
-        }
+        
         valuesAmount++;
 
 
