@@ -1,1 +1,0 @@
-print(char(ord("A") + 1)); // Output: B

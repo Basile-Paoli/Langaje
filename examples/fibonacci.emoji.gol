@@ -1,0 +1,11 @@
+#lang "emoji"
+🔧 fibonacci🟠🔢 n🔵 🔢 🟩
+    ❓ 🟠n ⬇️🤝 1🔵 🟩
+        🔙 n🚩
+    🟥
+    🔙 fibonacci🟠n➖1🔵 ➕ fibonacci🟠n➖2🔵🚩
+🟥
+
+🔁 🟠i 📥 10🔵 🟩
+    print🟠"fibonacci🟠" ➕ i ➕ "🔵 : " ➕ fibonacci🟠i🔵 ➕ "\n"🔵🚩
+🟥
