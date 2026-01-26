@@ -1,0 +1,99 @@
+func parseInput(string input) string [] {
+   return split(input, " ");
+}
+
+func str(string s) string {
+    return s + "";
+}
+
+func atoi(string s) int {
+    def int n = 0;
+
+    if (("" + s[0]) == "-") {
+        for (i in 1, len(s)) {
+            n = n * 10 + ord("" + s[i]) - ord("0");
+        }
+        return -n;
+    }
+
+    for (i in len(s)) {
+        n = n * 10 + ord("" + s[i]) - ord("0");
+    }
+
+    return n;
+}
+
+func isNumber(string s) int{
+    for (i in len(s)) {
+        if (ord(str(s[i])) < ord("0") or ord(str(s[i])) > ord("9")) {
+            return 0;
+        }
+    }
+    return 1;
+}
+func shouldPop(string token, string top) int {
+    return ((token == "*" or token == "/") and (top == "*" or top == "/")) or
+           ((token == "+" or token == "-") and (top == "+" or top == "-" or top == "*" or top == "/"));
+}
+
+func calc(int a, int b, string op) int {
+    if (op == "+") {
+        return a + b;
+    } else if (op == "-") {
+        return a - b;
+    } else if (op == "*") {
+        return a * b;
+    } else if (op == "/") {
+        return a / b;
+    }
+}
+
+func shuntingYard(string[] tokens) string{
+   def string[1] output;
+   output = pop(output);
+   def string[1] stack;
+   stack = pop(stack);
+   for(i in len(tokens)) {
+        def string token = tokens[i];
+        if(isNumber(token)) {
+            output = append(output, token);
+        } else if(token == "(") {
+            stack = append(stack, token);
+        } else if(token == ")") {
+            while(len(stack) > 0 and stack[len(stack) - 1] != "(") {
+                def int result = calc(atoi(output[len(output) - 2]), atoi(output[len(output) - 1]), stack[len(stack) - 1]);
+                output = pop(output);
+                output = pop(output);
+                output = append(output, result + "");
+                stack = pop(stack);
+            }
+            stack = pop(stack);
+        } else {
+            while(len(stack) > 0 and shouldPop(token, stack[len(stack) - 1]) and stack[len(stack) - 1] != "(") {
+                def int result = calc(atoi(output[len(output) - 2]), atoi(output[len(output) - 1]), stack[len(stack) - 1]);
+                output = pop(output);
+                output = pop(output);
+                output = append(output, result + "");
+                stack = pop(stack);
+            }
+            stack = append(stack, token);
+        }
+   }
+    while(len(stack) > 0) {
+        def int result = calc(atoi(output[len(output) - 2]), atoi(output[len(output) - 1]), stack[len(stack) - 1]);
+        output = pop(output);
+        output = pop(output);
+        output = append(output, result + "");
+        stack = pop(stack);
+    }
+    return output[0];
+}
+
+while(1) {
+    def string input = input("Enter a calculation: \n");
+    def string[] tokens = parseInput(input);
+    def string output = shuntingYard(tokens);
+    print(output + "\n");
+}
+
+

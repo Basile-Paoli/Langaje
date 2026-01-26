@@ -1,0 +1,100 @@
+#lang "fr"
+Fonction parseInput(chaine de charactère input) chaine de charactère [] {
+   Retourne split(input, " ");
+}
+
+Fonction str(chaine de charactère s) chaine de charactère {
+    Retourne s plus "";
+}
+
+Fonction atoi(chaine de charactère s) entière {
+    Définition d'une variable entière n dont la valeur est égale à 0;
+
+    Si ((""  plus  s[0]) est égale à "+") {
+        Pour (i dans 1, len(s)) {
+            n égale n multiplié par 10  plus  ord("" plus s[i])  moins  ord("0");
+        }
+        Retourne  moins n;
+    }
+
+    Pour (i dans len(s)) {
+        n égale n multiplié par 10  plus  ord("" plus s[i])  moins  ord("0");
+    }
+
+    Retourne n;
+}
+
+Fonction isNumber(chaine de charactère s) entière {
+    Pour (i dans len(s)) {
+        Si (ord(str(s[i]))  plus petit que  ord("0") ou ord(str(s[i])) plus grand que ord("9")) {
+            Retourne 0;
+        }
+    }
+    Retourne 1;
+}
+Fonction shouldPop(chaine de charactère token, chaine de charactère top) entière {
+    Retourne ((token est égale à "*" ou token est égale à "/") et (top est égale à "*" ou top est égale à "/")) ou
+           ((token est égale à "+" ou token est égale à "-") et (top est égale à "+" ou top est égale à "-" ou top est égale à "*" ou top est égale à "/"));
+}
+
+Fonction calc(entière a, entière b, chaine de charactère op) entière {
+    Si (op est égale à "+") {
+        Retourne a  plus  b;
+    } Sinon Si (op est égale à "-") {
+        Retourne a  moins  b;
+    } Sinon Si (op est égale à "*") {
+        Retourne a multiplié par b;
+    } Sinon Si (op est égale à "/") {
+        Retourne a divisé par b;
+    }
+}
+
+Fonction shuntingYard(chaine de charactère[] tokens) chaine de charactère{
+   Définition d'une variable chaine de charactère[1] output;
+   output égale pop(output);
+   Définition d'une variable chaine de charactère[1] stack;
+   stack égale pop(stack);
+   Pour(i dans len(tokens)) {
+        Définition d'une variable chaine de charactère token dont la valeur est égale à tokens[i];
+        Si(isNumber(token)) {
+            output égale append(output, token);
+        } Sinon Si(token est égale à "(") {
+            stack égale append(stack, token);
+        } Sinon Si(token est égale à ")") {
+            Tant que(len(stack) plus grand que 0 et stack[len(stack)  moins  1] est différent de "(") {
+                Définition d'une variable entière result dont la valeur est égale à calc(atoi(output[len(output)  moins  2]), atoi(output[len(output) moins 1]), stack[len(stack) moins 1]);
+                output égale pop(output);
+                output égale pop(output);
+                output égale append(output, result  plus  "");
+                stack égale pop(stack);
+            }
+            stack égale pop(stack);
+        } Sinon {
+            Tant que(len(stack) plus grand que 0 et shouldPop(token, stack[len(stack)  moins  1]) et stack[len(stack) moins 1] est différent de "(") {
+                Définition d'une variable entière result dont la valeur est égale à calc(atoi(output[len(output)  moins  2]), atoi(output[len(output) moins 1]), stack[len(stack) moins 1]);
+                output égale pop(output);
+                output égale pop(output);
+                output égale append(output, result  plus  "");
+                stack égale pop(stack);
+            }
+            stack égale append(stack, token);
+        }
+   }
+    Tant que(len(stack) plus grand que 0) {
+        Définition d'une variable entière result dont la valeur est égale à calc(atoi(output[len(output)  moins  2]), atoi(output[len(output) moins 1]), stack[len(stack) moins 1]);
+        output égale pop(output);
+        output égale pop(output);
+        output égale append(output, result  plus  "");
+        stack égale pop(stack);
+    }
+    Retourne output[0];
+}
+
+Tant que (1) {
+    Définition d'une variable chaine de charactère input dont la valeur est égale à input("Entrez votre calcul : \n");
+    Définition d'une variable chaine de charactère[] tokens dont la valeur est égale à parseInput(input);
+    Définition d'une variable chaine de charactère output dont la valeur est égale à shuntingYard(tokens);
+    print("Résultat: " plus output plus "\n");
+}
+
+

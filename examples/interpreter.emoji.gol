@@ -1,0 +1,98 @@
+#lang "emoji"
+
+🔧 parseInput🟠📝 input🔵 📝 🟦🟪 🟩
+   🔙 split🟠input🛑 " "🔵🚩
+🟥
+
+🔧 str🟠📝 s🔵 📝 🟩
+    🔙 s ➕ ""🚩
+🟥
+
+🔧 atoi🟠📝 s🔵 🔢 🟩
+    🌊 🔢 n ✍️ 0🚩
+
+    ❓ 🟠🟠"" ➕ s🟦0🟪🔵 🤝 "-"🔵 🟩
+        🔁 🟠i 📥 1🛑 len🟠s🔵🔵 🟩
+            n ✍️ n ✖️ 10 ➕ ord🟠"" ➕ s🟦i🟪🔵 ➖ ord🟠"0"🔵🚩
+        🟥
+        🔙 ➖n🚩
+    🟥
+
+    🔁 🟠i 📥 len🟠s🔵🔵 🟩
+        n ✍️ n ✖️ 10 ➕ ord🟠"" ➕ s🟦i🟪🔵 ➖ ord🟠"0"🔵🚩
+    🟥
+
+    🔙 n🚩
+🟥
+
+🔧 isNumber🟠📝 s🔵 🔢🟩
+    🔁 🟠i 📥 len🟠s🔵🔵 🟩
+        ❓ 🟠ord🟠str🟠s🟦i🟪🔵🔵 ⬇️ ord🟠"0"🔵 📌 ord🟠str🟠s🟦i🟪🔵🔵 ⬆️ ord🟠"9"🔵🔵 🟩
+            🔙 0🚩
+        🟥
+    🟥
+    🔙 1🚩
+🟥
+🔧 shouldPop🟠📝 token🛑 📝 top🔵 🔢 🟩
+    🔙 🟠🟠token 🤝 "*" 📌 token 🤝 "/"🔵 🤝🤝 🟠top 🤝 "*" 📌 top 🤝 "/"🔵🔵 📌
+           🟠🟠token 🤝 "+" 📌 token 🤝 "-"🔵 🤝🤝 🟠top 🤝 "+" 📌 top 🤝 "-" 📌 top 🤝 "*" 📌 top 🤝 "/"🔵🔵🚩
+🟥
+
+🔧 calc🟠🔢 a🛑 🔢 b🛑 📝 op🔵 🔢 🟩
+    ❓ 🟠op 🤝 "+"🔵 🟩
+        🔙 a ➕ b🚩
+    🟥 🚪 ❓ 🟠op 🤝 "-"🔵 🟩
+        🔙 a ➖ b🚩
+    🟥 🚪 ❓ 🟠op 🤝 "*"🔵 🟩
+        🔙 a ✖️ b🚩
+    🟥 🚪 ❓ 🟠op 🤝 "/"🔵 🟩
+        🔙 a ➗ b🚩
+    🟥
+🟥
+
+🔧 shuntingYard🟠📝🟦🟪 tokens🔵 📝 🟩
+   🌊 📝🟦1🟪 output🚩
+   output ✍️ pop🟠output🔵🚩
+   🌊 📝🟦1🟪 stack🚩
+   stack ✍️ pop🟠stack🔵🚩
+   🔁🟠i 📥 len🟠tokens🔵🔵 🟩
+        🌊 📝 token ✍️ tokens🟦i🟪🚩
+        ❓🟠isNumber🟠token🔵🔵 🟩
+            output ✍️ append🟠output🛑 token🔵🚩
+        🟥 🚪 ❓🟠token 🤝 "("🔵 🟩
+            stack ✍️ append🟠stack🛑 token🔵🚩
+        🟥 🚪 ❓🟠token 🤝 ")"🔵 🟩
+            🔄🟠len🟠stack🔵 ⬆️ 0 🤝🤝 stack🟦len🟠stack🔵 ➖ 1🟪 ❌ "("🔵 🟩
+                🌊 🔢 result ✍️ calc🟠atoi🟠output🟦len🟠output🔵 ➖ 2🟪🔵🛑 atoi🟠output🟦len🟠output🔵 ➖ 1🟪🔵🛑 stack🟦len🟠stack🔵 ➖ 1🟪🔵🚩
+                output ✍️ pop🟠output🔵🚩
+                output ✍️ pop🟠output🔵🚩
+                output ✍️ append🟠output🛑 result ➕ ""🔵🚩
+                stack ✍️ pop🟠stack🔵🚩
+            🟥
+            stack ✍️ pop🟠stack🔵🚩
+        🟥 🚪 🟩
+            🔄🟠len🟠stack🔵 ⬆️ 0 🤝🤝 shouldPop🟠token🛑 stack🟦len🟠stack🔵 ➖ 1🟪🔵 🤝🤝 stack🟦len🟠stack🔵 ➖ 1🟪 ❌ "("🔵 🟩
+                🌊 🔢 result ✍️ calc🟠atoi🟠output🟦len🟠output🔵 ➖ 2🟪🔵🛑 atoi🟠output🟦len🟠output🔵 ➖ 1🟪🔵🛑 stack🟦len🟠stack🔵 ➖ 1🟪🔵🚩
+                output ✍️ pop🟠output🔵🚩
+                output ✍️ pop🟠output🔵🚩
+                output ✍️ append🟠output🛑 result ➕ ""🔵🚩
+                stack ✍️ pop🟠stack🔵🚩
+            🟥
+            stack ✍️ append🟠stack🛑 token🔵🚩
+        🟥
+   🟥
+    🔄🟠len🟠stack🔵 ⬆️ 0🔵 🟩
+        🌊 🔢 result ✍️ calc🟠atoi🟠output🟦len🟠output🔵 ➖ 2🟪🔵🛑 atoi🟠output🟦len🟠output🔵 ➖ 1🟪🔵🛑 stack🟦len🟠stack🔵 ➖ 1🟪🔵🚩
+        output ✍️ pop🟠output🔵🚩
+        output ✍️ pop🟠output🔵🚩
+        output ✍️ append🟠output🛑 result ➕ ""🔵🚩
+        stack ✍️ pop🟠stack🔵🚩
+    🟥
+    🔙 output🟦0🟪🔚🚩
+🟥
+🔄🟠1🔵🟩
+    🌊 📝 input ✍️ input🟠"Enter a calculation: \n"🔵🚩
+    🌊 📝🟦🟪 tokens ✍️ parseInput🟠input🔵🚩
+    🌊 📝 output ✍️ shuntingYard🟠tokens🔵🚩
+    print🟠output ➕ "\n"🔵🚩
+🟥

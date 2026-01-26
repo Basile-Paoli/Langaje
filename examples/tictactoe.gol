@@ -1,0 +1,97 @@
+func getDigitFromString(string s) int {
+    if(len(s) != 1) {
+        return -1;
+    }
+    def int res = ord(s) - ord("0");
+    if (res < 0 or res > 9) {
+        return -1;
+    }
+    return res;
+}
+
+func printBoard(int[] board) {
+    for (i in len(board)) {
+        if (i % 3 == 0) {
+            print("\n");
+        }
+        def int square = board[i];
+        if (square == 0) {
+            print(i +1);
+        } else if (square == 1) {
+            print("X");
+        } else {
+            print("O");
+        }
+        print(" ");
+    }
+    print("\n");
+    return 0;
+}
+
+func hasWon(int[] board, int player) int {
+    for (i in 3) {
+        if (board[i] == player and board[i + 3] == player and board[i + 6] == player) {
+            return player;
+        }
+        if (board[i * 3] == player and board[i * 3 + 1] == player and board[i * 3 + 2] == player) {
+            return player;
+        }
+    }
+    if (board[0] == player and board[4] == player and board[8] == player) {
+        return player;
+    }
+    if (board[2] == player and board[4] == player and board[6] == player) {
+        return player;
+    }
+    return 0;
+}
+
+func isTie(int [] board) int {
+    for (i in len(board)) {
+        if (board[i] == 0) {
+            return 0;
+        }
+    }
+    return 3;
+}
+
+func getPlayerMove(int [] board, int currentPlayer) int {
+    def int move = -1;
+    while (move <= 0 or move > len(board)) {
+        print("Player" + currentPlayer + ", enter your move: ");
+        def string input = input("");
+        move = getDigitFromString(input);
+        if (move <= 0 or move > 9 or board[move - 1] != 0) {
+            print("Invalid move. Try again. \n");
+            move = -1;
+        }
+    }
+    return move;
+}
+
+func playGame() {
+    def int [] board = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    def int[] players = [1, 2];
+    def int currentPlayer = 0;
+    def int winner = 0;
+    while (winner == 0) {
+        printBoard(board);
+        def int move = getPlayerMove(board, players[currentPlayer]);
+        board[move-1] = players[currentPlayer];
+        if (hasWon(board, players[currentPlayer]) != 0) {
+            winner = players[currentPlayer];
+        } else {
+            winner = isTie(board);
+        }
+        currentPlayer = 1 - currentPlayer;
+    }
+    printBoard(board);
+    if (winner == 3) {
+        print("It's a tie!");
+    } else {
+        print("Player " + winner + " wins!");
+    }
+    return 0;
+}
+
+playGame();
